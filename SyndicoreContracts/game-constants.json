@@ -1,0 +1,166 @@
+{
+  "factions": {
+    "reapers": {
+      "id": "reapers",
+      "name": "Reapers",
+      "bonus_type": "ATK",
+      "bonus_value": 0.15,
+      "primary_resource": "credits",
+      "description": "Offensive faction. Fast, cheap units. Wave attacks."
+    },
+    "hegemony": {
+      "id": "hegemony",
+      "name": "Hegemony",
+      "bonus_type": "DEF",
+      "bonus_value": 0.15,
+      "primary_resource": "alloys",
+      "description": "Defensive faction. Tanky, expensive units. Synergy-based defense."
+    },
+    "netrunners": {
+      "id": "netrunners",
+      "name": "Netrunners",
+      "bonus_type": "PRODUCTION",
+      "bonus_value": 0.20,
+      "primary_resource": "tech",
+      "description": "Economy/Intel faction. Information warfare, resource raids."
+    }
+  },
+
+  "resources": ["credits", "alloys", "tech", "energy"],
+
+  "units": {
+    "reapers": {
+      "grunt":      { "role": "fodder",     "atk": 30, "def": 8,  "spd": 12, "carry": 40,  "energy": 1, "train_min": 8,  "cost": { "credits": 120, "alloys": 30 },  "special": "DEATH_BUFF" },
+      "razor":      { "role": "core",       "atk": 75, "def": 20, "spd": 9,  "carry": 25,  "energy": 2, "train_min": 18, "cost": { "credits": 280, "alloys": 90 },  "special": null },
+      "breacher":   { "role": "specialist", "atk": 50, "def": 15, "spd": 7,  "carry": 0,   "energy": 3, "train_min": 25, "cost": { "credits": 200, "tech": 160 },   "special": "WALL_BUSTER" },
+      "viper_bike": { "role": "vehicle",    "atk": 65, "def": 18, "spd": 20, "carry": 70,  "energy": 3, "train_min": 22, "cost": { "credits": 400 },                "special": "LOOT_FIRST" },
+      "shade":      { "role": "scout",      "atk": 5,  "def": 5,  "spd": 22, "carry": 0,   "energy": 1, "train_min": 6,  "cost": { "credits": 60, "tech": 40 },     "special": "EXPOSE_TARGET", "scout": 10 },
+      "havoc_drone":{ "role": "siege",      "atk": 10, "def": 8,  "spd": 4,  "carry": 0,   "energy": 5, "train_min": 40, "cost": { "tech": 350, "alloys": 200 },    "special": "REBUILD_LOCK", "siege": 55 },
+      "mule":       { "role": "transport",  "atk": 0,  "def": 5,  "spd": 18, "carry": 120, "energy": 1, "train_min": 12, "cost": { "credits": 150 },                "special": "STEALTH_NONE" }
+    },
+    "hegemony": {
+      "watchman":   { "role": "fodder",     "atk": 10, "def": 38, "spd": 8,  "carry": 30,  "energy": 1, "train_min": 10, "cost": { "alloys": 130 },                 "special": "WALL_HP_BUFF" },
+      "bastion":    { "role": "core",       "atk": 30, "def": 75, "spd": 6,  "carry": 15,  "energy": 3, "train_min": 24, "cost": { "alloys": 300, "credits": 80 },  "special": "HOME_BONUS", "def_away": 55 },
+      "aegis":      { "role": "specialist", "atk": 10, "def": 30, "spd": 7,  "carry": 0,   "energy": 3, "train_min": 28, "cost": { "alloys": 220, "tech": 100 },    "special": "DEF_AURA", "aura_value": 5, "aura_max_stack": 3 },
+      "rhino_apc":  { "role": "vehicle",    "atk": 45, "def": 50, "spd": 11, "carry": 50,  "energy": 4, "train_min": 30, "cost": { "alloys": 400, "credits": 150 }, "special": "DAMAGE_SHIELD", "shield_pct": 0.10 },
+      "watchdog":   { "role": "scout",      "atk": 5,  "def": 8,  "spd": 14, "carry": 0,   "energy": 1, "train_min": 8,  "cost": { "alloys": 60, "tech": 50 },      "special": "REVEAL_ATTACKER", "scout": 4, "counter_scout": 16 },
+      "demolisher": { "role": "siege",      "atk": 20, "def": 25, "spd": 3,  "carry": 0,   "energy": 6, "train_min": 50, "cost": { "alloys": 500, "tech": 180 },    "special": "HQ_TARGET", "siege": 65 },
+      "convoy":     { "role": "transport",  "atk": 0,  "def": 35, "spd": 8,  "carry": 100, "energy": 1, "train_min": 15, "cost": { "alloys": 200 },                 "special": "HIGH_DEF_TRANSPORT" }
+    },
+    "netrunners": {
+      "proxy":       { "role": "fodder",     "atk": 18, "def": 18, "spd": 10, "carry": 70,  "energy": 1, "train_min": 9,  "cost": { "tech": 70, "credits": 40 },     "special": "PVE_BONUS", "pve_bonus": 0.25 },
+      "dataminer":   { "role": "core",       "atk": 42, "def": 38, "spd": 9,  "carry": 35,  "energy": 2, "train_min": 20, "cost": { "tech": 200, "credits": 90 },    "special": "INTEL_REPORT" },
+      "siphon":      { "role": "specialist", "atk": 5,  "def": 10, "spd": 12, "carry": 90,  "energy": 2, "train_min": 22, "cost": { "tech": 250, "credits": 60 },    "special": "WAREHOUSE_BYPASS", "bypass_pct": 0.30 },
+      "interceptor": { "role": "vehicle",    "atk": 50, "def": 25, "spd": 24, "carry": 35,  "energy": 3, "train_min": 22, "cost": { "tech": 180, "credits": 160 },   "special": "MAP_INTERCEPT" },
+      "phantom":     { "role": "scout",      "atk": 5,  "def": 3,  "spd": 26, "carry": 0,   "energy": 2, "train_min": 10, "cost": { "tech": 100 },                   "special": "STEALTH_SCOUT", "scout": 16, "catch_multiplier": 2.0 },
+      "overload":    { "role": "siege",      "atk": 8,  "def": 6,  "spd": 5,  "carry": 0,   "energy": 4, "train_min": 35, "cost": { "tech": 400, "credits": 100 },   "special": "ECON_DAMAGE", "production_penalty": 0.50, "penalty_hours": 2, "siege": 30 },
+      "drone_swarm": { "role": "transport",  "atk": 0,  "def": 8,  "spd": 14, "carry": 110, "energy": 1, "train_min": 12, "cost": { "tech": 150 },                   "special": "STEALTH_TRANSPORT" }
+    }
+  },
+
+  "clan_unit": {
+    "titan": { "atk": 200, "def": 200, "spd": 4, "carry": 0, "energy": 15, "train_min": 180, "cost": { "credits": 50000, "alloys": 50000, "tech": 30000 }, "max_per_clan": 5 }
+  },
+
+  "buildings": {
+    "resource": {
+      "data_bank":  { "produces": "credits", "base_rate": 50, "max_rate": 800, "max_level": 20 },
+      "foundry":    { "produces": "alloys",  "base_rate": 50, "max_rate": 800, "max_level": 20 },
+      "tech_lab":   { "produces": "tech",    "base_rate": 50, "max_rate": 800, "max_level": 20 },
+      "power_grid": { "produces": "energy",  "base_rate": 80, "max_rate": 1200, "max_level": 20 }
+    },
+    "fixed": {
+      "hq":           { "max_level": 20, "slots": { "1": 9, "5": 11, "10": 14, "15": 16, "20": 18 }, "settler_unlock": { "10": 2, "15": 3, "20": 4 } },
+      "barracks":     { "max_level": 20, "unlocks": { "1": "fodder", "5": "core", "10": "specialist" } },
+      "motor_pool":   { "max_level": 20, "unlocks": { "1": "vehicle", "5": "transport" } },
+      "ops_center":   { "max_level": 20, "unlocks": { "5": "scout", "10": "siege" } },
+      "warehouse":    { "max_level": 20, "protection_min": 2000, "protection_max": 50000 },
+      "wall":         { "max_level": 20, "def_bonus_min": 0.03, "def_bonus_max": 0.40 },
+      "watchtower":   { "max_level": 20 },
+      "rally_point":  { "max_level": 15, "create_at": { "5": 3, "10": 5 }, "silent_march_at": 15 },
+      "trade_post":   { "max_level": 20, "max_transaction_min": 5000, "max_transaction_max": 200000 },
+      "research_lab": { "max_level": 20, "points": { "1": 5, "5": 15, "10": 30, "15": 45, "20": 60 } }
+    }
+  },
+
+  "tech_tree": {
+    "warfare":       { "levels": 5, "bonuses": [0.03, 0.06, 0.10, 0.15, 0.20], "capstone": "LAST_STAND" },
+    "fortification": { "levels": 5, "bonuses": [0.03, 0.06, 0.10, 0.15, 0.20], "capstone": "WALL_REGEN" },
+    "logistics":     { "levels": 5, "bonuses": [0.05, 0.10, 0.15, 0.20, 0.25], "capstone": "FREE_MARKET" },
+    "siege_eng":     { "levels": 5, "bonuses": [0.10, 0.20, 0.30, 0.40, 0.50], "capstone": "CARPET_BOMB" },
+    "intel":         { "levels": 5, "capstone": "INTEL_BREACH" },
+    "mobilization":  { "levels": 5, "capstone": "RAPID_EXPANSION" }
+  },
+
+  "map": {
+    "zones": {
+      "fringe": { "production_bonus": 0, "min_hq": 1, "can_destroy": false },
+      "grid":   { "production_bonus": 0.25, "min_hq": 5, "can_destroy": false },
+      "core":   { "production_bonus": 0.50, "min_hq": 0, "can_destroy": true }
+    },
+    "terrains": {
+      "wasteland":  { "bonus_type": null, "bonus_value": 0 },
+      "flatland":   { "bonus_type": "credits_production" },
+      "quarry":     { "bonus_type": "alloys_production" },
+      "ruins":      { "bonus_type": "tech_production" },
+      "geothermal": { "bonus_type": "energy_production" },
+      "hilltop":    { "bonus_type": "def_bonus" },
+      "riverside":  { "bonus_type": "atk_bonus" },
+      "crossroads": { "bonus_type": "training_speed" }
+    },
+    "rarities": {
+      "common":   { "bonus": 0.05, "distribution": 0.60 },
+      "uncommon": { "bonus": 0.10, "distribution": 0.30 },
+      "rare":     { "bonus": 0.15, "distribution": 0.10 }
+    }
+  },
+
+  "combat": {
+    "casualty_multiplier": 0.90,
+    "rally_bonus_per_player": 0.03,
+    "rally_max_players": 5,
+    "shade_expose_duration_hours": 1,
+    "shade_expose_atk_bonus": 0.05,
+    "havoc_rebuild_lock_hours": 4,
+    "overload_production_penalty": 0.50,
+    "overload_penalty_hours": 2,
+    "siphon_warehouse_bypass": 0.30,
+    "aegis_aura_def": 5,
+    "aegis_max_stack": 3,
+    "rhino_shield_pct": 0.10,
+    "bastion_home_def": 75,
+    "bastion_away_def": 55,
+    "watchman_wall_hp_per_10": 0.01,
+    "breacher_wall_multiplier": 2.0,
+    "grunt_death_atk_bonus": 1
+  },
+
+  "syndikat": {
+    "max_members": 30,
+    "max_wardens": 3,
+    "max_officers": 6,
+    "pact_break_cooldown_hours": 24,
+    "settlement_ceasefire_hours": 48,
+    "settlement_reoffer_cooldown_hours": 12,
+    "max_clan_buildings": 3
+  },
+
+  "clan_buildings": {
+    "relay_tower":  { "cost": { "credits": 500000, "alloys": 400000, "tech": 300000 }, "hp": 50000, "radius": 20 },
+    "supply_depot": { "cost": { "credits": 400000, "alloys": 500000, "tech": 200000 }, "hp": 60000, "capacity": 1000000 },
+    "war_factory":  { "cost": { "credits": 600000, "alloys": 600000, "tech": 500000 }, "hp": 40000 },
+    "signal_jammer":{ "cost": { "credits": 300000, "alloys": 300000, "tech": 500000 }, "hp": 30000, "radius": 15, "scout_debuff": 0.50, "watchtower_bonus": 3 },
+    "trade_nexus":  { "cost": { "credits": 500000, "alloys": 300000, "tech": 400000 }, "hp": 35000, "transfer_bonus": 0.20 }
+  },
+
+  "reinforcement": {
+    "reapers":    { "name": "Fuel Rig",       "def": 5,  "spd": 7,  "energy_drain": 1, "energy_produces": 15, "cost": { "credits": 300 } },
+    "hegemony":   { "name": "Mobile Reactor", "def": 12, "spd": 5,  "energy_drain": 1, "energy_produces": 20, "cost": { "alloys": 350, "tech": 50 } },
+    "netrunners": { "name": "Grid Tap",       "def": 3,  "spd": 10, "energy_drain": 1, "energy_produces": 12, "cost": { "tech": 250 } }
+  },
+
+  "respec": {
+    "resource_loss_pct": 0.10,
+    "cooldown_hours": 24
+  }
+}
