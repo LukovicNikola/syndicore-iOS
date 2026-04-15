@@ -169,12 +169,17 @@
               "ok",
               "unreachable"
             ]
+          },
+          "commit": {
+            "type": "string",
+            "example": "1295376c9a16cd71e4c43c498a36c52afe5cfb0c"
           }
         },
         "required": [
           "status",
           "game",
-          "db"
+          "db",
+          "commit"
         ]
       },
       "GameConstants": {
