@@ -2,7 +2,7 @@ import Foundation
 
 /// Syndicore API client — async/await, zero third-party deps.
 /// Base URL se čita iz Config.plist (API_BASE_URL).
-final class APIClient: Sendable {
+final class APIClient: @unchecked Sendable {
     let baseURL: URL
     let session: URLSession
     let tokenProvider: TokenProvider
