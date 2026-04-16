@@ -30,6 +30,14 @@
 		4A0000000000000000000221 /* GameConstantsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000123 /* GameConstantsManager.swift */; };
 		4A0000000000000000000222 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000124 /* MainTabView.swift */; };
 		4A0000000000000000000223 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000125 /* SettingsView.swift */; };
+		4A0000000000000000000224 /* GameData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000126 /* GameData.swift */; };
+		4A0000000000000000000225 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000127 /* CodexView.swift */; };
+		4A0000000000000000000226 /* UnitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000128 /* UnitsView.swift */; };
+		4A0000000000000000000227 /* UnitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000129 /* UnitDetailView.swift */; };
+		4A0000000000000000000228 /* BuildingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000130 /* BuildingsView.swift */; };
+		4A0000000000000000000229 /* TechTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000131 /* TechTreeView.swift */; };
+		4A0000000000000000000230 /* MapInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000132 /* MapInfoView.swift */; };
+		4A0000000000000000000231 /* WorldDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000133 /* WorldDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +67,14 @@
 		4A0000000000000000000123 /* GameConstantsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConstantsManager.swift; sourceTree = "<group>"; };
 		4A0000000000000000000124 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		4A0000000000000000000125 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000126 /* GameData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameData.swift; sourceTree = "<group>"; };
+		4A0000000000000000000127 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000128 /* UnitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000129 /* UnitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitDetailView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000130 /* BuildingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingsView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000131 /* TechTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechTreeView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000132 /* MapInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapInfoView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000133 /* WorldDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +127,7 @@
 				4A0000000000000000000106 /* World.swift */,
 				4A0000000000000000000107 /* Auth.swift */,
 				4A0000000000000000000108 /* Health.swift */,
+				4A0000000000000000000126 /* GameData.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -138,6 +155,13 @@
 				4A0000000000000000000121 /* LoginView.swift */,
 				4A0000000000000000000124 /* MainTabView.swift */,
 				4A0000000000000000000125 /* SettingsView.swift */,
+				4A0000000000000000000127 /* CodexView.swift */,
+				4A0000000000000000000128 /* UnitsView.swift */,
+				4A0000000000000000000129 /* UnitDetailView.swift */,
+				4A0000000000000000000130 /* BuildingsView.swift */,
+				4A0000000000000000000131 /* TechTreeView.swift */,
+				4A0000000000000000000132 /* MapInfoView.swift */,
+				4A0000000000000000000133 /* WorldDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -257,6 +281,14 @@
 				4A0000000000000000000221 /* GameConstantsManager.swift in Sources */,
 				4A0000000000000000000222 /* MainTabView.swift in Sources */,
 				4A0000000000000000000223 /* SettingsView.swift in Sources */,
+				4A0000000000000000000224 /* GameData.swift in Sources */,
+				4A0000000000000000000225 /* CodexView.swift in Sources */,
+				4A0000000000000000000226 /* UnitsView.swift in Sources */,
+				4A0000000000000000000227 /* UnitDetailView.swift in Sources */,
+				4A0000000000000000000228 /* BuildingsView.swift in Sources */,
+				4A0000000000000000000229 /* TechTreeView.swift in Sources */,
+				4A0000000000000000000230 /* MapInfoView.swift in Sources */,
+				4A0000000000000000000231 /* WorldDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

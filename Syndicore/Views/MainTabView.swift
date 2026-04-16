@@ -10,6 +10,11 @@ struct MainTabView: View {
                     Label("Worlds", systemImage: "globe")
                 }
 
+            CodexView()
+                .tabItem {
+                    Label("Codex", systemImage: "book.closed.fill")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")

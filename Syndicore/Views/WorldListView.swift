@@ -6,7 +6,6 @@ struct WorldListView: View {
     @State private var worlds: [WorldSummary] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @State private var selectedWorld: WorldSummary?
 
     var body: some View {
         NavigationStack {
@@ -14,25 +13,33 @@ struct WorldListView: View {
                 if isLoading {
                     ProgressView()
                 } else if let errorMessage {
-                    VStack(spacing: 12) {
+                    ContentUnavailableView {
+                        Label("Connection Error", systemImage: "wifi.exclamationmark")
+                    } description: {
                         Text(errorMessage)
-                            .foregroundStyle(.secondary)
+                    } actions: {
                         Button("Retry") { Task { await loadWorlds() } }
+                            .buttonStyle(.borderedProminent)
                     }
+                } else if worlds.isEmpty {
+                    ContentUnavailableView(
+                        "No Worlds",
+                        systemImage: "globe",
+                        description: Text("No worlds available yet. Check back soon.")
+                    )
                 } else {
                     List(worlds) { world in
-                        WorldRow(world: world)
-                            .onTapGesture { selectedWorld = world }
+                        NavigationLink {
+                            WorldDetailView(worldId: world.id)
+                        } label: {
+                            WorldRow(world: world)
+                        }
                     }
                     .listStyle(.plain)
                 }
             }
             .navigationTitle("Worlds")
-            .sheet(item: $selectedWorld) { world in
-                FactionPickerView(world: world) {
-                    Task { await loadWorlds() }
-                }
-            }
+            .refreshable { await loadWorlds() }
             .task { await loadWorlds() }
         }
     }

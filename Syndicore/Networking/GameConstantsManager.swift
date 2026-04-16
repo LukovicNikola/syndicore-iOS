@@ -7,6 +7,7 @@ final class GameConstantsManager {
 
     private(set) var isLoaded = false
     private(set) var rawJSON: Data?
+    private(set) var gameData: GameData?
     private var etag: String?
 
     private let etagKey = "gameConstants.etag"
@@ -15,8 +16,11 @@ final class GameConstantsManager {
     init(api: APIClient) {
         self.api = api
         self.etag = UserDefaults.standard.string(forKey: etagKey)
-        self.rawJSON = UserDefaults.standard.data(forKey: dataKey)
-        self.isLoaded = rawJSON != nil
+        if let data = UserDefaults.standard.data(forKey: dataKey) {
+            self.rawJSON = data
+            self.gameData = Self.decode(data)
+            self.isLoaded = gameData != nil
+        }
     }
 
     func refresh() async {
@@ -24,9 +28,13 @@ final class GameConstantsManager {
             let result = try await api.gameConstants(etag: etag)
             switch result {
             case .notModified:
+                if gameData == nil, let data = rawJSON {
+                    gameData = Self.decode(data)
+                }
                 isLoaded = true
             case .updated(let data, let newEtag):
                 rawJSON = data
+                gameData = Self.decode(data)
                 etag = newEtag
                 UserDefaults.standard.set(newEtag, forKey: etagKey)
                 UserDefaults.standard.set(data, forKey: dataKey)
@@ -35,5 +43,11 @@ final class GameConstantsManager {
         } catch {
             // Cached data still valid if available
         }
+    }
+
+    private static func decode(_ data: Data) -> GameData? {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try? decoder.decode(GameData.self, from: data)
     }
 }
