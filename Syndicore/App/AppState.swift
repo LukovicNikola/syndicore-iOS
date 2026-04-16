@@ -36,6 +36,7 @@ final class GameState {
 
     let api = APIClient()
     let auth = SupabaseManager.shared
+    lazy var gameConstants = GameConstantsManager(api: api)
 
     // MARK: - Player Data
 

@@ -158,6 +158,48 @@ extension APIClient {
     func reports(worldId: String) async throws -> [BattleReport] {
         try await request(.reports(worldId: worldId), as: ReportsResponse.self).reports
     }
+
+    // MARK: - Game constants (ETag cache)
+
+    enum ConfigResult {
+        case updated(Data, etag: String)
+        case notModified
+    }
+
+    func gameConstants(etag: String?) async throws -> ConfigResult {
+        guard let url = URL(string: Endpoint.gameConfig.path, relativeTo: baseURL) else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        if let etag {
+            request.setValue(etag, forHTTPHeaderField: "If-None-Match")
+        }
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw APIError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.unexpectedStatus(-1, data)
+        }
+
+        switch http.statusCode {
+        case 304:
+            return .notModified
+        case 200:
+            let newEtag = http.value(forHTTPHeaderField: "ETag") ?? ""
+            return .updated(data, etag: newEtag)
+        default:
+            throw APIError.unexpectedStatus(http.statusCode, data)
+        }
+    }
 }
 
 // MARK: - Type-erased Encodable wrapper
