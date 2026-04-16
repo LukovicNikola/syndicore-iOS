@@ -24,7 +24,6 @@ playground.xcworkspace
 .build/
 Packages/
 Package.resolved
-*.xcodeproj
 
 # CocoaPods (if ever used)
 Pods/
