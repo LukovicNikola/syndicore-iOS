@@ -1,20 +1,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(GameState.self) private var gameState
 
     var body: some View {
         Group {
-            switch appState.activeScreen {
-            case .loading:
-                ProgressView("Loading...")
-                    .task { await appState.bootstrap() }
-            case .worldList:
-                WorldListView()
+            switch gameState.activeScreen {
+            case .splash:
+                SplashView()
+            case .auth:
+                AuthView()
             case .onboarding:
                 OnboardingView()
+            case .worldPicker:
+                WorldPickerView()
+            case .factionPicker(let world):
+                FactionPickerView(world: world)
+            case .mainGame:
+                MainGameView()
             }
         }
-        .preferredColorScheme(.dark)
+        .animation(.easeInOut(duration: 0.3), value: gameState.screenId)
     }
 }

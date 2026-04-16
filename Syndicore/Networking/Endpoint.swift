@@ -23,7 +23,6 @@ struct Endpoint {
 
 extension Endpoint {
     static let health = Endpoint(path: "/health")
-
     static let gameConfig = Endpoint(path: "/api/v1/config")
 }
 
@@ -47,10 +46,6 @@ extension Endpoint {
 extension Endpoint {
     static let worlds = Endpoint(path: "/api/v1/worlds")
 
-    static func world(id: String) -> Endpoint {
-        Endpoint(path: "/api/v1/worlds/\(id)")
-    }
-
     static func joinWorld(id: String, faction: Faction) -> Endpoint {
         Endpoint(
             path: "/api/v1/worlds/\(id)/join",
@@ -59,4 +54,78 @@ extension Endpoint {
             body: JoinWorldRequest(faction: faction)
         )
     }
+}
+
+// MARK: - City
+
+extension Endpoint {
+    static func city(id: String) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(id)", requiresAuth: true)
+    }
+
+    static func build(cityId: String, body: Encodable) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/build", method: .post, requiresAuth: true, body: body)
+    }
+
+    static func buildCost(cityId: String, buildingId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/build-cost?buildingId=\(buildingId)", requiresAuth: true)
+    }
+
+    static func train(cityId: String, unitType: String, count: Int) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/cities/\(cityId)/train",
+            method: .post,
+            requiresAuth: true,
+            body: TrainRequest(unitType: unitType, count: count)
+        )
+    }
+
+    static func training(cityId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/training", requiresAuth: true)
+    }
+}
+
+// MARK: - Map
+
+extension Endpoint {
+    static func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/worlds/\(worldId)/map?cx=\(cx)&cy=\(cy)&r=\(radius)",
+            requiresAuth: true
+        )
+    }
+}
+
+// MARK: - Troops & Movement
+
+extension Endpoint {
+    static func sendTroops(cityId: String, body: Encodable) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/send", method: .post, requiresAuth: true, body: body)
+    }
+
+    static func movements(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/movements", requiresAuth: true)
+    }
+}
+
+// MARK: - Reports
+
+extension Endpoint {
+    static func reports(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/reports", requiresAuth: true)
+    }
+}
+
+// MARK: - Request Bodies
+
+struct TrainRequest: Codable {
+    let unitType: String
+    let count: Int
+}
+
+struct SendTroopsRequest: Codable {
+    let targetX: Int
+    let targetY: Int
+    let units: [String: Int]
+    let movementType: String
 }

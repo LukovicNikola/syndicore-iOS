@@ -1,6 +1,7 @@
 import Foundation
 
 /// Syndicore API client — async/await, zero third-party deps.
+/// Base URL se čita iz Config.plist (API_BASE_URL).
 final class APIClient: Sendable {
     let baseURL: URL
     let session: URLSession
@@ -9,11 +10,24 @@ final class APIClient: Sendable {
     let encoder: JSONEncoder
 
     init(
-        baseURL: URL,
-        tokenProvider: TokenProvider = StubTokenProvider(),
+        baseURL: URL? = nil,
+        tokenProvider: TokenProvider = SupabaseTokenProvider(),
         session: URLSession = .shared
     ) {
-        self.baseURL = baseURL
+        if let baseURL {
+            self.baseURL = baseURL
+        } else {
+            // Čitaj iz Config.plist
+            guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+                  let config = NSDictionary(contentsOfFile: path),
+                  let urlString = config["API_BASE_URL"] as? String,
+                  let url = URL(string: urlString)
+            else {
+                fatalError("Config.plist missing API_BASE_URL")
+            }
+            self.baseURL = url
+        }
+
         self.tokenProvider = tokenProvider
         self.session = session
 
@@ -101,10 +115,13 @@ final class APIClient: Sendable {
 // MARK: - Convenience methods
 
 extension APIClient {
+
+    // System
     func health() async throws -> HealthResponse {
         try await request(.health, as: HealthResponse.self)
     }
 
+    // Player
     func me() async throws -> MeResponse {
         try await request(.me, as: MeResponse.self)
     }
@@ -113,16 +130,33 @@ extension APIClient {
         try await request(.onboarding(username: username), as: MeResponse.self)
     }
 
-    func worlds() async throws -> [WorldSummary] {
+    // Worlds
+    func worlds() async throws -> [World] {
         try await request(.worlds, as: WorldsResponse.self).worlds
     }
 
-    func world(id: String) async throws -> WorldSummary {
-        try await request(.world(id: id), as: WorldSummary.self)
+    func joinWorld(id: String, faction: Faction) async throws -> JoinWorldResponse {
+        try await request(.joinWorld(id: id, faction: faction), as: JoinWorldResponse.self)
     }
 
-    func joinWorld(id: String, faction: Faction) async throws {
-        try await requestVoid(.joinWorld(id: id, faction: faction))
+    // City
+    func city(id: String) async throws -> City {
+        try await request(.city(id: id), as: CityResponse.self).city
+    }
+
+    // Map
+    func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) async throws -> MapResponse {
+        try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapResponse.self)
+    }
+
+    // Movements
+    func movements(worldId: String) async throws -> [TroopMovement] {
+        try await request(.movements(worldId: worldId), as: MovementsResponse.self).movements
+    }
+
+    // Reports
+    func reports(worldId: String) async throws -> [BattleReport] {
+        try await request(.reports(worldId: worldId), as: ReportsResponse.self).reports
     }
 }
 

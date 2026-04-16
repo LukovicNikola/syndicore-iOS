@@ -1,12 +1,11 @@
 import SwiftUI
 
-struct WorldListView: View {
-    @Environment(AppState.self) private var appState
+struct WorldPickerView: View {
+    @Environment(GameState.self) private var gameState
 
-    @State private var worlds: [WorldSummary] = []
+    @State private var worlds: [World] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @State private var selectedWorld: WorldSummary?
 
     var body: some View {
         NavigationStack {
@@ -22,24 +21,24 @@ struct WorldListView: View {
                 } else {
                     List(worlds) { world in
                         WorldRow(world: world)
-                            .onTapGesture { selectedWorld = world }
+                            .onTapGesture {
+                                gameState.didSelectWorld(world)
+                            }
                     }
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Worlds")
-            .sheet(item: $selectedWorld) { world in
-                FactionPickerView(world: world)
-            }
+            .navigationTitle("Choose a World")
             .task { await loadWorlds() }
         }
+        .preferredColorScheme(.dark)
     }
 
     private func loadWorlds() async {
         isLoading = true
         errorMessage = nil
         do {
-            worlds = try await appState.api.worlds()
+            worlds = try await gameState.api.worlds()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -50,7 +49,7 @@ struct WorldListView: View {
 // MARK: - World Row
 
 private struct WorldRow: View {
-    let world: WorldSummary
+    let world: World
 
     var body: some View {
         HStack {

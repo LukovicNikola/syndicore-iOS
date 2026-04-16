@@ -24,6 +24,16 @@
 		4A0000000000000000000215 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000115 /* OnboardingView.swift */; };
 		4A0000000000000000000216 /* FactionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000116 /* FactionPickerView.swift */; };
 		4A0000000000000000000217 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000118 /* Assets.xcassets */; };
+		4A0000000000000000000218 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 4A0000000000000000000301 /* Supabase */; };
+		9B2E27232F9126D000CA8E81 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27222F9126D000CA8E81 /* Enums.swift */; };
+		9B2E27252F9126D000CA8E81 /* City.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27242F9126D000CA8E81 /* City.swift */; };
+		9B2E27272F9126D100CA8E81 /* MapTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27262F9126D100CA8E81 /* MapTile.swift */; };
+		9B2E27292F9126D200CA8E81 /* BattleReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27282F9126D200CA8E81 /* BattleReport.swift */; };
+		9B2E272D2F91271900CA8E81 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E272C2F91271900CA8E81 /* SplashView.swift */; };
+		9B2E272F2F91271900CA8E81 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E272E2F91271900CA8E81 /* AuthView.swift */; };
+		9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27302F91271A00CA8E81 /* MainGameView.swift */; };
+		9B2E27332F91271B00CA8E81 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9B2E27322F91271B00CA8E81 /* Config.plist */; };
+		9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27362F91276600CA8E81 /* SupabaseManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +56,15 @@
 		4A0000000000000000000116 /* FactionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactionPickerView.swift; sourceTree = "<group>"; };
 		4A0000000000000000000117 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4A0000000000000000000118 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9B2E27222F9126D000CA8E81 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
+		9B2E27242F9126D000CA8E81 /* City.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = City.swift; sourceTree = "<group>"; };
+		9B2E27262F9126D100CA8E81 /* MapTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTile.swift; sourceTree = "<group>"; };
+		9B2E27282F9126D200CA8E81 /* BattleReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleReport.swift; sourceTree = "<group>"; };
+		9B2E272C2F91271900CA8E81 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		9B2E272E2F91271900CA8E81 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		9B2E27302F91271A00CA8E81 /* MainGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainGameView.swift; sourceTree = "<group>"; };
+		9B2E27322F91271B00CA8E81 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
+		9B2E27362F91276600CA8E81 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A0000000000000000000218 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +95,7 @@
 				4A0000000000000000000014 /* Networking */,
 				4A0000000000000000000015 /* Views */,
 				4A0000000000000000000016 /* Resources */,
+				9B2E27352F91275700CA8E81 /* Services */,
 			);
 			path = Syndicore;
 			sourceTree = "<group>";
@@ -97,6 +118,10 @@
 				4A0000000000000000000106 /* World.swift */,
 				4A0000000000000000000107 /* Auth.swift */,
 				4A0000000000000000000108 /* Health.swift */,
+				9B2E27222F9126D000CA8E81 /* Enums.swift */,
+				9B2E27242F9126D000CA8E81 /* City.swift */,
+				9B2E27262F9126D100CA8E81 /* MapTile.swift */,
+				9B2E27282F9126D200CA8E81 /* BattleReport.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -119,6 +144,9 @@
 				4A0000000000000000000114 /* WorldListView.swift */,
 				4A0000000000000000000115 /* OnboardingView.swift */,
 				4A0000000000000000000116 /* FactionPickerView.swift */,
+				9B2E272C2F91271900CA8E81 /* SplashView.swift */,
+				9B2E272E2F91271900CA8E81 /* AuthView.swift */,
+				9B2E27302F91271A00CA8E81 /* MainGameView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -128,6 +156,7 @@
 			children = (
 				4A0000000000000000000118 /* Assets.xcassets */,
 				4A0000000000000000000117 /* Info.plist */,
+				9B2E27322F91271B00CA8E81 /* Config.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -138,6 +167,14 @@
 				4A0000000000000000000021 /* Syndicore.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9B2E27352F91275700CA8E81 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				9B2E27362F91276600CA8E81 /* SupabaseManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -156,6 +193,9 @@
 			dependencies = (
 			);
 			name = Syndicore;
+			packageProductDependencies = (
+				4A0000000000000000000301 /* Supabase */,
+			);
 			productName = Syndicore;
 			productReference = 4A0000000000000000000021 /* Syndicore.app */;
 			productType = "com.apple.product-type.application";
@@ -184,6 +224,9 @@
 				Base,
 			);
 			mainGroup = 4A0000000000000000000010;
+			packageReferences = (
+				4A0000000000000000000300 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = 4A0000000000000000000017 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -198,6 +241,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B2E27332F91271B00CA8E81 /* Config.plist in Resources */,
 				4A0000000000000000000217 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -211,20 +255,28 @@
 			files = (
 				4A0000000000000000000201 /* SyndicoreApp.swift in Sources */,
 				4A0000000000000000000202 /* AppState.swift in Sources */,
+				9B2E27252F9126D000CA8E81 /* City.swift in Sources */,
 				4A0000000000000000000203 /* Faction.swift in Sources */,
 				4A0000000000000000000204 /* Ring.swift in Sources */,
 				4A0000000000000000000205 /* Player.swift in Sources */,
+				9B2E27232F9126D000CA8E81 /* Enums.swift in Sources */,
 				4A0000000000000000000206 /* World.swift in Sources */,
 				4A0000000000000000000207 /* Auth.swift in Sources */,
 				4A0000000000000000000208 /* Health.swift in Sources */,
 				4A0000000000000000000209 /* APIClient.swift in Sources */,
+				9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */,
 				4A0000000000000000000210 /* APIError.swift in Sources */,
+				9B2E27272F9126D100CA8E81 /* MapTile.swift in Sources */,
+				9B2E27292F9126D200CA8E81 /* BattleReport.swift in Sources */,
+				9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */,
 				4A0000000000000000000211 /* Endpoint.swift in Sources */,
 				4A0000000000000000000212 /* TokenProvider.swift in Sources */,
 				4A0000000000000000000213 /* ContentView.swift in Sources */,
 				4A0000000000000000000214 /* WorldListView.swift in Sources */,
 				4A0000000000000000000215 /* OnboardingView.swift in Sources */,
 				4A0000000000000000000216 /* FactionPickerView.swift in Sources */,
+				9B2E272F2F91271900CA8E81 /* AuthView.swift in Sources */,
+				9B2E272D2F91271900CA8E81 /* SplashView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,6 +406,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QM5HHVW582;
 				INFOPLIST_FILE = Syndicore/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -379,6 +432,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QM5HHVW582;
 				INFOPLIST_FILE = Syndicore/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -420,6 +474,24 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		4A0000000000000000000300 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4A0000000000000000000301 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4A0000000000000000000300 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4A0000000000000000000001 /* Project object */;
 }

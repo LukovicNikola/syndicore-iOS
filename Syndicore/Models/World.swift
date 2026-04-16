@@ -1,6 +1,6 @@
 import Foundation
 
-struct WorldSummary: Codable, Identifiable, Equatable {
+struct World: Codable, Identifiable, Equatable {
     let id: String
     let name: String
     let slug: String
@@ -12,9 +12,5 @@ struct WorldSummary: Codable, Identifiable, Equatable {
 }
 
 struct WorldsResponse: Codable {
-    let worlds: [WorldSummary]
-}
-
-struct JoinWorldRequest: Codable {
-    let faction: Faction
+    let worlds: [World]
 }

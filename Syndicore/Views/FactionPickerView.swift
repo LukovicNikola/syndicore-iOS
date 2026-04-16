@@ -1,62 +1,55 @@
 import SwiftUI
 
 struct FactionPickerView: View {
-    @Environment(AppState.self) private var appState
-    @Environment(\.dismiss) private var dismiss
+    @Environment(GameState.self) private var gameState
 
-    let world: WorldSummary
+    let world: World
 
     @State private var selectedFaction: Faction?
     @State private var isJoining = false
     @State private var errorMessage: String?
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Join \(world.name)")
-                    .font(.title2.bold())
+        VStack(spacing: 20) {
+            Text("Join \(world.name)")
+                .font(.title2.bold())
 
-                Text("Choose your faction")
-                    .foregroundStyle(.secondary)
+            Text("Choose your faction")
+                .foregroundStyle(.secondary)
 
-                ForEach(Faction.allCases) { faction in
-                    FactionCard(
-                        faction: faction,
-                        isSelected: selectedFaction == faction
-                    )
-                    .onTapGesture { selectedFaction = faction }
-                }
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await join() }
-                } label: {
-                    if isJoining {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text("Join World")
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(selectedFaction == nil || isJoining)
-                .padding(.horizontal, 32)
+            ForEach(Faction.allCases) { faction in
+                FactionCard(
+                    faction: faction,
+                    isSelected: selectedFaction == faction
+                )
+                .onTapGesture { selectedFaction = faction }
             }
-            .padding()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            Spacer()
+
+            Button {
+                Task { await join() }
+            } label: {
+                if isJoining {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                } else {
+                    Text("Join World")
+                        .frame(maxWidth: .infinity)
                 }
             }
+            .buttonStyle(.borderedProminent)
+            .disabled(selectedFaction == nil || isJoining)
+            .padding(.horizontal, 32)
         }
+        .padding()
+        .preferredColorScheme(.dark)
     }
 
     private func join() async {
@@ -64,8 +57,8 @@ struct FactionPickerView: View {
         isJoining = true
         errorMessage = nil
         do {
-            try await appState.api.joinWorld(id: world.id, faction: faction)
-            dismiss()
+            let response = try await gameState.api.joinWorld(id: world.id, faction: faction)
+            gameState.didJoinWorld(response: response)
         } catch let error as APIError {
             switch error {
             case .conflict(let err): errorMessage = err.error

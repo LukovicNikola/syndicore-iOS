@@ -1,0 +1,175 @@
+import Foundation
+import Supabase
+import Auth
+import AuthenticationServices
+import CryptoKit
+
+/// Wrapper oko supabase-swift SDK-a.
+/// Cita credentials iz Config.plist, pruza sign in/up/out i token za API pozive.
+@Observable
+@MainActor
+final class SupabaseManager {
+
+    // MARK: - Singleton
+
+    static let shared = SupabaseManager()
+
+    // MARK: - Properties
+
+    let client: SupabaseClient
+
+    /// Trenutna Supabase sesija (nil = nije ulogovan)
+    private(set) var session: Session?
+
+    var isAuthenticated: Bool { session != nil }
+
+    /// Nonce za Apple Sign In (mora da se sacuva izmedju request-a i completion-a)
+    var currentNonce: String?
+
+    // MARK: - Init
+
+    private init() {
+        guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+              let config = NSDictionary(contentsOfFile: path),
+              let urlString = config["SUPABASE_URL"] as? String,
+              let anonKey = config["SUPABASE_ANON_KEY"] as? String,
+              let url = URL(string: urlString)
+        else {
+            fatalError("Config.plist missing or invalid -- need SUPABASE_URL and SUPABASE_ANON_KEY")
+        }
+
+        self.client = SupabaseClient(supabaseURL: url, supabaseKey: anonKey)
+    }
+
+    // MARK: - Session Management
+
+    func restoreSession() async {
+        do {
+            session = try await client.auth.session
+        } catch {
+            session = nil
+        }
+    }
+
+    func listenToAuthChanges() async {
+        for await (event, updatedSession) in client.auth.authStateChanges {
+            switch event {
+            case .signedIn, .tokenRefreshed:
+                session = updatedSession
+            case .signedOut:
+                session = nil
+            default:
+                break
+            }
+        }
+    }
+
+    // MARK: - Email Auth
+
+    @discardableResult
+    func signUp(email: String, password: String) async throws -> Bool {
+        let result = try await client.auth.signUp(email: email, password: password)
+        session = result.session
+        return result.session != nil
+    }
+
+    func signIn(email: String, password: String) async throws {
+        session = try await client.auth.signIn(email: email, password: password)
+    }
+
+    // MARK: - Apple Sign In
+
+    /// Generise random nonce za Apple Sign In.
+    func generateNonce() -> String {
+        let nonce = randomNonceString()
+        currentNonce = nonce
+        return nonce
+    }
+
+    /// SHA256 hash nonce-a za Apple request.
+    func sha256(_ input: String) -> String {
+        let data = Data(input.utf8)
+        let hash = SHA256.hash(data: data)
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
+    /// Obradjuje Apple Sign In rezultat — salje identity token Supabase-u.
+    func handleAppleSignIn(authorization: ASAuthorization) async throws {
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let identityTokenData = credential.identityToken,
+              let idToken = String(data: identityTokenData, encoding: .utf8)
+        else {
+            throw SupabaseAuthError.appleSignInFailed
+        }
+
+        guard let nonce = currentNonce else {
+            throw SupabaseAuthError.appleSignInFailed
+        }
+
+        session = try await client.auth.signInWithIdToken(
+            credentials: .init(
+                provider: .apple,
+                idToken: idToken,
+                nonce: nonce
+            )
+        )
+    }
+
+    // MARK: - Sign Out
+
+    func signOut() async throws {
+        try await client.auth.signOut()
+        session = nil
+    }
+
+    // MARK: - Token
+
+    func accessToken() async throws -> String {
+        guard let session else {
+            throw SupabaseAuthError.notAuthenticated
+        }
+        return session.accessToken
+    }
+
+    // MARK: - Private
+
+    private func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        if errorCode != errSecSuccess {
+            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+        }
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz-._")
+        return String(randomBytes.map { charset[Int($0) % charset.count] })
+    }
+}
+
+// MARK: - TokenProvider conformance (za APIClient)
+
+final class SupabaseTokenProvider: TokenProvider, Sendable {
+    func accessToken() async throws -> String {
+        try await MainActor.run {
+            guard let session = SupabaseManager.shared.session else {
+                throw SupabaseAuthError.notAuthenticated
+            }
+            return session.accessToken
+        }
+    }
+}
+
+// MARK: - Error
+
+enum SupabaseAuthError: LocalizedError {
+    case notAuthenticated
+    case appleSignInFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .notAuthenticated:
+            return "Not authenticated -- please sign in"
+        case .appleSignInFailed:
+            return "Apple Sign In failed -- please try again"
+        }
+    }
+}
