@@ -62,24 +62,29 @@
     "titan": { "atk": 200, "def": 200, "spd": 4, "carry": 0, "energy": 15, "train_min": 180, "cost": { "credits": 50000, "alloys": 50000, "tech": 30000 }, "max_per_clan": 5 }
   },
 
+  "building_formulas": {
+    "cost_multiplier": 1.5,
+    "time_multiplier": 1.4
+  },
+
   "buildings": {
     "resource": {
-      "data_bank":  { "produces": "credits", "base_rate": 50, "max_rate": 800, "max_level": 20 },
-      "foundry":    { "produces": "alloys",  "base_rate": 50, "max_rate": 800, "max_level": 20 },
-      "tech_lab":   { "produces": "tech",    "base_rate": 50, "max_rate": 800, "max_level": 20 },
-      "power_grid": { "produces": "energy",  "base_rate": 80, "max_rate": 1200, "max_level": 20 }
+      "data_bank":  { "produces": "credits", "base_rate": 50, "max_rate": 800, "max_level": 20, "base_cost": { "credits": 100, "alloys": 50 },   "base_time_minutes": 5 },
+      "foundry":    { "produces": "alloys",  "base_rate": 50, "max_rate": 800, "max_level": 20, "base_cost": { "credits": 50,  "alloys": 100 },  "base_time_minutes": 5 },
+      "tech_lab":   { "produces": "tech",    "base_rate": 50, "max_rate": 800, "max_level": 20, "base_cost": { "credits": 80,  "tech": 80 },     "base_time_minutes": 5 },
+      "power_grid": { "produces": "energy",  "base_rate": 80, "max_rate": 1200, "max_level": 20, "base_cost": { "credits": 100, "alloys": 80 }, "base_time_minutes": 5 }
     },
     "fixed": {
-      "hq":           { "max_level": 20, "slots": { "1": 9, "5": 11, "10": 14, "15": 16, "20": 18 }, "settler_unlock": { "10": 2, "15": 3, "20": 4 } },
-      "barracks":     { "max_level": 20, "unlocks": { "1": "fodder", "5": "core", "10": "specialist" } },
-      "motor_pool":   { "max_level": 20, "unlocks": { "1": "vehicle", "5": "transport" } },
-      "ops_center":   { "max_level": 20, "unlocks": { "5": "scout", "10": "siege" } },
-      "warehouse":    { "max_level": 20, "protection_min": 2000, "protection_max": 50000 },
-      "wall":         { "max_level": 20, "def_bonus_min": 0.03, "def_bonus_max": 0.40 },
-      "watchtower":   { "max_level": 20 },
-      "rally_point":  { "max_level": 15, "create_at": { "5": 3, "10": 5 }, "silent_march_at": 15 },
-      "trade_post":   { "max_level": 20, "max_transaction_min": 5000, "max_transaction_max": 200000 },
-      "research_lab": { "max_level": 20, "points": { "1": 5, "5": 15, "10": 30, "15": 45, "20": 60 } }
+      "hq":           { "max_level": 20, "slots": { "1": 9, "5": 11, "10": 14, "15": 16, "20": 18 }, "settler_unlock": { "10": 2, "15": 3, "20": 4 }, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
+      "barracks":     { "max_level": 20, "unlocks": { "1": "fodder", "5": "core", "10": "specialist" },                "base_cost": { "credits": 150, "alloys": 100 },             "base_time_minutes": 8 },
+      "motor_pool":   { "max_level": 20, "unlocks": { "1": "vehicle", "5": "transport" },                              "base_cost": { "credits": 200, "alloys": 150 },             "base_time_minutes": 8 },
+      "ops_center":   { "max_level": 20, "unlocks": { "5": "scout", "10": "siege" },                                   "base_cost": { "credits": 150, "alloys": 100, "tech": 80 }, "base_time_minutes": 8 },
+      "warehouse":    { "max_level": 20, "protection_min": 2000, "protection_max": 50000,                              "base_cost": { "credits": 100, "alloys": 150 },             "base_time_minutes": 6 },
+      "wall":         { "max_level": 20, "def_bonus_min": 0.03, "def_bonus_max": 0.40,                                 "base_cost": { "credits": 50,  "alloys": 200 },             "base_time_minutes": 8 },
+      "watchtower":   { "max_level": 20,                                                                                "base_cost": { "credits": 80,  "alloys": 80, "tech": 50 }, "base_time_minutes": 6 },
+      "rally_point":  { "max_level": 15, "create_at": { "5": 3, "10": 5 }, "silent_march_at": 15,                      "base_cost": { "credits": 120, "alloys": 80 },              "base_time_minutes": 7 },
+      "trade_post":   { "max_level": 20, "max_transaction_min": 5000, "max_transaction_max": 200000,                   "base_cost": { "credits": 150, "alloys": 50, "tech": 50 },  "base_time_minutes": 6 },
+      "research_lab": { "max_level": 20, "points": { "1": 5, "5": 15, "10": 30, "15": 45, "20": 60 },                 "base_cost": { "credits": 100, "alloys": 100, "tech": 100 },"base_time_minutes": 10 }
     }
   },
 
