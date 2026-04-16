@@ -28,8 +28,19 @@
           "HEGEMONY",
           "NETRUNNERS"
         ],
-        "description": "Player faction. Matches Prisma enum (uppercase).",
+        "description": "Player faction (per world). Matches Prisma enum.",
         "example": "REAPERS"
+      },
+      "Ring": {
+        "type": "string",
+        "enum": [
+          "FRINGE",
+          "GRID",
+          "CORE",
+          "NEXUS"
+        ],
+        "description": "Map ring — progression order: FRINGE → GRID → CORE → NEXUS.",
+        "example": "FRINGE"
       },
       "Player": {
         "type": "object",
@@ -43,9 +54,6 @@
             "type": "string",
             "example": "syndikate_kid"
           },
-          "faction": {
-            "$ref": "#/components/schemas/Faction"
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -58,9 +66,54 @@
         "required": [
           "id",
           "username",
-          "faction",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "WorldSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "example": "Alpha"
+          },
+          "slug": {
+            "type": "string",
+            "example": "alpha"
+          },
+          "status": {
+            "type": "string",
+            "example": "OPEN"
+          },
+          "speedMultiplier": {
+            "type": "number",
+            "example": 1
+          },
+          "mapRadius": {
+            "type": "integer",
+            "example": 100
+          },
+          "maxPlayers": {
+            "type": "integer",
+            "example": 5000
+          },
+          "playerCount": {
+            "type": "integer",
+            "example": 342
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "status",
+          "speedMultiplier",
+          "mapRadius",
+          "maxPlayers",
+          "playerCount"
         ]
       },
       "UserSummary": {
@@ -137,13 +190,20 @@
             "maxLength": 20,
             "pattern": "^[a-zA-Z0-9_-]+$",
             "example": "syndikate_kid"
-          },
+          }
+        },
+        "required": [
+          "username"
+        ]
+      },
+      "JoinWorldRequest": {
+        "type": "object",
+        "properties": {
           "faction": {
             "$ref": "#/components/schemas/Faction"
           }
         },
         "required": [
-          "username",
           "faction"
         ]
       },
@@ -226,7 +286,7 @@
         "tags": [
           "player"
         ],
-        "summary": "Get the currently authenticated player",
+        "summary": "Get the currently authenticated player + their worlds",
         "security": [
           {
             "bearerAuth": []
@@ -234,7 +294,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Player exists",
+            "description": "Player exists (includes joined worlds)",
             "content": {
               "application/json": {
                 "schema": {
@@ -271,7 +331,7 @@
         "tags": [
           "player"
         ],
-        "summary": "Create Player row on first login (pick username + faction)",
+        "summary": "Create global Player row (username only — faction chosen when joining a world)",
         "security": [
           {
             "bearerAuth": []
@@ -298,7 +358,7 @@
             }
           },
           "400": {
-            "description": "Invalid body (username format, unknown faction, etc.)",
+            "description": "Invalid body (username format)",
             "content": {
               "application/json": {
                 "schema": {
@@ -319,6 +379,155 @@
           },
           "409": {
             "description": "Player already onboarded OR username taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds": {
+      "get": {
+        "tags": [
+          "world"
+        ],
+        "summary": "List available worlds with player counts",
+        "description": "Public — iOS shows this on the server picker screen. No auth required.",
+        "responses": {
+          "200": {
+            "description": "List of open/running worlds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "worlds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorldSummary"
+                      }
+                    }
+                  },
+                  "required": [
+                    "worlds"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}": {
+      "get": {
+        "tags": [
+          "world"
+        ],
+        "summary": "Get single world detail",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "World detail with player count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "World not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/join": {
+      "post": {
+        "tags": [
+          "world"
+        ],
+        "summary": "Join a world — choose faction, get starter city on random Fringe tile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinWorldRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Joined successfully — returns PlayerWorld + City + tile coordinates"
+          },
+          "400": {
+            "description": "Invalid faction or player not onboarded yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "World not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already joined / world full / world not open",
             "content": {
               "application/json": {
                 "schema": {
