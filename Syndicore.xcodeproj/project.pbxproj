@@ -27,6 +27,9 @@
 		4A0000000000000000000218 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000119 /* SupabaseConfig.swift */; };
 		4A0000000000000000000219 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000120 /* AuthManager.swift */; };
 		4A0000000000000000000220 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000121 /* LoginView.swift */; };
+		4A0000000000000000000221 /* GameConstantsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000123 /* GameConstantsManager.swift */; };
+		4A0000000000000000000222 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000124 /* MainTabView.swift */; };
+		4A0000000000000000000223 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000125 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +56,9 @@
 		4A0000000000000000000120 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		4A0000000000000000000121 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		4A0000000000000000000122 /* Syndicore.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Syndicore.entitlements; sourceTree = "<group>"; };
+		4A0000000000000000000123 /* GameConstantsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConstantsManager.swift; sourceTree = "<group>"; };
+		4A0000000000000000000124 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000125 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +123,7 @@
 				4A0000000000000000000111 /* Endpoint.swift */,
 				4A0000000000000000000112 /* TokenProvider.swift */,
 				4A0000000000000000000120 /* AuthManager.swift */,
+				4A0000000000000000000123 /* GameConstantsManager.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -129,6 +136,8 @@
 				4A0000000000000000000115 /* OnboardingView.swift */,
 				4A0000000000000000000116 /* FactionPickerView.swift */,
 				4A0000000000000000000121 /* LoginView.swift */,
+				4A0000000000000000000124 /* MainTabView.swift */,
+				4A0000000000000000000125 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -245,6 +254,9 @@
 				4A0000000000000000000218 /* SupabaseConfig.swift in Sources */,
 				4A0000000000000000000219 /* AuthManager.swift in Sources */,
 				4A0000000000000000000220 /* LoginView.swift in Sources */,
+				4A0000000000000000000221 /* GameConstantsManager.swift in Sources */,
+				4A0000000000000000000222 /* MainTabView.swift in Sources */,
+				4A0000000000000000000223 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

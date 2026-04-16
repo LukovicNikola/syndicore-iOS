@@ -71,7 +71,7 @@ struct OnboardingView: View {
         do {
             let response = try await appState.api.onboard(username: username)
             appState.currentPlayer = response.player
-            appState.activeScreen = .worldList
+            appState.activeScreen = .main
         } catch let error as APIError {
             switch error {
             case .conflict(let err): errorMessage = err.error

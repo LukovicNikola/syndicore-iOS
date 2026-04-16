@@ -7,6 +7,7 @@ final class AppState {
 
     let api: APIClient
     let authManager: AuthManager
+    let gameConstants: GameConstantsManager
 
     // MARK: - Auth state
 
@@ -17,8 +18,8 @@ final class AppState {
     enum Screen {
         case loading
         case login
-        case worldList
         case onboarding
+        case main
     }
 
     var activeScreen: Screen = .loading
@@ -31,8 +32,10 @@ final class AppState {
         supabaseKey: String = SupabaseConfig.anonKey
     ) {
         let auth = AuthManager(supabaseURL: supabaseURL, supabaseKey: supabaseKey)
+        let client = APIClient(baseURL: apiBaseURL, tokenProvider: auth)
         self.authManager = auth
-        self.api = APIClient(baseURL: apiBaseURL, tokenProvider: auth)
+        self.api = client
+        self.gameConstants = GameConstantsManager(api: client)
     }
 
     // MARK: - Bootstrap
@@ -48,7 +51,7 @@ final class AppState {
         do {
             let response = try await api.me()
             currentPlayer = response.player
-            activeScreen = .worldList
+            activeScreen = .main
         } catch let error as APIError {
             switch error {
             case .onboardingRequired:
@@ -56,10 +59,10 @@ final class AppState {
             case .unauthorized:
                 activeScreen = .login
             default:
-                activeScreen = .worldList
+                activeScreen = .main
             }
         } catch {
-            activeScreen = .worldList
+            activeScreen = .main
         }
     }
 

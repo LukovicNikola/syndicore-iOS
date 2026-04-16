@@ -11,10 +11,10 @@ struct ContentView: View {
                     .task { await appState.bootstrap() }
             case .login:
                 LoginView()
-            case .worldList:
-                WorldListView()
             case .onboarding:
                 OnboardingView()
+            case .main:
+                MainTabView()
             }
         }
         .preferredColorScheme(.dark)

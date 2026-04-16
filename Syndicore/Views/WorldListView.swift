@@ -29,7 +29,9 @@ struct WorldListView: View {
             }
             .navigationTitle("Worlds")
             .sheet(item: $selectedWorld) { world in
-                FactionPickerView(world: world)
+                FactionPickerView(world: world) {
+                    Task { await loadWorlds() }
+                }
             }
             .task { await loadWorlds() }
         }

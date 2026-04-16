@@ -5,6 +5,7 @@ struct FactionPickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     let world: WorldSummary
+    var onJoined: () -> Void = {}
 
     @State private var selectedFaction: Faction?
     @State private var isJoining = false
@@ -65,6 +66,7 @@ struct FactionPickerView: View {
         errorMessage = nil
         do {
             try await appState.api.joinWorld(id: world.id, faction: faction)
+            onJoined()
             dismiss()
         } catch let error as APIError {
             switch error {
