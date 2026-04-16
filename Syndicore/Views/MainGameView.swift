@@ -30,8 +30,21 @@ struct MainGameView: View {
                 .tabItem {
                     Label("Research", systemImage: "flask")
                 }
+
+            CodexView()
+                .tabItem {
+                    Label("Codex", systemImage: "book.closed.fill")
+                }
+
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape")
+                }
         }
         .preferredColorScheme(.dark)
+        .task {
+            await gameState.gameConstants.refresh()
+        }
     }
 }
 

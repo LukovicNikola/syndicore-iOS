@@ -34,6 +34,15 @@
 		9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27302F91271A00CA8E81 /* MainGameView.swift */; };
 		9B2E27332F91271B00CA8E81 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9B2E27322F91271B00CA8E81 /* Config.plist */; };
 		9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2E27362F91276600CA8E81 /* SupabaseManager.swift */; };
+		4B0000000000000000000001 /* GameData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000101 /* GameData.swift */; };
+		4B0000000000000000000002 /* GameConstantsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000102 /* GameConstantsManager.swift */; };
+		4B0000000000000000000003 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000103 /* CodexView.swift */; };
+		4B0000000000000000000004 /* UnitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000104 /* UnitsView.swift */; };
+		4B0000000000000000000005 /* UnitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000105 /* UnitDetailView.swift */; };
+		4B0000000000000000000006 /* BuildingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000106 /* BuildingsView.swift */; };
+		4B0000000000000000000007 /* TechTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000107 /* TechTreeView.swift */; };
+		4B0000000000000000000008 /* MapInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000108 /* MapInfoView.swift */; };
+		4B0000000000000000000009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000109 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +74,15 @@
 		9B2E27302F91271A00CA8E81 /* MainGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainGameView.swift; sourceTree = "<group>"; };
 		9B2E27322F91271B00CA8E81 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
 		9B2E27362F91276600CA8E81 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
+		4B0000000000000000000101 /* GameData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameData.swift; sourceTree = "<group>"; };
+		4B0000000000000000000102 /* GameConstantsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConstantsManager.swift; sourceTree = "<group>"; };
+		4B0000000000000000000103 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000104 /* UnitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000105 /* UnitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitDetailView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000106 /* BuildingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingsView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000107 /* TechTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechTreeView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000108 /* MapInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapInfoView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000109 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +140,7 @@
 				9B2E27242F9126D000CA8E81 /* City.swift */,
 				9B2E27262F9126D100CA8E81 /* MapTile.swift */,
 				9B2E27282F9126D200CA8E81 /* BattleReport.swift */,
+				4B0000000000000000000101 /* GameData.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -133,6 +152,7 @@
 				4A0000000000000000000110 /* APIError.swift */,
 				4A0000000000000000000111 /* Endpoint.swift */,
 				4A0000000000000000000112 /* TokenProvider.swift */,
+				4B0000000000000000000102 /* GameConstantsManager.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -147,6 +167,13 @@
 				9B2E272C2F91271900CA8E81 /* SplashView.swift */,
 				9B2E272E2F91271900CA8E81 /* AuthView.swift */,
 				9B2E27302F91271A00CA8E81 /* MainGameView.swift */,
+				4B0000000000000000000103 /* CodexView.swift */,
+				4B0000000000000000000104 /* UnitsView.swift */,
+				4B0000000000000000000105 /* UnitDetailView.swift */,
+				4B0000000000000000000106 /* BuildingsView.swift */,
+				4B0000000000000000000107 /* TechTreeView.swift */,
+				4B0000000000000000000108 /* MapInfoView.swift */,
+				4B0000000000000000000109 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -277,6 +304,15 @@
 				4A0000000000000000000216 /* FactionPickerView.swift in Sources */,
 				9B2E272F2F91271900CA8E81 /* AuthView.swift in Sources */,
 				9B2E272D2F91271900CA8E81 /* SplashView.swift in Sources */,
+				4B0000000000000000000001 /* GameData.swift in Sources */,
+				4B0000000000000000000002 /* GameConstantsManager.swift in Sources */,
+				4B0000000000000000000003 /* CodexView.swift in Sources */,
+				4B0000000000000000000004 /* UnitsView.swift in Sources */,
+				4B0000000000000000000005 /* UnitDetailView.swift in Sources */,
+				4B0000000000000000000006 /* BuildingsView.swift in Sources */,
+				4B0000000000000000000007 /* TechTreeView.swift in Sources */,
+				4B0000000000000000000008 /* MapInfoView.swift in Sources */,
+				4B0000000000000000000009 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
