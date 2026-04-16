@@ -31,14 +31,16 @@ final class GameConstantsManager {
                 if gameData == nil, let data = rawJSON {
                     gameData = Self.decode(data)
                 }
-                isLoaded = true
+                isLoaded = gameData != nil
             case .updated(let data, let newEtag):
-                rawJSON = data
                 gameData = Self.decode(data)
-                etag = newEtag
-                UserDefaults.standard.set(newEtag, forKey: etagKey)
-                UserDefaults.standard.set(data, forKey: dataKey)
-                isLoaded = true
+                if gameData != nil {
+                    rawJSON = data
+                    etag = newEtag
+                    UserDefaults.standard.set(newEtag, forKey: etagKey)
+                    UserDefaults.standard.set(data, forKey: dataKey)
+                }
+                isLoaded = gameData != nil
             }
         } catch {
             // Cached data still valid if available

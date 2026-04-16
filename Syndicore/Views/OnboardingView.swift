@@ -74,7 +74,12 @@ struct OnboardingView: View {
             appState.activeScreen = .main
         } catch let error as APIError {
             switch error {
-            case .conflict(let err): errorMessage = err.error
+            case .conflict(let err):
+                if err.error == "already_onboarded" {
+                    await appState.bootstrap()
+                    return
+                }
+                errorMessage = err.error
             case .badRequest(let err): errorMessage = err.error
             default: errorMessage = error.localizedDescription
             }

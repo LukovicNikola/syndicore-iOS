@@ -74,10 +74,11 @@ struct FactionPickerView: View {
             case .badRequest(let err): errorMessage = err.error
             default: errorMessage = error.localizedDescription
             }
+            isJoining = false
         } catch {
             errorMessage = error.localizedDescription
+            isJoining = false
         }
-        isJoining = false
     }
 }
 

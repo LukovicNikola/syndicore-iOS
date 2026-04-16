@@ -26,8 +26,10 @@ struct WorldDetailView: View {
                     Section("Players") {
                         LabeledContent("Current", value: "\(world.playerCount)")
                         LabeledContent("Max", value: "\(world.maxPlayers)")
-                        ProgressView(value: Double(world.playerCount), total: Double(world.maxPlayers))
-                            .tint(world.playerCount > world.maxPlayers * 9 / 10 ? .red : .green)
+                        if world.maxPlayers > 0 {
+                            ProgressView(value: Double(world.playerCount), total: Double(world.maxPlayers))
+                                .tint(Double(world.playerCount) > Double(world.maxPlayers) * 0.9 ? .red : .green)
+                        }
                     }
 
                     if world.status == "OPEN" {
@@ -45,11 +47,14 @@ struct WorldDetailView: View {
                     }
                 }
             } else if let errorMessage {
-                ContentUnavailableView(
-                    "Error",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(errorMessage)
-                )
+                ContentUnavailableView {
+                    Label("Error", systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text(errorMessage)
+                } actions: {
+                    Button("Retry") { Task { await loadWorld() } }
+                        .buttonStyle(.borderedProminent)
+                }
             }
         }
         .navigationTitle(world?.name ?? "World")
@@ -58,6 +63,7 @@ struct WorldDetailView: View {
 
     private func loadWorld() async {
         isLoading = true
+        errorMessage = nil
         do {
             world = try await appState.api.world(id: worldId)
         } catch {

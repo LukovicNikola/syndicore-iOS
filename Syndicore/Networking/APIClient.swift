@@ -1,7 +1,7 @@
 import Foundation
 
 /// Syndicore API client — async/await, zero third-party deps.
-final class APIClient: Sendable {
+final class APIClient: @unchecked Sendable {
     let baseURL: URL
     let session: URLSession
     let tokenProvider: TokenProvider
