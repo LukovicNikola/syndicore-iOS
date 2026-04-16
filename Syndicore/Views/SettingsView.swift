@@ -11,8 +11,8 @@ struct SettingsView: View {
                 if let player = gameState.currentPlayer {
                     Section("Player") {
                         LabeledContent("Username", value: player.username)
-                        LabeledContent("ID", value: String(player.id.uuidString.prefix(8)) + "…")
-                        LabeledContent("Joined", value: player.createdAt.formatted(date: .abbreviated, time: .omitted))
+                        LabeledContent("ID", value: String(player.id.prefix(8)) + "…")
+                        LabeledContent("Joined", value: player.createdAt)
                     }
                 }
 

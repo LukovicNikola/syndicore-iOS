@@ -149,12 +149,8 @@ final class SupabaseManager {
 
 final class SupabaseTokenProvider: TokenProvider, Sendable {
     func accessToken() async throws -> String {
-        try await MainActor.run {
-            guard let session = SupabaseManager.shared.session else {
-                throw SupabaseAuthError.notAuthenticated
-            }
-            return session.accessToken
-        }
+        let session = try await SupabaseManager.shared.client.auth.session
+        return session.accessToken
     }
 }
 

@@ -9,9 +9,9 @@ struct Endpoint {
     let path: String
     let method: HTTPMethod
     let requiresAuth: Bool
-    let body: Encodable?
+    let body: (any Encodable & Sendable)?
 
-    init(path: String, method: HTTPMethod = .get, requiresAuth: Bool = false, body: Encodable? = nil) {
+    init(path: String, method: HTTPMethod = .get, requiresAuth: Bool = false, body: (any Encodable & Sendable)? = nil) {
         self.path = path
         self.method = method
         self.requiresAuth = requiresAuth
@@ -63,7 +63,7 @@ extension Endpoint {
         Endpoint(path: "/api/v1/cities/\(id)", requiresAuth: true)
     }
 
-    static func build(cityId: String, body: Encodable) -> Endpoint {
+    static func build(cityId: String, body: any Encodable & Sendable) -> Endpoint {
         Endpoint(path: "/api/v1/cities/\(cityId)/build", method: .post, requiresAuth: true, body: body)
     }
 
@@ -99,7 +99,7 @@ extension Endpoint {
 // MARK: - Troops & Movement
 
 extension Endpoint {
-    static func sendTroops(cityId: String, body: Encodable) -> Endpoint {
+    static func sendTroops(cityId: String, body: any Encodable & Sendable) -> Endpoint {
         Endpoint(path: "/api/v1/cities/\(cityId)/send", method: .post, requiresAuth: true, body: body)
     }
 
