@@ -24,6 +24,9 @@
 		4A0000000000000000000215 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000115 /* OnboardingView.swift */; };
 		4A0000000000000000000216 /* FactionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000116 /* FactionPickerView.swift */; };
 		4A0000000000000000000217 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000118 /* Assets.xcassets */; };
+		4A0000000000000000000218 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000119 /* SupabaseConfig.swift */; };
+		4A0000000000000000000219 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000120 /* AuthManager.swift */; };
+		4A0000000000000000000220 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000121 /* LoginView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +49,10 @@
 		4A0000000000000000000116 /* FactionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactionPickerView.swift; sourceTree = "<group>"; };
 		4A0000000000000000000117 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4A0000000000000000000118 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4A0000000000000000000119 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		4A0000000000000000000120 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		4A0000000000000000000121 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		4A0000000000000000000122 /* Syndicore.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Syndicore.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +91,7 @@
 			children = (
 				4A0000000000000000000101 /* SyndicoreApp.swift */,
 				4A0000000000000000000102 /* AppState.swift */,
+				4A0000000000000000000119 /* SupabaseConfig.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -108,6 +116,7 @@
 				4A0000000000000000000110 /* APIError.swift */,
 				4A0000000000000000000111 /* Endpoint.swift */,
 				4A0000000000000000000112 /* TokenProvider.swift */,
+				4A0000000000000000000120 /* AuthManager.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -119,6 +128,7 @@
 				4A0000000000000000000114 /* WorldListView.swift */,
 				4A0000000000000000000115 /* OnboardingView.swift */,
 				4A0000000000000000000116 /* FactionPickerView.swift */,
+				4A0000000000000000000121 /* LoginView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -128,6 +138,7 @@
 			children = (
 				4A0000000000000000000118 /* Assets.xcassets */,
 				4A0000000000000000000117 /* Info.plist */,
+				4A0000000000000000000122 /* Syndicore.entitlements */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -156,6 +167,9 @@
 			dependencies = (
 			);
 			name = Syndicore;
+			packageProductDependencies = (
+				4A0000000000000000000302 /* Supabase */,
+			);
 			productName = Syndicore;
 			productReference = 4A0000000000000000000021 /* Syndicore.app */;
 			productType = "com.apple.product-type.application";
@@ -185,6 +199,9 @@
 			);
 			mainGroup = 4A0000000000000000000010;
 			productRefGroup = 4A0000000000000000000017 /* Products */;
+			packageReferences = (
+				4A0000000000000000000301 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -225,6 +242,9 @@
 				4A0000000000000000000214 /* WorldListView.swift in Sources */,
 				4A0000000000000000000215 /* OnboardingView.swift in Sources */,
 				4A0000000000000000000216 /* FactionPickerView.swift in Sources */,
+				4A0000000000000000000218 /* SupabaseConfig.swift in Sources */,
+				4A0000000000000000000219 /* AuthManager.swift in Sources */,
+				4A0000000000000000000220 /* LoginView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +372,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Syndicore/Resources/Syndicore.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = Syndicore/Resources/Info.plist;
@@ -377,6 +398,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Syndicore/Resources/Syndicore.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = Syndicore/Resources/Info.plist;
@@ -419,6 +441,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4A0000000000000000000301 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4A0000000000000000000302 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4A0000000000000000000301 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = 4A0000000000000000000001 /* Project object */;

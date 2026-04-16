@@ -10,7 +10,7 @@ final class APIClient: Sendable {
 
     init(
         baseURL: URL,
-        tokenProvider: TokenProvider = StubTokenProvider(),
+        tokenProvider: TokenProvider,
         session: URLSession = .shared
     ) {
         self.baseURL = baseURL
