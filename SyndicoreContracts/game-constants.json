@@ -29,37 +29,15 @@
   "resources": ["credits", "alloys", "tech", "energy"],
 
   "units": {
-    "reapers": {
-      "grunt":      { "role": "fodder",     "atk": 30, "def": 8,  "spd": 12, "carry": 40,  "energy": 1, "train_min": 8,  "cost": { "credits": 120, "alloys": 30 },  "special": "DEATH_BUFF" },
-      "razor":      { "role": "core",       "atk": 75, "def": 20, "spd": 9,  "carry": 25,  "energy": 2, "train_min": 18, "cost": { "credits": 280, "alloys": 90 },  "special": null },
-      "breacher":   { "role": "specialist", "atk": 50, "def": 15, "spd": 7,  "carry": 0,   "energy": 3, "train_min": 25, "cost": { "credits": 200, "tech": 160 },   "special": "WALL_BUSTER" },
-      "viper_bike": { "role": "vehicle",    "atk": 65, "def": 18, "spd": 20, "carry": 70,  "energy": 3, "train_min": 22, "cost": { "credits": 400 },                "special": "LOOT_FIRST" },
-      "shade":      { "role": "scout",      "atk": 5,  "def": 5,  "spd": 22, "carry": 0,   "energy": 1, "train_min": 6,  "cost": { "credits": 60, "tech": 40 },     "special": "EXPOSE_TARGET", "scout": 10 },
-      "havoc_drone":{ "role": "siege",      "atk": 10, "def": 8,  "spd": 4,  "carry": 0,   "energy": 5, "train_min": 40, "cost": { "tech": 350, "alloys": 200 },    "special": "REBUILD_LOCK", "siege": 55 },
-      "mule":       { "role": "transport",  "atk": 0,  "def": 5,  "spd": 18, "carry": 120, "energy": 1, "train_min": 12, "cost": { "credits": 150 },                "special": "STEALTH_NONE" }
-    },
-    "hegemony": {
-      "watchman":   { "role": "fodder",     "atk": 10, "def": 38, "spd": 8,  "carry": 30,  "energy": 1, "train_min": 10, "cost": { "alloys": 130 },                 "special": "WALL_HP_BUFF" },
-      "bastion":    { "role": "core",       "atk": 30, "def": 75, "spd": 6,  "carry": 15,  "energy": 3, "train_min": 24, "cost": { "alloys": 300, "credits": 80 },  "special": "HOME_BONUS", "def_away": 55 },
-      "aegis":      { "role": "specialist", "atk": 10, "def": 30, "spd": 7,  "carry": 0,   "energy": 3, "train_min": 28, "cost": { "alloys": 220, "tech": 100 },    "special": "DEF_AURA", "aura_value": 5, "aura_max_stack": 3 },
-      "rhino_apc":  { "role": "vehicle",    "atk": 45, "def": 50, "spd": 11, "carry": 50,  "energy": 4, "train_min": 30, "cost": { "alloys": 400, "credits": 150 }, "special": "DAMAGE_SHIELD", "shield_pct": 0.10 },
-      "watchdog":   { "role": "scout",      "atk": 5,  "def": 8,  "spd": 14, "carry": 0,   "energy": 1, "train_min": 8,  "cost": { "alloys": 60, "tech": 50 },      "special": "REVEAL_ATTACKER", "scout": 4, "counter_scout": 16 },
-      "demolisher": { "role": "siege",      "atk": 20, "def": 25, "spd": 3,  "carry": 0,   "energy": 6, "train_min": 50, "cost": { "alloys": 500, "tech": 180 },    "special": "HQ_TARGET", "siege": 65 },
-      "convoy":     { "role": "transport",  "atk": 0,  "def": 35, "spd": 8,  "carry": 100, "energy": 1, "train_min": 15, "cost": { "alloys": 200 },                 "special": "HIGH_DEF_TRANSPORT" }
-    },
-    "netrunners": {
-      "proxy":       { "role": "fodder",     "atk": 18, "def": 18, "spd": 10, "carry": 70,  "energy": 1, "train_min": 9,  "cost": { "tech": 70, "credits": 40 },     "special": "PVE_BONUS", "pve_bonus": 0.25 },
-      "dataminer":   { "role": "core",       "atk": 42, "def": 38, "spd": 9,  "carry": 35,  "energy": 2, "train_min": 20, "cost": { "tech": 200, "credits": 90 },    "special": "INTEL_REPORT" },
-      "siphon":      { "role": "specialist", "atk": 5,  "def": 10, "spd": 12, "carry": 90,  "energy": 2, "train_min": 22, "cost": { "tech": 250, "credits": 60 },    "special": "WAREHOUSE_BYPASS", "bypass_pct": 0.30 },
-      "interceptor": { "role": "vehicle",    "atk": 50, "def": 25, "spd": 24, "carry": 35,  "energy": 3, "train_min": 22, "cost": { "tech": 180, "credits": 160 },   "special": "MAP_INTERCEPT" },
-      "phantom":     { "role": "scout",      "atk": 5,  "def": 3,  "spd": 26, "carry": 0,   "energy": 2, "train_min": 10, "cost": { "tech": 100 },                   "special": "STEALTH_SCOUT", "scout": 16, "catch_multiplier": 2.0 },
-      "overload":    { "role": "siege",      "atk": 8,  "def": 6,  "spd": 5,  "carry": 0,   "energy": 4, "train_min": 35, "cost": { "tech": 400, "credits": 100 },   "special": "ECON_DAMAGE", "production_penalty": 0.50, "penalty_hours": 2, "siege": 30 },
-      "drone_swarm": { "role": "transport",  "atk": 0,  "def": 8,  "spd": 14, "carry": 110, "energy": 1, "train_min": 12, "cost": { "tech": 150 },                   "special": "STEALTH_TRANSPORT" }
-    }
-  },
-
-  "clan_unit": {
-    "titan": { "atk": 200, "def": 200, "spd": 4, "carry": 0, "energy": 15, "train_min": 180, "cost": { "credits": 50000, "alloys": 50000, "tech": 30000 }, "max_per_clan": 5 }
+    "grunt":     { "atk": 30,  "def": 12, "spd": 11, "carry": 40,  "energy": 1, "train_min": 8,   "cost": { "credits": 120, "alloys": 30 },  "trains_at": "BARRACKS",   "unlock_level": 1 },
+    "enforcer":  { "atk": 65,  "def": 35, "spd": 8,  "carry": 20,  "energy": 2, "train_min": 18,  "cost": { "credits": 280, "alloys": 90 },  "trains_at": "BARRACKS",   "unlock_level": 5 },
+    "sentinel":  { "atk": 20,  "def": 70, "spd": 6,  "carry": 10,  "energy": 3, "train_min": 24,  "cost": { "alloys": 300, "credits": 80 },  "trains_at": "BARRACKS",   "unlock_level": 10 },
+    "striker":   { "atk": 60,  "def": 20, "spd": 20, "carry": 60,  "energy": 3, "train_min": 22,  "cost": { "credits": 400, "alloys": 100 }, "trains_at": "MOTOR_POOL", "unlock_level": 1 },
+    "hauler":    { "atk": 0,   "def": 15, "spd": 14, "carry": 120, "energy": 1, "train_min": 12,  "cost": { "credits": 150 },                "trains_at": "MOTOR_POOL", "unlock_level": 5 },
+    "phantom":   { "atk": 5,   "def": 5,  "spd": 24, "carry": 0,   "energy": 1, "train_min": 10,  "cost": { "credits": 60, "tech": 40 },     "trains_at": "OPS_CENTER", "unlock_level": 5 },
+    "buster":    { "atk": 10,  "def": 8,  "spd": 4,  "carry": 0,   "energy": 5, "train_min": 40,  "cost": { "tech": 350, "alloys": 200 },    "trains_at": "OPS_CENTER", "unlock_level": 10 },
+    "titan":     { "atk": 200, "def": 200,"spd": 4,  "carry": 0,   "energy": 15,"train_min": 180, "cost": { "credits": 50000, "alloys": 50000, "tech": 30000 }, "trains_at": "WAR_FACTORY", "unlock_level": 1, "max_per_clan": 5 },
+    "settler":   { "atk": 0,   "def": 0,  "spd": 5,  "carry": 0,   "energy": 0, "train_min": 120, "cost": { "credits": 10000, "alloys": 10000, "tech": 5000 }, "trains_at": "HQ", "unlock_level": 20 }
   },
 
   "building_formulas": {
