@@ -34,9 +34,16 @@ final class GameState {
 
     // MARK: - Dependencies
 
-    let api = APIClient()
-    let auth = SupabaseManager.shared
-    lazy var gameConstants = GameConstantsManager(api: api)
+    let api: APIClient
+    let auth: SupabaseManager
+    let gameConstants: GameConstantsManager
+
+    init() {
+        let api = APIClient()
+        self.api = api
+        self.auth = SupabaseManager.shared
+        self.gameConstants = GameConstantsManager(api: api)
+    }
 
     // MARK: - Player Data
 
@@ -75,7 +82,7 @@ final class GameState {
                 }
                 activeScreen = .mainGame
             } else {
-                activeScreen = .worldPicker
+                await autoSelectWorld()
             }
         } catch let error as APIError {
             switch error {
@@ -97,14 +104,29 @@ final class GameState {
         await bootstrap()
     }
 
-    func didOnboard(player: Player) {
+    func didOnboard(player: Player) async {
         currentPlayer = player
-        activeScreen = .worldPicker
+        await autoSelectWorld()
     }
 
     func didSelectWorld(_ world: World) {
         activeWorld = world
         activeScreen = .factionPicker(world)
+    }
+
+    // Automatski bira prvi dostupan svet (samo jedan u staging-u)
+    private func autoSelectWorld() async {
+        do {
+            let allWorlds = try await api.worlds()
+            guard let world = allWorlds.first else {
+                activeScreen = .worldPicker
+                return
+            }
+            activeWorld = world
+            activeScreen = .factionPicker(world)
+        } catch {
+            activeScreen = .worldPicker
+        }
     }
 
     func didJoinWorld(response: JoinWorldResponse) {

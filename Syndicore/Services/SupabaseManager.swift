@@ -38,7 +38,13 @@ final class SupabaseManager {
             fatalError("Config.plist missing or invalid -- need SUPABASE_URL and SUPABASE_ANON_KEY")
         }
 
-        self.client = SupabaseClient(supabaseURL: url, supabaseKey: anonKey)
+        self.client = SupabaseClient(
+            supabaseURL: url,
+            supabaseKey: anonKey,
+            options: .init(
+                auth: .init(emitLocalSessionAsInitialSession: true)
+            )
+        )
     }
 
     // MARK: - Session Management

@@ -21,6 +21,26 @@ struct TrainingSheet: View {
             .sorted { $0.stats.energy < $1.stats.energy }
     }
 
+    @ViewBuilder
+    private func unitRow(unit: (name: String, stats: UnitStats)) -> some View {
+        let subtitle = "\(unit.stats.role.capitalized) · ATK \(unit.stats.atk) · DEF \(unit.stats.def)"
+        let isSelected = selectedUnit == unit.name
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(unit.name.replacingOccurrences(of: "_", with: " ").capitalized)
+                    .font(.subheadline)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -29,20 +49,7 @@ struct TrainingSheet: View {
                         Button {
                             selectedUnit = unit.name
                         } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(unit.name.replacingOccurrences(of: "_", with: " ").capitalized)
-                                        .font(.subheadline)
-                                    Text("\(unit.stats.role.capitalized) · ATK \(unit.stats.atk) · DEF \(unit.stats.def)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                if selectedUnit == unit.name {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.accentColor)
-                                }
-                            }
+                            unitRow(unit: unit)
                         }
                         .tint(.primary)
                     }

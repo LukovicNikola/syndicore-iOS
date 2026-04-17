@@ -74,8 +74,8 @@ private struct ResourceBuildingDetailView: View {
                 LabeledContent("Build Time", value: "\(building.baseTimeMinutes) min")
             }
             Section("Scaling") {
-                LabeledContent("Cost per level", value: "\(formulas.costMultiplier, specifier: "%.1f")x")
-                LabeledContent("Time per level", value: "\(formulas.timeMultiplier, specifier: "%.1f")x")
+                LabeledContent("Cost per level", value: String(format: "%.1fx", formulas.costMultiplier))
+                LabeledContent("Time per level", value: String(format: "%.1fx", formulas.timeMultiplier))
             }
         }
         .navigationTitle(name.replacingOccurrences(of: "_", with: " ").capitalized)
@@ -130,8 +130,8 @@ private struct FixedBuildingDetailView: View {
                 }
             }
             Section("Scaling") {
-                LabeledContent("Cost per level", value: "\(formulas.costMultiplier, specifier: "%.1f")x")
-                LabeledContent("Time per level", value: "\(formulas.timeMultiplier, specifier: "%.1f")x")
+                LabeledContent("Cost per level", value: String(format: "%.1fx", formulas.costMultiplier))
+                LabeledContent("Time per level", value: String(format: "%.1fx", formulas.timeMultiplier))
             }
         }
         .navigationTitle(name.replacingOccurrences(of: "_", with: " ").capitalized)

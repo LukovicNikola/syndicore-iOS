@@ -68,7 +68,7 @@ struct OnboardingView: View {
         errorMessage = nil
         do {
             let response = try await gameState.api.onboard(username: username)
-            gameState.didOnboard(player: response.player)
+            await gameState.didOnboard(player: response.player)
         } catch let error as APIError {
             switch error {
             case .conflict(let err):

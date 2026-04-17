@@ -86,7 +86,10 @@ struct CityView: View {
 
     @ViewBuilder
     private func buildingsSection(_ city: City) -> some View {
-        if let buildings = city.buildings, !buildings.isEmpty {
+        let buildings = city.buildings ?? []
+        let hasQueue = city.constructionQueue != nil
+
+        if !buildings.isEmpty {
             Section("Buildings") {
                 ForEach(buildings.sorted(by: { $0.type.rawValue < $1.type.rawValue })) { building in
                     Button {
@@ -113,6 +116,25 @@ struct CityView: View {
                     }
                     .tint(.primary)
                     .disabled(building.isUpgrading)
+                }
+            }
+        }
+
+        // Zgrade koje igrač još nije sagradio
+        let builtTypes = Set(buildings.map { $0.type })
+        let buildable: [BuildingType] = [
+            .BARRACKS, .MOTOR_POOL, .OPS_CENTER, .WAREHOUSE,
+            .WALL, .WATCHTOWER, .RALLY_POINT, .TRADE_POST, .RESEARCH_LAB
+        ].filter { !builtTypes.contains($0) }
+
+        if !buildable.isEmpty {
+            Section("Available to Build") {
+                ForEach(buildable, id: \.self) { type in
+                    BuildableRow(
+                        buildingType: type,
+                        cityId: city.id,
+                        disabled: hasQueue
+                    )
                 }
             }
         }
@@ -222,6 +244,67 @@ private struct ResourceCell: View {
         .padding(8)
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - Buildable Row
+
+private struct BuildableRow: View {
+    let buildingType: BuildingType
+    let cityId: String
+    let disabled: Bool
+
+    @Environment(GameState.self) private var gameState
+    @State private var isBuilding = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(buildingType.rawValue.replacingOccurrences(of: "_", with: " ").capitalized)
+                    .font(.subheadline)
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                } else {
+                    Text("Not built")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Button {
+                Task { await build() }
+            } label: {
+                if isBuilding {
+                    ProgressView().scaleEffect(0.8)
+                } else {
+                    Text("Build")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .disabled(disabled || isBuilding)
+        }
+    }
+
+    private func build() async {
+        isBuilding = true
+        errorMessage = nil
+        do {
+            _ = try await gameState.api.buildNew(cityId: cityId, buildingType: buildingType)
+            await gameState.refreshCity()
+        } catch let error as APIError {
+            switch error {
+            case .badRequest(let e): errorMessage = e.error
+            case .conflict(let e): errorMessage = e.error
+            default: errorMessage = error.localizedDescription
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isBuilding = false
     }
 }
 

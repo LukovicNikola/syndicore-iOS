@@ -10,12 +10,12 @@ struct Player: Codable, Identifiable {
 
 struct PlayerWorld: Codable, Identifiable {
     let id: String
-    let playerId: String
-    let worldId: String
+    let playerId: String?   // nije u join response-u, prisutan u GET /me
+    let worldId: String?    // nije u join response-u, prisutan u GET /me
     let faction: Faction
     let ring: Ring
     let crystals: [String]
-    let joinedAt: String
+    let joinedAt: String?   // nije u join response-u, prisutan u GET /me
     let city: City?
 }
 

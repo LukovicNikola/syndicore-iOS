@@ -147,10 +147,10 @@ private struct TileInfoCard: View {
 
     private var ringColor: Color {
         switch tile.ring {
-        case .FRINGE: .gray
-        case .GRID: .orange
-        case .CORE: .red
-        case .NEXUS: .purple
+        case .fringe: .gray
+        case .grid: .orange
+        case .core: .red
+        case .nexus: .purple
         }
     }
 
