@@ -22,12 +22,42 @@ final class CityScene: SKScene {
     private var selectedTile: TileNode?
     private var buildings: [BuildingInfo] = []
 
-    // MARK: - Fixed building order (za vizualni slot mapping)
+    // MARK: - Visual grid coordinate mapping
 
-    private static let fixedOrder: [BuildingType] = [
-        .BARRACKS, .MOTOR_POOL, .OPS_CENTER, .WAREHOUSE,
-        .WALL, .WATCHTOWER, .RALLY_POINT, .TRADE_POST, .RESEARCH_LAB
+    // Visual grid coordinates for each building. These are OUR choices
+    // (iOS layout), not dictated by BE. Returns (col, row) for a given
+    // BuildingType + optional slotIndex.
+    //
+    // Strategy: fixed buildings get dedicated positions around HQ.
+    // Resource buildings fan out through remaining positions by slotIndex.
+    private static let fixedPositions: [BuildingType: (col: Int, row: Int)] = [
+        .BARRACKS:      (col: 1, row: 2),
+        .MOTOR_POOL:    (col: 3, row: 2),
+        .OPS_CENTER:    (col: 2, row: 1),
+        .WAREHOUSE:     (col: 2, row: 3),
+        .WALL:          (col: 0, row: 2),
+        .WATCHTOWER:    (col: 4, row: 2),
+        .RALLY_POINT:   (col: 2, row: 0),
+        .TRADE_POST:    (col: 2, row: 4),
+        .RESEARCH_LAB:  (col: 1, row: 1),
     ]
+
+    // Order resource buildings in remaining grid cells
+    private static let resourceSlotPositions: [(col: Int, row: Int)] = [
+        (0, 0), (0, 1), (0, 3), (0, 4),
+        (1, 0), (1, 3), (1, 4),
+        (3, 0), (3, 1), (3, 3), (3, 4),
+        (4, 0), (4, 1), (4, 3), (4, 4),
+    ]
+
+    private func coord(for building: BuildingInfo) -> (col: Int, row: Int)? {
+        // Resource buildings (have slotIndex) use resourceSlotPositions
+        if let idx = building.slotIndex, idx >= 0, idx < Self.resourceSlotPositions.count {
+            return Self.resourceSlotPositions[idx]
+        }
+        // Fixed buildings look up by type
+        return Self.fixedPositions[building.type]
+    }
 
     // MARK: - Lifecycle
 
@@ -129,21 +159,10 @@ final class CityScene: SKScene {
         worldNode.addChild(HQNode())
 
         for building in buildings {
-            guard let slot = visualSlot(for: building),
-                  let coord = Isometric.coord(forSlot: slot) else { continue }
-            worldNode.addChild(BuildingNode(building: building, col: coord.col, row: coord.row))
+            guard building.type != .HQ else { continue }
+            guard let c = coord(for: building) else { continue }
+            worldNode.addChild(BuildingNode(building: building, col: c.col, row: c.row))
         }
-    }
-
-    // MARK: - Slot Mapping
-
-    private func visualSlot(for building: BuildingInfo) -> Int? {
-        if let idx = building.slotIndex { return Self.fixedOrder.count + idx }
-        return Self.fixedOrder.firstIndex(of: building.type)
-    }
-
-    private func building(atSlot slot: Int) -> BuildingInfo? {
-        buildings.first { visualSlot(for: $0) == slot }
     }
 
     // MARK: - Touch Handling
@@ -166,12 +185,19 @@ final class CityScene: SKScene {
             return
         }
 
-        guard let slot = Isometric.slot(forCoord: col, row: row) else { return }
+        // Find if any building occupies this (col, row)
+        let bldg = buildings.first { b in
+            guard b.type != .HQ, let c = coord(for: b) else { return false }
+            return c.col == col && c.row == row
+        }
 
-        if let bldg = building(atSlot: slot) {
+        if let bldg {
             onTapBuilding?(bldg)
         } else {
-            onTapEmptySlot?(slot)
+            // Empty slot — derive a "slot number" so BuildSheet can show
+            // which flex slot is being built into. For now pass 0;
+            // proper slot derivation is a later step.
+            onTapEmptySlot?(0)
         }
     }
 }
