@@ -12,7 +12,8 @@ enum WallLayout {
         var entries: [WallEntry] = []
         let n = Isometric.gridSize
 
-        // Top-left side: col 0..<n, row = -1 (severno od grida, ide od top ka right korneru)
+        // NE side (row=-1, col 0..<n) — između TOP i RIGHT pylona.
+        // Slope "\" — prirodna orijentacija sprite-a.
         for col in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: col, row: -1),
@@ -20,7 +21,8 @@ enum WallLayout {
                 zPosition: Isometric.zDepth(col: col, row: 0) - 0.5
             ))
         }
-        // Top-right side: col = n, row 0..<n (istočno, ide od right ka bottom)
+        // SE side (col=n, row 0..<n) — između RIGHT i BOTTOM pylona.
+        // Slope "/" — xScale=-1.
         for row in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: n, row: row),
@@ -28,19 +30,21 @@ enum WallLayout {
                 zPosition: Isometric.zDepth(col: n - 1, row: row) + 1.5
             ))
         }
-        // Bottom-right side: col 0..<n, row = n (južno, ide od bottom ka left)
+        // SW side (row=n, col 0..<n) — između BOTTOM i LEFT pylona.
+        // Slope "\" (simetrično sa NE) — xScale=1.
         for col in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: col, row: n),
-                xScale: -1,
+                xScale: 1,
                 zPosition: Isometric.zDepth(col: col, row: n - 1) + 1.5
             ))
         }
-        // Bottom-left side: col = -1, row 0..<n (zapadno, ide od left ka top)
+        // NW side (col=-1, row 0..<n) — između LEFT i TOP pylona.
+        // Slope "/" (simetrično sa SE) — xScale=-1.
         for row in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: -1, row: row),
-                xScale: 1,
+                xScale: -1,
                 zPosition: Isometric.zDepth(col: 0, row: row) - 0.5
             ))
         }

@@ -117,21 +117,23 @@ final class CityScene: SKScene {
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
-        // Diamond extent za 5×5 grid: 5*128=640 wide, 5*80=400 tall.
-        // Dodajemo padding za pylon-e koji se prostiru izvan grida.
-        let diamondW = CGFloat(Isometric.gridSize + 1) * Isometric.tileWidth   // 768
-        let diamondH = CGFloat(Isometric.gridSize + 1) * Isometric.tileHeight  // 480
+        // Diamond extent za 5×5 grid: 5*128=640 wide, 5*64=320 tall.
+        // Koristimo tačne dimenzije grida — pyloni smeju malo da clip-uju
+        // na ivicama (tih ~35pt po strani) radi većeg zooma i boljeg odnosa
+        // sa art-om koji je rendiran za standardni iso ugao.
+        let diamondW = CGFloat(Isometric.gridSize) * Isometric.tileWidth   // 640
+        let diamondH = CGFloat(Isometric.gridSize) * Isometric.tileHeight  // 320
 
         let usableW = viewSize.width  - 8
-        let usableH = viewSize.height - 180  // top HUD ~90 + bottom safe ~90
+        let usableH = viewSize.height - 160  // top HUD ~80 + bottom safe ~80
 
         let scale = min(usableW / diamondW, usableH / diamondH)
         worldNode.setScale(scale)
 
-        // HQ je na (2,2) → world pos (0, -160). Pomeramo svet tako da HQ bude
-        // malo ispod centra ekrana da grad deluje "bliži" korisniku.
-        let hqTargetY = -viewSize.height * 0.06
-        worldNode.position = CGPoint(x: 0, y: hqTargetY + 160 * scale)
+        // HQ je na (2,2) → world pos (0, -128) (sa tileHeight=64: -(2+2)*32).
+        // Pomeramo svet tako da HQ bude malo ispod centra ekrana.
+        let hqTargetY = -viewSize.height * 0.05
+        worldNode.position = CGPoint(x: 0, y: hqTargetY + 128 * scale)
     }
 
     // MARK: - Build Layers

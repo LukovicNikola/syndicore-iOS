@@ -1,9 +1,11 @@
 import CoreGraphics
 
-/// Izometrijska matematika za CityScene — 1.6:1 projekcija, 5×5 grid.
+/// Izometrijska matematika za CityScene — standardna 2:1 iso projekcija,
+/// 5×5 grid. Ratio 128:64 odgovara uglu pod kojim su sprite-ovi rendirani
+/// u Tripo3D (~30° camera elevation, `hero_reference_v1` anchor).
 enum Isometric {
     static let tileWidth:  CGFloat = 128
-    static let tileHeight: CGFloat = 80    // 80 umesto 64 → strmiji ugao, usklađen sa sprite artom
+    static let tileHeight: CGFloat = 64    // 2:1 iso ratio — usklađen sa uglom art sprite-ova
     static let gridSize:   Int     = 5
     static let hqCoord: (col: Int, row: Int) = (2, 2)
 
