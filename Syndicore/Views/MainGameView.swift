@@ -11,7 +11,7 @@ struct MainGameView: View {
                     Label("City", systemImage: "building.2")
                 }
 
-            MapPlaceholderView()
+            MapView()
                 .tabItem {
                     Label("Map", systemImage: "map")
                 }
@@ -49,16 +49,6 @@ struct MainGameView: View {
 }
 
 // MARK: - Placeholder Views
-
-private struct MapPlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            Text("Map -- coming soon")
-                .foregroundStyle(.secondary)
-                .navigationTitle("Map")
-        }
-    }
-}
 
 private struct ArmyPlaceholderView: View {
     var body: some View {

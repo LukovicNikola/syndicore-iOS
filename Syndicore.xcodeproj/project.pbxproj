@@ -45,6 +45,8 @@
 		4B0000000000000000000009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000109 /* SettingsView.swift */; };
 		4B0000000000000000000010 /* CityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000110 /* CityView.swift */; };
 		4B0000000000000000000011 /* TrainingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000111 /* TrainingSheet.swift */; };
+		4B0000000000000000000012 /* MapScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000112 /* MapScene.swift */; };
+		4B0000000000000000000013 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000113 /* MapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -87,6 +89,8 @@
 		4B0000000000000000000109 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4B0000000000000000000110 /* CityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityView.swift; sourceTree = "<group>"; };
 		4B0000000000000000000111 /* TrainingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingSheet.swift; sourceTree = "<group>"; };
+		4B0000000000000000000112 /* MapScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScene.swift; sourceTree = "<group>"; };
+		4B0000000000000000000113 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +122,7 @@
 				4A0000000000000000000015 /* Views */,
 				4A0000000000000000000016 /* Resources */,
 				9B2E27352F91275700CA8E81 /* Services */,
+				4B0000000000000000000200 /* Map */,
 			);
 			path = Syndicore;
 			sourceTree = "<group>";
@@ -208,6 +213,15 @@
 				9B2E27362F91276600CA8E81 /* SupabaseManager.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		4B0000000000000000000200 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				4B0000000000000000000112 /* MapScene.swift */,
+				4B0000000000000000000113 /* MapView.swift */,
+			);
+			path = Map;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -321,6 +335,8 @@
 				4B0000000000000000000009 /* SettingsView.swift in Sources */,
 				4B0000000000000000000010 /* CityView.swift in Sources */,
 				4B0000000000000000000011 /* TrainingSheet.swift in Sources */,
+				4B0000000000000000000012 /* MapScene.swift in Sources */,
+				4B0000000000000000000013 /* MapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
