@@ -1,10 +1,10 @@
 import CoreGraphics
 
-/// Izometrijska matematika za CityScene — 2:1 projekcija, 5×5 grid.
+/// Izometrijska matematika za CityScene — 1.6:1 projekcija, 5×5 grid.
 enum Isometric {
     static let tileWidth:  CGFloat = 128
-    static let tileHeight: CGFloat = 64
-    static let gridSize:   Int     = 5
+    static let tileHeight: CGFloat = 80    // 80 umesto 64 → strmiji ugao, usklađen sa sprite artom
+    static let gridSize:   Int     = 4
     static let hqCoord: (col: Int, row: Int) = (2, 2)
 
     /// Grid coord → scene pozicija (relative to worldLayer center).
