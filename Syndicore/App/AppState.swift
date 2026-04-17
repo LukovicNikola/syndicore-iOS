@@ -1,11 +1,14 @@
 import Foundation
 import Observation
+import os
 
 /// Centralno stanje aplikacije.
 /// Prati gde se korisnik nalazi u flow-u: splash -> auth -> onboarding -> worldPicker -> factionPicker -> mainGame.
 @Observable
 @MainActor
 final class GameState {
+
+    static let log = Logger(subsystem: "com.syndicore.ios", category: "GameState")
 
     // MARK: - Navigation
 
@@ -38,8 +41,9 @@ final class GameState {
     let auth: SupabaseManager
     let gameConstants: GameConstantsManager
 
-    init() {
-        let api = APIClient()
+    init(config: AppConfig) {
+        SupabaseManager.configure(config: config)
+        let api = APIClient(baseURL: config.apiBaseURL)
         self.api = api
         self.auth = SupabaseManager.shared
         self.gameConstants = GameConstantsManager(api: api)
@@ -51,6 +55,16 @@ final class GameState {
     var activeWorld: World?
     var activePlayerWorld: PlayerWorld?
     var activeCity: City?
+
+    // MARK: - Transient UI Error State
+    // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
+    // Views treba da resetuju ovo na nil nakon prikaza (ili na .task retry-u).
+
+    /// Poslednja greska iz refreshCity() koju CityView treba da prikaze.
+    var cityRefreshError: String?
+
+    /// Poslednja greska iz map viewport fetch-a koju MapView treba da prikaze.
+    var mapFetchError: String?
 
     // MARK: - Bootstrap
 
@@ -91,11 +105,11 @@ final class GameState {
             case .unauthorized:
                 activeScreen = .auth
             default:
-                print("⚠️ [bootstrap] APIError: \(error)")
+                Self.log.error("Bootstrap APIError: \(error.localizedDescription, privacy: .public)")
                 activeScreen = .auth
             }
         } catch {
-            print("⚠️ [bootstrap] Unexpected error: \(error)")
+            Self.log.error("Bootstrap unexpected error: \(error.localizedDescription, privacy: .public)")
             activeScreen = .auth
         }
     }
@@ -141,8 +155,11 @@ final class GameState {
         guard let cityId = activeCity?.id else { return }
         do {
             activeCity = try await api.city(id: cityId)
+            cityRefreshError = nil
         } catch {
-            // Keep stale data on refresh failure
+            // Zadrzi stale data ali upozori UI — korisnik mora da zna da je refresh otkazao.
+            Self.log.info("City refresh failed: \(error.localizedDescription, privacy: .public)")
+            cityRefreshError = error.localizedDescription
         }
     }
 

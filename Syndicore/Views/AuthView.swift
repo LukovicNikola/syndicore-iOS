@@ -34,9 +34,13 @@ struct AuthView: View {
 
             // Apple Sign In
             SignInWithAppleButton(.signIn) { request in
-                let nonce = gameState.auth.generateNonce()
-                request.requestedScopes = [.email]
-                request.nonce = gameState.auth.sha256(nonce)
+                do {
+                    let nonce = try gameState.auth.generateNonce()
+                    request.requestedScopes = [.email]
+                    request.nonce = gameState.auth.sha256(nonce)
+                } catch {
+                    errorMessage = error.localizedDescription
+                }
             } onCompletion: { result in
                 Task { await handleAppleSignIn(result: result) }
             }

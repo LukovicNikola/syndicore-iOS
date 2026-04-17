@@ -1,7 +1,8 @@
 import Foundation
+import os
 
 /// Syndicore API client — async/await, zero third-party deps.
-/// Base URL se čita iz Config.plist (API_BASE_URL).
+/// Base URL i token provider se injektuju u init (AppConfig se loaduje u SyndicoreApp).
 final class APIClient: @unchecked Sendable {
     let baseURL: URL
     let session: URLSession
@@ -9,47 +10,18 @@ final class APIClient: @unchecked Sendable {
     let decoder: JSONDecoder
     let encoder: JSONEncoder
 
+    static let log = Logger(subsystem: "com.syndicore.ios", category: "APIClient")
+
     init(
-        baseURL: URL? = nil,
+        baseURL: URL,
         tokenProvider: TokenProvider = SupabaseTokenProvider(),
         session: URLSession = .shared
     ) {
-        if let baseURL {
-            self.baseURL = baseURL
-        } else {
-            // Čitaj iz Config.plist
-            guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
-                  let config = NSDictionary(contentsOfFile: path),
-                  let urlString = config["API_BASE_URL"] as? String,
-                  let url = URL(string: urlString)
-            else {
-                fatalError("Config.plist missing API_BASE_URL")
-            }
-            self.baseURL = url
-        }
-
+        self.baseURL = baseURL
         self.tokenProvider = tokenProvider
         self.session = session
-
-        let decoder = JSONDecoder()
-        // BE šalje ISO8601 sa fractional seconds: "2026-05-01T00:00:00.000Z"
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let string = try container.decode(String.self)
-            if let date = formatter.date(from: string) { return date }
-            // fallback bez fractional seconds
-            formatter.formatOptions = [.withInternetDateTime]
-            defer { formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] }
-            if let date = formatter.date(from: string) { return date }
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")
-        }
-        self.decoder = decoder
-
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        self.encoder = encoder
+        self.decoder = .api
+        self.encoder = .api
     }
 
     // MARK: - Generic request
@@ -59,6 +31,7 @@ final class APIClient: @unchecked Sendable {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
+            Self.log.error("Decode failure for \(endpoint.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
             throw APIError.decodingError(error)
         }
     }
@@ -69,7 +42,10 @@ final class APIClient: @unchecked Sendable {
 
     // MARK: - Private
 
-    private func raw(_ endpoint: Endpoint) async throws -> (Data, HTTPURLResponse) {
+    /// Izvrsava HTTP request sa auth header-om i 401 retry logikom.
+    /// Na 401: pokusava jedan refresh token + replay. Ako i posle refresh-a dobije 401,
+    /// baca APIError.unauthorized (pozivalac treba da sign-out-uje korisnika).
+    private func raw(_ endpoint: Endpoint, retryingAfter401: Bool = false) async throws -> (Data, HTTPURLResponse) {
         guard let url = URL(string: endpoint.path, relativeTo: baseURL) else {
             throw APIError.invalidURL
         }
@@ -79,7 +55,13 @@ final class APIClient: @unchecked Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         if endpoint.requiresAuth {
-            let token = try await tokenProvider.accessToken()
+            let token: String
+            if retryingAfter401 {
+                // Drugi prolaz: koristi svez token iz refresh-a
+                token = try await tokenProvider.refreshToken()
+            } else {
+                token = try await tokenProvider.accessToken()
+            }
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -88,10 +70,13 @@ final class APIClient: @unchecked Sendable {
             request.httpBody = try encoder.encode(AnyEncodable(body))
         }
 
+        Self.log.debug("→ \(endpoint.method.rawValue, privacy: .public) \(endpoint.path, privacy: .public)\(retryingAfter401 ? " (retry)" : "", privacy: .public)")
+
         let (data, response): (Data, URLResponse)
         do {
             (data, response) = try await session.data(for: request)
         } catch {
+            Self.log.error("Transport error on \(endpoint.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
             throw APIError.networkError(error)
         }
 
@@ -99,10 +84,22 @@ final class APIClient: @unchecked Sendable {
             throw APIError.unexpectedStatus(-1, data)
         }
 
+        Self.log.debug("← \(http.statusCode) \(endpoint.path, privacy: .public) (\(data.count) bytes)")
+
         switch http.statusCode {
         case 200...299:
             return (data, http)
         case 401:
+            // Pokusaj jedan refresh + replay, ali samo ako endpoint zahteva auth i jos nismo retry-ovali
+            if endpoint.requiresAuth && !retryingAfter401 {
+                Self.log.info("401 on \(endpoint.path, privacy: .public) — attempting token refresh + replay")
+                do {
+                    return try await raw(endpoint, retryingAfter401: true)
+                } catch {
+                    Self.log.info("Refresh + replay failed: \(error.localizedDescription, privacy: .public)")
+                    throw APIError.unauthorized
+                }
+            }
             throw APIError.unauthorized
         case 404:
             if let onboarding = try? decoder.decode(OnboardingRequiredResponse.self, from: data) {

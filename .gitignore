@@ -37,3 +37,6 @@ Pods/
 .env
 *.xcconfig
 !Debug.xcconfig.example
+Syndicore/Resources/Config.plist
+Config.plist
+!Syndicore/Resources/Config.example.plist

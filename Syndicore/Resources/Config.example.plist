@@ -2,10 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!--
+    Template za Config.plist. Kopiraj u isti folder kao Config.plist
+    i popuni vrednosti iz Supabase dashboard-a + BE .env fajla.
+    Config.plist je u .gitignore — ne commit-ovati.
+    -->
     <key>SUPABASE_URL</key>
-    <string>https://zdtzsruzqjrtjkbtvsjo.supabase.co</string>
+    <string>https://YOUR_PROJECT.supabase.co</string>
     <key>SUPABASE_ANON_KEY</key>
-    <string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkdHpzcnV6cWpydGprYnR2c2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODI4MjksImV4cCI6MjA5MTc1ODgyOX0.XsH0QWOavn3_3J4owB108H2i5Bls8E1KHjC7BWNYY8g</string>
+    <string>YOUR_SUPABASE_ANON_KEY</string>
     <key>API_BASE_URL</key>
     <string>https://syndicore-be-staging.onrender.com</string>
 </dict>

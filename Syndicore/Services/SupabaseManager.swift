@@ -5,14 +5,34 @@ import AuthenticationServices
 import CryptoKit
 
 /// Wrapper oko supabase-swift SDK-a.
-/// Cita credentials iz Config.plist, pruza sign in/up/out i token za API pozive.
+/// Credentials se injektuju preko AppConfig-a (loaduje se u SyndicoreApp pre bilo kakvog pristupa).
+/// Pruza sign in/up/out i token za API pozive.
 @Observable
 @MainActor
 final class SupabaseManager {
 
-    // MARK: - Singleton
+    // MARK: - Configured singleton
 
-    static let shared = SupabaseManager()
+    /// Backing za `shared`. Postavlja se jednom preko `configure(config:)` u SyndicoreApp.
+    /// `nonisolated(unsafe)` jer singleton bootstrap ide pre nego što bilo koja concurrent
+    /// koriscenje pocne — nakon toga `_shared` je immutable de facto.
+    nonisolated(unsafe) private static var _shared: SupabaseManager?
+
+    /// Globalni singleton. Pristupaj TEK NAKON `configure(config:)` u SyndicoreApp.
+    /// `nonisolated` da bi `SupabaseTokenProvider` mogao da pristupi iz non-main actor konteksta.
+    nonisolated static var shared: SupabaseManager {
+        guard let mgr = _shared else {
+            preconditionFailure("SupabaseManager.configure(config:) mora da se pozove pre pristupa .shared. Vidi SyndicoreApp.")
+        }
+        return mgr
+    }
+
+    /// Poziva se jednom u SyndicoreApp nakon što je AppConfig učitan.
+    /// Mora da se zove sa @MainActor konteksta (npr. SwiftUI .task u SyndicoreApp).
+    static func configure(config: AppConfig) {
+        assert(_shared == nil, "SupabaseManager je vec konfigurisan")
+        _shared = SupabaseManager(config: config)
+    }
 
     // MARK: - Properties
 
@@ -26,25 +46,27 @@ final class SupabaseManager {
     /// Nonce za Apple Sign In (mora da se sacuva izmedju request-a i completion-a)
     var currentNonce: String?
 
+    /// Task koji slusa onAuthStateChange stream. Cuva se da bi mogao da se cancel-uje.
+    private var authListenerTask: Task<Void, Never>?
+
     // MARK: - Init
 
-    private init() {
-        guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
-              let config = NSDictionary(contentsOfFile: path),
-              let urlString = config["SUPABASE_URL"] as? String,
-              let anonKey = config["SUPABASE_ANON_KEY"] as? String,
-              let url = URL(string: urlString)
-        else {
-            fatalError("Config.plist missing or invalid -- need SUPABASE_URL and SUPABASE_ANON_KEY")
-        }
-
+    init(config: AppConfig) {
         self.client = SupabaseClient(
-            supabaseURL: url,
-            supabaseKey: anonKey,
+            supabaseURL: config.supabaseURL,
+            supabaseKey: config.supabaseAnonKey,
             options: .init(
                 auth: .init(emitLocalSessionAsInitialSession: true)
             )
         )
+        // Start listening za auth state changes (token refresh, signed out iz drugih tab-ova/uređaja)
+        self.authListenerTask = Task { [weak self] in
+            await self?.listenToAuthChanges()
+        }
+    }
+
+    deinit {
+        authListenerTask?.cancel()
     }
 
     // MARK: - Session Management
@@ -86,8 +108,9 @@ final class SupabaseManager {
     // MARK: - Apple Sign In
 
     /// Generise random nonce za Apple Sign In.
-    func generateNonce() -> String {
-        let nonce = randomNonceString()
+    /// Baca SupabaseAuthError.nonceGenerationFailed ako SecRandomCopyBytes otkaze (izuzetno retko).
+    func generateNonce() throws -> String {
+        let nonce = try randomNonceString()
         currentNonce = nonce
         return nonce
     }
@@ -139,12 +162,12 @@ final class SupabaseManager {
 
     // MARK: - Private
 
-    private func randomNonceString(length: Int = 32) -> String {
+    private func randomNonceString(length: Int = 32) throws -> String {
         precondition(length > 0)
         var randomBytes = [UInt8](repeating: 0, count: length)
         let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
         if errorCode != errSecSuccess {
-            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+            throw SupabaseAuthError.nonceGenerationFailed(osStatus: errorCode)
         }
         let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz-._")
         return String(randomBytes.map { charset[Int($0) % charset.count] })
@@ -158,6 +181,11 @@ final class SupabaseTokenProvider: TokenProvider, Sendable {
         let session = try await SupabaseManager.shared.client.auth.session
         return session.accessToken
     }
+
+    func refreshToken() async throws -> String {
+        let session = try await SupabaseManager.shared.client.auth.refreshSession()
+        return session.accessToken
+    }
 }
 
 // MARK: - Error
@@ -165,6 +193,7 @@ final class SupabaseTokenProvider: TokenProvider, Sendable {
 enum SupabaseAuthError: LocalizedError {
     case notAuthenticated
     case appleSignInFailed
+    case nonceGenerationFailed(osStatus: Int32)
 
     var errorDescription: String? {
         switch self {
@@ -172,6 +201,8 @@ enum SupabaseAuthError: LocalizedError {
             return "Not authenticated -- please sign in"
         case .appleSignInFailed:
             return "Apple Sign In failed -- please try again"
+        case .nonceGenerationFailed(let osStatus):
+            return "Secure nonce generation failed (OSStatus \(osStatus)). Pokušaj ponovo."
         }
     }
 }
