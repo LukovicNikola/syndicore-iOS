@@ -28,30 +28,34 @@ final class CityScene: SKScene {
     // (iOS layout), not dictated by BE. Returns (col, row) for a given
     // BuildingType + optional slotIndex.
     //
-    // Strategy: fixed buildings get dedicated positions around HQ.
-    // Resource buildings fan out through remaining positions by slotIndex.
-    // 4×4 grid (cols/rows 0..3), HQ at (2,2).
+    // Strategy: fixed buildings get 8 inner-ring slots around HQ + WALL far N.
+    // Resource buildings fan out through 15 outer-ring positions by slotIndex.
+    // 5×5 grid (cols/rows 0..4), HQ at (2,2) = centar.
     //
-    //  (0,0) (1,0) (2,0) (3,0)
-    //  (0,1) (1,1) (2,1) (3,1)
-    //  (0,2) (1,2) [HQ]  (3,2)
-    //  (0,3) (1,3) (2,3) (3,3)
+    //  (0,0) (1,0) (2,0) (3,0) (4,0)
+    //  (0,1) (1,1) (2,1) (3,1) (4,1)
+    //  (0,2) (1,2) [HQ]  (3,2) (4,2)
+    //  (0,3) (1,3) (2,3) (3,3) (4,3)
+    //  (0,4) (1,4) (2,4) (3,4) (4,4)
     private static let fixedPositions: [BuildingType: (col: Int, row: Int)] = [
-        .RALLY_POINT:   (col: 2, row: 0),   // N of HQ
-        .RESEARCH_LAB:  (col: 1, row: 1),   // NW
-        .OPS_CENTER:    (col: 2, row: 1),   // directly above HQ
-        .MOTOR_POOL:    (col: 3, row: 1),   // NE
-        .WALL:          (col: 0, row: 2),   // far left
-        .BARRACKS:      (col: 1, row: 2),   // left of HQ
-        .WATCHTOWER:    (col: 3, row: 2),   // right of HQ
-        .WAREHOUSE:     (col: 1, row: 3),   // SW
-        .TRADE_POST:    (col: 2, row: 3),   // S of HQ
+        .OPS_CENTER:    (col: 1, row: 1),   // NW od HQ
+        .RALLY_POINT:   (col: 2, row: 1),   // N od HQ
+        .WATCHTOWER:    (col: 3, row: 1),   // NE od HQ
+        .BARRACKS:      (col: 1, row: 2),   // W od HQ
+        .MOTOR_POOL:    (col: 3, row: 2),   // E od HQ
+        .WAREHOUSE:     (col: 1, row: 3),   // SW od HQ
+        .RESEARCH_LAB:  (col: 2, row: 3),   // S od HQ
+        .TRADE_POST:    (col: 3, row: 3),   // SE od HQ
+        .WALL:          (col: 2, row: 0),   // daleki sever
     ]
 
-    // Remaining 6 slots for resource buildings (DATA_BANK, FOUNDRY, TECH_LAB, POWER_GRID)
+    // 15 outer-ring slotova za flex/resource buildings (DATA_BANK, FOUNDRY, TECH_LAB, POWER_GRID)
     private static let resourceSlotPositions: [(col: Int, row: Int)] = [
-        (0, 0), (1, 0), (3, 0),
-        (0, 1), (0, 3), (3, 3),
+        (0, 0), (1, 0),         (3, 0), (4, 0),
+        (0, 1),                                 (4, 1),
+        (0, 2),                                 (4, 2),
+        (0, 3),                                 (4, 3),
+        (0, 4), (1, 4), (2, 4), (3, 4), (4, 4),
     ]
 
     private func coord(for building: BuildingInfo) -> (col: Int, row: Int)? {
@@ -80,7 +84,6 @@ final class CityScene: SKScene {
 
         addChild(worldNode)
         buildTileLayer()
-        buildFloorRing()
         buildWallLayer()
         // Do NOT call layoutWorld here — size may still be 0.
         // didChangeSize will fire with the real size.
@@ -114,20 +117,20 @@ final class CityScene: SKScene {
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
-        // Scale based on gridSize*tileWidth (640) — left/right pylons clip ~35pt at edges
-        // which is acceptable. Using gridSize+1 (768) makes the scene too small.
-        let diamondW = CGFloat(Isometric.gridSize) * Isometric.tileWidth   // 640
-        let diamondH = CGFloat(Isometric.gridSize) * Isometric.tileHeight  // 320
+        // Diamond extent za 5×5 grid: 5*128=640 wide, 5*80=400 tall.
+        // Dodajemo padding za pylon-e koji se prostiru izvan grida.
+        let diamondW = CGFloat(Isometric.gridSize + 1) * Isometric.tileWidth   // 768
+        let diamondH = CGFloat(Isometric.gridSize + 1) * Isometric.tileHeight  // 480
 
         let usableW = viewSize.width  - 8
-        let usableH = viewSize.height - 160  // top HUD ~80 + bottom safe ~80
+        let usableH = viewSize.height - 180  // top HUD ~90 + bottom safe ~90
 
         let scale = min(usableW / diamondW, usableH / diamondH)
         worldNode.setScale(scale)
 
-        // HQ is at world y = -160 (with tileHeight=80: -(2+2)*40 = -160).
-        // Place HQ 8% below screen center so the city feels "closer"/lower to the user.
-        let hqTargetY = -viewSize.height * 0.08
+        // HQ je na (2,2) → world pos (0, -160). Pomeramo svet tako da HQ bude
+        // malo ispod centra ekrana da grad deluje "bliži" korisniku.
+        let hqTargetY = -viewSize.height * 0.06
         worldNode.position = CGPoint(x: 0, y: hqTargetY + 160 * scale)
     }
 
@@ -151,34 +154,6 @@ final class CityScene: SKScene {
                 }
             }
             tileGrid.append(column)
-        }
-    }
-
-    /// Adds non-interactive floor tiles at the perimeter ring so the grid looks
-    /// flush with the wall interior. Side tiles (col=-1/col=n) are placed deep
-    /// behind the wall (zPosition -2) so the wall hides the outward overhang.
-    private func buildFloorRing() {
-        let n = Isometric.gridSize
-        let tileSize = CGSize(width: Isometric.tileWidth, height: Isometric.tileHeight)
-
-        func addFloor(col: Int, row: Int, z: CGFloat) {
-            let sprite = SKSpriteNode(imageNamed: "tile_empty_v1")
-            sprite.size      = tileSize
-            sprite.position  = Isometric.scenePosition(col: col, row: row)
-            sprite.zPosition = z
-            worldNode.addChild(sprite)
-        }
-
-        // Top/bottom: normal z, wall is in front and covers the outer edge cleanly.
-        for col in 0..<n {
-            addFloor(col: col, row: -1, z: Isometric.zDepth(col: col, row: 0) - 1)
-            addFloor(col: col, row: n,  z: Isometric.zDepth(col: col, row: n - 1))
-        }
-        // Left/right: push to z = -100 (well behind walls) so the tile fills the
-        // interior gap but the overhanging edge is hidden behind the wall sprite.
-        for row in 0..<n {
-            addFloor(col: -1, row: row, z: -100)
-            addFloor(col: n,  row: row, z: -100)
         }
     }
 

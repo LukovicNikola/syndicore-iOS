@@ -3,8 +3,8 @@ import SpriteKit
 /// Ugaoni pilon — prikazuje se na 4 ćoška zidnog perimetra.
 final class CornerPylonNode: SKNode {
     private static let pylonSize = CGSize(
-        width:  Isometric.tileWidth  * 0.8,
-        height: Isometric.tileWidth  * 1.2   // visoki, uski pyloni
+        width:  Isometric.tileWidth  * 1.0,
+        height: Isometric.tileWidth  * 1.5   // veći da prirodno premoste šav između dve strane zida
     )
 
     init(entry: WallLayout.WallEntry) {

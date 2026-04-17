@@ -4,7 +4,7 @@ import CoreGraphics
 enum Isometric {
     static let tileWidth:  CGFloat = 128
     static let tileHeight: CGFloat = 80    // 80 umesto 64 → strmiji ugao, usklađen sa sprite artom
-    static let gridSize:   Int     = 4
+    static let gridSize:   Int     = 5
     static let hqCoord: (col: Int, row: Int) = (2, 2)
 
     /// Grid coord → scene pozicija (relative to worldLayer center).

@@ -2,10 +2,10 @@ import SpriteKit
 
 /// HQ piramida — uvek na centru grida (col 2, row 2).
 final class HQNode: SKNode {
-    // HQ je veći od standardnog tile-a — piramida koja dominira centrom grida
+    // HQ je dominantna piramida u centru grida — ~1.8× veća od tile-a
     private static let hqSize = CGSize(
-        width:  Isometric.tileWidth  * 1.2,
-        height: Isometric.tileWidth  * 1.2
+        width:  Isometric.tileWidth  * 1.8,
+        height: Isometric.tileWidth  * 1.8
     )
 
     init(col: Int = Isometric.hqCoord.col, row: Int = Isometric.hqCoord.row) {
