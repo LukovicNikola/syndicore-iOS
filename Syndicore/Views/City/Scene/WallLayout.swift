@@ -11,37 +11,36 @@ enum WallLayout {
         var entries: [WallEntry] = []
         let n = Isometric.gridSize
 
-        // Top-left diagonal edge: from (-1, -1) toward (n, -1)
-        // These go along the top-right edge of the iso diamond
-        for col in 0..<n {
+        // Top-right diagonal edge: col 0...n (one extra to close with top-right pylon)
+        for col in 0...n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: col, row: -1),
                 xScale: 1,
                 zPosition: Isometric.zDepth(col: col, row: 0) - 0.5
             ))
         }
-        // Top-right diagonal edge: from (n, -1) toward (n, n)
-        for row in 0..<n {
+        // Right-bottom diagonal edge: row 0...n (one extra to close with bottom-right pylon)
+        for row in 0...n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: n, row: row),
                 xScale: -1,
                 zPosition: Isometric.zDepth(col: n - 1, row: row) + 1.5
             ))
         }
-        // Bottom-right diagonal edge: from (n, n) back toward (-1, n)
-        for col in 0..<n {
+        // Bottom-left diagonal edge: col -1..<n (from pylon back toward top-left)
+        for col in -1..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: col, row: n),
                 xScale: -1,
-                zPosition: Isometric.zDepth(col: col, row: n - 1) + 1.5
+                zPosition: Isometric.zDepth(col: max(0, col), row: n - 1) + 1.5
             ))
         }
-        // Bottom-left diagonal edge: from (-1, n) back toward (-1, -1)
-        for row in 0..<n {
+        // Left-top diagonal edge: row -1..<n
+        for row in -1..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: -1, row: row),
                 xScale: 1,
-                zPosition: Isometric.zDepth(col: 0, row: row) - 0.5
+                zPosition: Isometric.zDepth(col: 0, row: max(0, row)) - 0.5
             ))
         }
         return entries
