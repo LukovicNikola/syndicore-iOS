@@ -118,12 +118,16 @@ extension Endpoint {
 
 // MARK: - Request Bodies
 
-struct TrainRequest: Codable {
+struct TrainRequest: Codable, Sendable {
     let unitType: String
     let count: Int
 }
 
-struct SendTroopsRequest: Codable {
+struct BuildUpgradeRequest: Codable, Sendable {
+    let buildingId: String
+}
+
+struct SendTroopsRequest: Codable, Sendable {
     let targetX: Int
     let targetY: Int
     let units: [String: Int]

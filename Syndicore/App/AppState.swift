@@ -113,6 +113,15 @@ final class GameState {
         activeScreen = .mainGame
     }
 
+    func refreshCity() async {
+        guard let cityId = activeCity?.id else { return }
+        do {
+            activeCity = try await api.city(id: cityId)
+        } catch {
+            // Keep stale data on refresh failure
+        }
+    }
+
     func signOut() async {
         do {
             try await auth.signOut()

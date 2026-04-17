@@ -154,6 +154,23 @@ extension APIClient {
         try await request(.movements(worldId: worldId), as: MovementsResponse.self).movements
     }
 
+    // City actions
+    func buildCost(cityId: String, buildingId: String) async throws -> BuildCostResponse {
+        try await request(.buildCost(cityId: cityId, buildingId: buildingId), as: BuildCostResponse.self)
+    }
+
+    func buildUpgrade(cityId: String, buildingId: String) async throws -> BuildResponse {
+        try await request(.build(cityId: cityId, body: BuildUpgradeRequest(buildingId: buildingId)), as: BuildResponse.self)
+    }
+
+    func train(cityId: String, unitType: String, count: Int) async throws -> TrainResponse {
+        try await request(.train(cityId: cityId, unitType: unitType, count: count), as: TrainResponse.self)
+    }
+
+    func trainingJobs(cityId: String) async throws -> [TrainingJob] {
+        try await request(.training(cityId: cityId), as: TrainingListResponse.self).training
+    }
+
     // Reports
     func reports(worldId: String) async throws -> [BattleReport] {
         try await request(.reports(worldId: worldId), as: ReportsResponse.self).reports
