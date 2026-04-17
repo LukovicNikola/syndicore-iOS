@@ -28,28 +28,67 @@ struct TileInfo: Codable {
 struct BuildingInfo: Codable, Identifiable {
     let id: String
     let type: BuildingType
-    let level: Int
-    let isUpgrading: Bool
-    let upgradeEnd: String?
-    let slotIndex: Int?
+    let currentLevel: Int
+    let targetLevel: Int?       // nil ako nije u upgrade-u
+    let endsAt: Date?           // nil ako nije u upgrade-u
+    let slotIndex: Int?         // nil za fixed buildings
+
+    var isUpgrading: Bool { targetLevel != nil && endsAt != nil }
+
+    // Backward compat: stari BE šalje "level"+"isUpgrading"+"upgradeEnd",
+    // novi BE šalje "currentLevel"+"targetLevel"+"endsAt"
+    enum CodingKeys: String, CodingKey {
+        case id, type, slotIndex
+        case currentLevel, level
+        case targetLevel
+        case endsAt, upgradeEnd
+        case isUpgrading
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id          = try c.decode(String.self,       forKey: .id)
+        type        = try c.decode(BuildingType.self,  forKey: .type)
+        slotIndex   = try? c.decode(Int.self,          forKey: .slotIndex)
+        targetLevel = try? c.decode(Int.self,          forKey: .targetLevel)
+        // "currentLevel" (novi BE) ili "level" (stari BE)
+        if let v = try? c.decode(Int.self, forKey: .currentLevel) {
+            currentLevel = v
+        } else {
+            currentLevel = try c.decode(Int.self, forKey: .level)
+        }
+        // "endsAt" (novi BE) ili "upgradeEnd" (stari BE)
+        endsAt = (try? c.decode(Date.self, forKey: .endsAt))
+            ?? (try? c.decode(Date.self, forKey: .upgradeEnd))
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id,           forKey: .id)
+        try c.encode(type,         forKey: .type)
+        try c.encode(currentLevel, forKey: .currentLevel)
+        try c.encodeIfPresent(targetLevel, forKey: .targetLevel)
+        try c.encodeIfPresent(endsAt,      forKey: .endsAt)
+        try c.encodeIfPresent(slotIndex,   forKey: .slotIndex)
+    }
 }
 
 struct TroopInfo: Codable {
-    let unitType: String
+    let unitType: UnitType
     let count: Int
 }
 
 struct ConstructionQueue: Codable {
     let buildingId: String
-    let type: String
-    let endsAt: String?
+    let type: BuildingType
+    let endsAt: Date?
 }
 
 struct TrainingJob: Codable, Identifiable {
     let id: String
-    let unitType: String
+    let unitType: UnitType
     let count: Int
-    let endsAt: String
+    let endsAt: Date
 }
 
 // MARK: - API Responses

@@ -12,7 +12,7 @@ struct SettingsView: View {
                     Section("Player") {
                         LabeledContent("Username", value: player.username)
                         LabeledContent("ID", value: String(player.id.prefix(8)) + "…")
-                        LabeledContent("Joined", value: player.createdAt)
+                        LabeledContent("Joined", value: player.createdAt.formatted(date: .abbreviated, time: .omitted))
                     }
                 }
 

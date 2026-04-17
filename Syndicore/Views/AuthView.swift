@@ -172,8 +172,13 @@ struct AuthView: View {
                 errorMessage = error.localizedDescription
             }
         case .failure(let error):
-            // ASAuthorizationError.canceled = korisnik otkazao, ne prikazuj gresku
-            if (error as? ASAuthorizationError)?.code != .canceled {
+            let appleError = error as? ASAuthorizationError
+            if appleError?.code == .canceled {
+                // Korisnik otkazao — ne prikazuj gresku
+            } else if appleError?.code == .unknown {
+                // Code 1000 = simulator ili drugi sistemski problem
+                errorMessage = "Apple Sign In requires a real device. Use email/password instead."
+            } else {
                 errorMessage = error.localizedDescription
             }
         }

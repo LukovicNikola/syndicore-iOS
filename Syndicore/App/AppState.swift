@@ -91,9 +91,11 @@ final class GameState {
             case .unauthorized:
                 activeScreen = .auth
             default:
+                print("⚠️ [bootstrap] APIError: \(error)")
                 activeScreen = .auth
             }
         } catch {
+            print("⚠️ [bootstrap] Unexpected error: \(error)")
             activeScreen = .auth
         }
     }

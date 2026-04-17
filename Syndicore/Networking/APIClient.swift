@@ -32,7 +32,19 @@ final class APIClient: @unchecked Sendable {
         self.session = session
 
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        // BE šalje ISO8601 sa fractional seconds: "2026-05-01T00:00:00.000Z"
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let string = try container.decode(String.self)
+            if let date = formatter.date(from: string) { return date }
+            // fallback bez fractional seconds
+            formatter.formatOptions = [.withInternetDateTime]
+            defer { formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] }
+            if let date = formatter.date(from: string) { return date }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")
+        }
         self.decoder = decoder
 
         let encoder = JSONEncoder()
@@ -145,8 +157,8 @@ extension APIClient {
     }
 
     // Map
-    func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) async throws -> MapResponse {
-        try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapResponse.self)
+    func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) async throws -> MapViewport {
+        try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapViewport.self)
     }
 
     // Movements

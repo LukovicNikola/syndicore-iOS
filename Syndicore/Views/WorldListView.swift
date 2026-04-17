@@ -56,7 +56,7 @@ private struct WorldRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(world.name)
                     .font(.headline)
-                Text(world.status)
+                Text(world.status.rawValue.capitalized)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

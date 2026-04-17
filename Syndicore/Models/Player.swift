@@ -3,8 +3,8 @@ import Foundation
 struct Player: Codable, Identifiable {
     let id: String
     let username: String
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: Date
+    let updatedAt: Date
     let worlds: [PlayerWorld]?
 }
 
@@ -15,7 +15,7 @@ struct PlayerWorld: Codable, Identifiable {
     let faction: Faction
     let ring: Ring
     let crystals: [String]
-    let joinedAt: String?   // nije u join response-u, prisutan u GET /me
+    let joinedAt: Date?     // nije u join response-u, prisutan u GET /me
     let city: City?
 }
 

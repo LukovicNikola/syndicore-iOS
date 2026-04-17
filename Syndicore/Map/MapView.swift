@@ -125,7 +125,7 @@ private struct TileInfoCard: View {
                     .foregroundStyle(.red)
             }
             if let mine = tile.mine {
-                Label("\(mine.resourceType.capitalized) Mine (\(Int(mine.productionRate))/hr)", systemImage: "diamond.fill")
+                Label("\(mine.resourceType.rawValue.capitalized) Mine (\(Int(mine.productionRate))/hr)", systemImage: "diamond.fill")
                     .font(.caption)
                     .foregroundStyle(.cyan)
             }

@@ -33,3 +33,15 @@ enum UnitType: String, Codable, CaseIterable {
 enum MovementType: String, Codable {
     case ATTACK, RAID, SCOUT, REINFORCE, TRANSPORT, SETTLE, RETURN
 }
+
+// MARK: - World Status
+
+enum WorldStatus: String, Codable {
+    case OPEN, RUNNING, ENDED, ARCHIVED
+}
+
+// MARK: - Resource Type
+
+enum ResourceType: String, Codable, CaseIterable {
+    case CREDITS, ALLOYS, TECH, ENERGY
+}

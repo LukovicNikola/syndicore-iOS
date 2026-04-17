@@ -33,7 +33,7 @@ struct TileOutpost: Codable {
 
 struct TileMine: Codable {
     let id: String
-    let resourceType: String
+    let resourceType: ResourceType
     let productionRate: Double
     let owned: Bool
 }
@@ -45,18 +45,19 @@ struct TileWarpGate: Codable {
 struct TileRuins: Codable {
     let id: String
     let originalRing: Ring
-    let decaysAt: String
+    let decaysAt: Date
 }
 
 // MARK: - API Response
+// MapViewport je outer wrapper; ViewportBounds je inner {cx, cy, radius}.
 
-struct MapResponse: Codable {
-    let viewport: MapViewport
+struct MapViewport: Codable {
+    let viewport: ViewportBounds
     let tileCount: Int
     let tiles: [MapTile]
 }
 
-struct MapViewport: Codable {
+struct ViewportBounds: Codable {
     let cx: Int
     let cy: Int
     let radius: Int
