@@ -2,12 +2,11 @@ import SpriteKit
 
 /// HQ piramida — uvek na centru grida (col 2, row 2).
 final class HQNode: SKNode {
-    // HQ sprite — baza 0.9× tile (lagano uža da ne "curi" preko diamond ivica
-    // jer je sprite rendirovan u Tripo pod malo strmijim uglom od 2:1 iso),
-    // visina 1.25× za piramidu koja ostaje dominantna.
+    // HQ sprite — baza staje u jedan tile (1.0×), visina ide ~1.4× nagore
+    // da piramida deluje visoka bez prekrivanja susednih tile-ova.
     private static let hqSize = CGSize(
-        width:  Isometric.tileWidth * 0.9,
-        height: Isometric.tileWidth * 1.25
+        width:  Isometric.tileWidth * 1.0,
+        height: Isometric.tileWidth * 1.4
     )
 
     init(col: Int = Isometric.hqCoord.col, row: Int = Isometric.hqCoord.row) {
