@@ -19,6 +19,7 @@ struct MapView: View {
     }
 
     var body: some View {
+        @Bindable var gameState = gameState
         ZStack {
             SpriteView(scene: scene)
                 .ignoresSafeArea()
@@ -28,6 +29,16 @@ struct MapView: View {
                     .padding(12)
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            if let err = gameState.mapFetchError {
+                VStack {
+                    RefreshErrorBanner(message: err) {
+                        gameState.mapFetchError = nil
+                        Task { await fetchViewport() }
+                    }
+                    Spacer()
+                }
             }
         }
         .overlay(alignment: .bottom) {
@@ -74,8 +85,10 @@ struct MapView: View {
                 radius: 20
             )
             scene.loadTiles(response.tiles, center: viewportCenter)
+            gameState.mapFetchError = nil
         } catch {
-            // Silently fail — cached tiles still visible
+            // Zadrzi cached tile-ove ali upozori UI — korisnik mora da zna da je fetch otkazao.
+            gameState.mapFetchError = error.localizedDescription
         }
         isLoading = false
     }

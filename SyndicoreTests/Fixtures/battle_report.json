@@ -1,0 +1,28 @@
+{
+  "id": "report-uuid-1",
+  "attackerWon": true,
+  "targetX": 10,
+  "targetY": -5,
+  "ratio": 1.8,
+  "totalAtk": 450.0,
+  "totalDef": 250.0,
+  "attackerUnits": {
+    "before": { "GRUNT": 50, "ENFORCER": 20 },
+    "after":  { "GRUNT": 35, "ENFORCER": 14 },
+    "lost":   { "GRUNT": 15, "ENFORCER": 6 }
+  },
+  "defenderUnits": {
+    "before": { "GRUNT": 30 },
+    "after":  { "GRUNT": 0 },
+    "lost":   { "GRUNT": 30 }
+  },
+  "resourcesStolen": {
+    "credits": 500.0,
+    "alloys": 200.0,
+    "tech": 100.0,
+    "energy": 0.0
+  },
+  "buildingsDamaged": ["BARRACKS"],
+  "occurredAt": "2026-04-15T10:00:00.000Z",
+  "isAttacker": true
+}

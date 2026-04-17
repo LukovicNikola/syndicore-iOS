@@ -12,6 +12,7 @@ struct CityView: View {
     private var city: City? { gameState.activeCity }
 
     var body: some View {
+        @Bindable var gameState = gameState
         ZStack {
             // MARK: Isometrijska scena
             CitySceneView(
@@ -25,6 +26,12 @@ struct CityView: View {
             // MARK: HUD overlay
             VStack {
                 TopHUD(city: city)
+                if let err = gameState.cityRefreshError {
+                    RefreshErrorBanner(message: err) {
+                        gameState.cityRefreshError = nil
+                        Task { await gameState.refreshCity() }
+                    }
+                }
                 Spacer()
                 BottomHUD(
                     constructionQueue: city?.constructionQueue,
@@ -78,4 +85,30 @@ struct CityView: View {
 /// Wrapper da Int bude Identifiable za .sheet(item:).
 private struct SlotSelection: Identifiable {
     let id: Int
+}
+
+/// Non-blocking error banner za refresh failure. Korisnik moze da retry-uje ili dismiss-uje.
+struct RefreshErrorBanner: View {
+    let message: String
+    let retry: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.yellow)
+            Text(message)
+                .font(.caption)
+                .lineLimit(2)
+                .foregroundStyle(.primary)
+            Spacer()
+            Button("Retry", action: retry)
+                .font(.caption.bold())
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal, 16)
+        .padding(.top, 4)
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
 }

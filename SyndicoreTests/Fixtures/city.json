@@ -1,0 +1,46 @@
+{
+  "city": {
+    "id": "city-uuid-123",
+    "name": "Test Base",
+    "resources": {
+      "credits": 1500.5,
+      "alloys": 800.0,
+      "tech": 250.25,
+      "energy": 100.0
+    },
+    "tile": {
+      "x": 5,
+      "y": -3,
+      "ring": "FRINGE",
+      "terrain": "FLATLAND",
+      "rarity": "COMMON"
+    },
+    "buildings": [
+      {
+        "id": "bld-1",
+        "type": "HQ",
+        "currentLevel": 1,
+        "targetLevel": null,
+        "endsAt": null,
+        "slotIndex": null
+      },
+      {
+        "id": "bld-2",
+        "type": "BARRACKS",
+        "currentLevel": 3,
+        "targetLevel": 4,
+        "endsAt": "2026-05-01T12:34:56.789Z",
+        "slotIndex": null
+      }
+    ],
+    "troops": [
+      { "unitType": "GRUNT", "count": 50 },
+      { "unitType": "ENFORCER", "count": 20 }
+    ],
+    "constructionQueue": {
+      "buildingId": "bld-2",
+      "type": "BARRACKS",
+      "endsAt": "2026-05-01T12:34:56.789Z"
+    }
+  }
+}
