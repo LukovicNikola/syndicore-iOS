@@ -6,7 +6,7 @@ struct MainGameView: View {
 
     var body: some View {
         TabView {
-            CityPlaceholderView()
+            CityView()
                 .tabItem {
                     Label("City", systemImage: "building.2")
                 }
@@ -49,75 +49,6 @@ struct MainGameView: View {
 }
 
 // MARK: - Placeholder Views
-
-private struct CityPlaceholderView: View {
-    @Environment(GameState.self) private var gameState
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                if let city = gameState.activeCity {
-                    Text(city.name)
-                        .font(.title2.bold())
-
-                    if let resources = city.resources {
-                        HStack(spacing: 16) {
-                            ResourceLabel(name: "Credits", value: resources.credits)
-                            ResourceLabel(name: "Alloys", value: resources.alloys)
-                        }
-                        HStack(spacing: 16) {
-                            ResourceLabel(name: "Tech", value: resources.tech)
-                            ResourceLabel(name: "Energy", value: resources.energy ?? 0)
-                        }
-                    }
-
-                    if let buildings = city.buildings {
-                        List(buildings) { building in
-                            HStack {
-                                Text(building.type.rawValue)
-                                    .font(.subheadline)
-                                Spacer()
-                                Text("Lvl \(building.level)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .listStyle(.plain)
-                    }
-                } else {
-                    ProgressView("Loading city...")
-                }
-            }
-            .navigationTitle("City")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Sign Out") {
-                        Task { await gameState.signOut() }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct ResourceLabel: View {
-    let name: String
-    let value: Double
-
-    var body: some View {
-        VStack {
-            Text(name)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text("\(Int(value))")
-                .font(.headline.monospacedDigit())
-        }
-        .frame(maxWidth: .infinity)
-        .padding(8)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
 
 private struct MapPlaceholderView: View {
     var body: some View {

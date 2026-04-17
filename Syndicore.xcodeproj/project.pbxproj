@@ -43,6 +43,8 @@
 		4B0000000000000000000007 /* TechTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000107 /* TechTreeView.swift */; };
 		4B0000000000000000000008 /* MapInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000108 /* MapInfoView.swift */; };
 		4B0000000000000000000009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000109 /* SettingsView.swift */; };
+		4B0000000000000000000010 /* CityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000110 /* CityView.swift */; };
+		4B0000000000000000000011 /* TrainingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000111 /* TrainingSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +85,8 @@
 		4B0000000000000000000107 /* TechTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechTreeView.swift; sourceTree = "<group>"; };
 		4B0000000000000000000108 /* MapInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapInfoView.swift; sourceTree = "<group>"; };
 		4B0000000000000000000109 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000110 /* CityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityView.swift; sourceTree = "<group>"; };
+		4B0000000000000000000111 /* TrainingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +178,8 @@
 				4B0000000000000000000107 /* TechTreeView.swift */,
 				4B0000000000000000000108 /* MapInfoView.swift */,
 				4B0000000000000000000109 /* SettingsView.swift */,
+				4B0000000000000000000110 /* CityView.swift */,
+				4B0000000000000000000111 /* TrainingSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -313,6 +319,8 @@
 				4B0000000000000000000007 /* TechTreeView.swift in Sources */,
 				4B0000000000000000000008 /* MapInfoView.swift in Sources */,
 				4B0000000000000000000009 /* SettingsView.swift in Sources */,
+				4B0000000000000000000010 /* CityView.swift in Sources */,
+				4B0000000000000000000011 /* TrainingSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
