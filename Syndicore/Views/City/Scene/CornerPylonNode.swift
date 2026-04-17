@@ -2,9 +2,12 @@ import SpriteKit
 
 /// Ugaoni pilon — prikazuje se na 4 ćoška zidnog perimetra.
 final class CornerPylonNode: SKNode {
+    // Proporcionalno skaliranje (width = height) da se sprite ne izobličuje.
+    // Pylon je po prirodi visok u svom 1024×1024 canvas-u, pa proporcionalno
+    // skaliranje na 1.4× zadržava iso ugao i daje dovoljno širine za seam.
     private static let pylonSize = CGSize(
-        width:  Isometric.tileWidth  * 1.4,   // šire da potpuno pokrije wall seam sa obe strane
-        height: Isometric.tileWidth  * 1.6    // proporcionalno više
+        width:  Isometric.tileWidth  * 1.4,
+        height: Isometric.tileWidth  * 1.4
     )
 
     init(entry: WallLayout.WallEntry) {
