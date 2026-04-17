@@ -6,9 +6,11 @@ import UIKit
 final class BuildingNode: SKNode {
     let building: BuildingInfo
 
+    // Ista logika kao HQ: 0.9× width da base ne curi preko tile diamond-a
+    // (Tripo render je malo strmiji od 2:1 iso).
     private static let buildingSize = CGSize(
-        width:  Isometric.tileWidth,
-        height: Isometric.tileWidth
+        width:  Isometric.tileWidth * 0.9,
+        height: Isometric.tileWidth * 0.9
     )
     private static let scaffoldSize = CGSize(
         width:  Isometric.tileWidth,
@@ -31,7 +33,7 @@ final class BuildingNode: SKNode {
             // Tekstura postoji — prikaži zgradu
             let sprite = SKSpriteNode(imageNamed: textureName)
             sprite.size        = Self.buildingSize
-            sprite.anchorPoint = CGPoint(x: 0.5, y: 0.25)
+            sprite.anchorPoint = CGPoint(x: 0.5, y: 0.15)   // niži anchor → baza sedi na tile-u
             addChild(sprite)
         }
         // Ako tekstura ne postoji i nije u izgradnji — tile ostaje prazan (ništa ne dodajemo)
