@@ -32,28 +32,38 @@ final class CityScene: SKScene {
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
-        // VAŽNO: anchorPoint = (0.5, 0.5) → (0,0) je centar ekrana, ne donji-levi ugao
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         scaleMode   = .resizeFill
         backgroundColor = SKColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1)
 
+        // Skybox as a separate background layer, NOT inside worldNode,
+        // and NOT scaled by world scale.
         let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
-        skybox.position  = .zero          // centar ekrana
+        skybox.position  = .zero
         skybox.zPosition = -200
-        skybox.size      = view.bounds.size
         addChild(skybox)
         skyboxNode = skybox
 
         addChild(worldNode)
-
         buildTileLayer()
         buildWallLayer()
-        layoutWorld(viewSize: view.bounds.size)
+        // Do NOT call layoutWorld here — size may still be 0.
+        // didChangeSize will fire with the real size.
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
-        skyboxNode?.size = size
+        // Skybox covers full scene. Use aspect fill (scale to max dim)
+        // so there's no empty area at edges.
+        if let skybox = skyboxNode, let tex = skybox.texture {
+            let texAspect   = tex.size().width / tex.size().height
+            let sceneAspect = size.width / size.height
+            if sceneAspect > texAspect {
+                skybox.size = CGSize(width: size.width, height: size.width / texAspect)
+            } else {
+                skybox.size = CGSize(width: size.height * texAspect, height: size.height)
+            }
+        }
         layoutWorld(viewSize: size)
     }
 
@@ -66,28 +76,21 @@ final class CityScene: SKScene {
 
     // MARK: - Layout
 
-    /// Skalira i centrira worldNode tako da iso grid stane u viewport.
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
-        // Vizualna širina grida (od lvog do desnog ruba sa po pola tile-a extra)
-        let gridVisualWidth: CGFloat  = CGFloat(Isometric.gridSize) * Isometric.tileWidth
-        // Visina: od vrha grida do dna + malo za zidove
-        let gridVisualHeight: CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileHeight + Isometric.tileWidth
+        // Grid extents in world units (col and row go 0..4 → iso diamond fits here)
+        let gridDiamondWidth:  CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileWidth
+        let gridDiamondHeight: CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileHeight + 200
 
-        let usableW = viewSize.width  - 40          // 20pt padding sa svake strane
-        let usableH = viewSize.height - 240         // rezerva za TopHUD + BottomHUD + TabBar
-
-        let scale = min(usableW / gridVisualWidth, usableH / gridVisualHeight, 1.0)
+        let usableW = viewSize.width  - 40
+        let usableH = viewSize.height - 260
+        let scale = min(usableW / gridDiamondWidth, usableH / gridDiamondHeight, 1.0)
         worldNode.setScale(scale)
 
-        // Centar iso grida (tile 2,2) → centar scene (= centar ekrana) + malo gore
-        // scenePosition(2,2) = (0, -128) u koordinatama worldNode
-        let gridCenterInWorld = Isometric.scenePosition(col: 2, row: 2)
-        worldNode.position = CGPoint(
-            x: -gridCenterInWorld.x * scale,
-            y: -gridCenterInWorld.y * scale - 20   // -20 = pomak prema gore (TabBar kompenzacija)
-        )
+        // scenePosition(2,2) = (0, -128). We want HQ at scene origin (0, 0).
+        // So translate worldNode by +128 * scale on Y.
+        worldNode.position = CGPoint(x: 0, y: 128 * scale)
     }
 
     // MARK: - Build Layers
