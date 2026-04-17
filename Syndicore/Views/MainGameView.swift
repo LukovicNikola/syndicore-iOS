@@ -67,7 +67,7 @@ private struct CityPlaceholderView: View {
                         }
                         HStack(spacing: 16) {
                             ResourceLabel(name: "Tech", value: resources.tech)
-                            ResourceLabel(name: "Energy", value: resources.energy)
+                            ResourceLabel(name: "Energy", value: resources.energy ?? 0)
                         }
                     }
 

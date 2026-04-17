@@ -71,7 +71,12 @@ struct OnboardingView: View {
             gameState.didOnboard(player: response.player)
         } catch let error as APIError {
             switch error {
-            case .conflict(let err): errorMessage = err.error
+            case .conflict(let err):
+                if err.error == "already_onboarded" {
+                    await gameState.bootstrap()
+                    return
+                }
+                errorMessage = err.error
             case .badRequest(let err): errorMessage = err.error
             default: errorMessage = error.localizedDescription
             }

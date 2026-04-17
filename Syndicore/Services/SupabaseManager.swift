@@ -16,7 +16,7 @@ final class SupabaseManager {
 
     // MARK: - Properties
 
-    let client: SupabaseClient
+    nonisolated let client: SupabaseClient
 
     /// Trenutna Supabase sesija (nil = nije ulogovan)
     private(set) var session: Session?

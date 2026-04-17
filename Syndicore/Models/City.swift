@@ -14,7 +14,7 @@ struct Resources: Codable {
     let credits: Double
     let alloys: Double
     let tech: Double
-    let energy: Double
+    let energy: Double?
 }
 
 struct TileInfo: Codable {
