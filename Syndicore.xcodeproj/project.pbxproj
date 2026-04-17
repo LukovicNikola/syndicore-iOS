@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -25,6 +25,9 @@
 		4A0000000000000000000216 /* FactionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000116 /* FactionPickerView.swift */; };
 		4A0000000000000000000217 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000118 /* Assets.xcassets */; };
 		4A0000000000000000000218 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 4A0000000000000000000301 /* Supabase */; };
+		4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */; };
+		4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF22F92D372004559C8 /* AppConfig.swift */; };
+		4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF42F92D838004559C8 /* CityTileSet.swift */; };
 		4B0000000000000000000001 /* GameData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000101 /* GameData.swift */; };
 		4B0000000000000000000002 /* GameConstantsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000102 /* GameConstantsManager.swift */; };
 		4B0000000000000000000003 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000103 /* CodexView.swift */; };
@@ -66,6 +69,16 @@
 		9B4CFCA52F927F1200850457 /* CountdownLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCA42F927F1200850457 /* CountdownLabel.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		4A57FDDB2F92D1E5004559C8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4A0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4A0000000000000000000020;
+			remoteInfo = Syndicore;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		4A0000000000000000000021 /* Syndicore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syndicore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A0000000000000000000101 /* SyndicoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyndicoreApp.swift; sourceTree = "<group>"; };
@@ -86,6 +99,10 @@
 		4A0000000000000000000116 /* FactionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactionPickerView.swift; sourceTree = "<group>"; };
 		4A0000000000000000000117 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4A0000000000000000000118 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4A57FDD72F92D1E5004559C8 /* SyndicoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyndicoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSONCoder+API.swift"; sourceTree = "<group>"; };
+		4A57FDF22F92D372004559C8 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		4A57FDF42F92D838004559C8 /* CityTileSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityTileSet.swift; sourceTree = "<group>"; };
 		4B0000000000000000000101 /* GameData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameData.swift; sourceTree = "<group>"; };
 		4B0000000000000000000102 /* GameConstantsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConstantsManager.swift; sourceTree = "<group>"; };
 		4B0000000000000000000103 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexView.swift; sourceTree = "<group>"; };
@@ -128,12 +145,23 @@
 		9B4CFCA42F927F1200850457 /* CountdownLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownLabel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4A57FDD82F92D1E5004559C8 /* SyndicoreTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SyndicoreTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		4A0000000000000000000032 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				4A0000000000000000000218 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4A57FDD42F92D1E5004559C8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,6 +172,7 @@
 			isa = PBXGroup;
 			children = (
 				4A0000000000000000000011 /* Syndicore */,
+				4A57FDD82F92D1E5004559C8 /* SyndicoreTests */,
 				4A0000000000000000000017 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -166,6 +195,7 @@
 		4A0000000000000000000012 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				4A57FDF22F92D372004559C8 /* AppConfig.swift */,
 				4A0000000000000000000101 /* SyndicoreApp.swift */,
 				4A0000000000000000000102 /* AppState.swift */,
 			);
@@ -193,6 +223,7 @@
 		4A0000000000000000000014 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */,
 				4A0000000000000000000109 /* APIClient.swift */,
 				4A0000000000000000000110 /* APIError.swift */,
 				4A0000000000000000000111 /* Endpoint.swift */,
@@ -241,6 +272,7 @@
 			isa = PBXGroup;
 			children = (
 				4A0000000000000000000021 /* Syndicore.app */,
+				4A57FDD72F92D1E5004559C8 /* SyndicoreTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -285,6 +317,7 @@
 				9B4CFC922F927E8700850457 /* ScaffoldNode.swift */,
 				9B4CFC942F927EAB00850457 /* CityScene.swift */,
 				9B4CFC962F927EB200850457 /* CitySceneView.swift */,
+				4A57FDF42F92D838004559C8 /* CityTileSet.swift */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -332,6 +365,29 @@
 			productReference = 4A0000000000000000000021 /* Syndicore.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4A57FDD62F92D1E5004559C8 /* SyndicoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4A57FDDF2F92D1E5004559C8 /* Build configuration list for PBXNativeTarget "SyndicoreTests" */;
+			buildPhases = (
+				4A57FDD32F92D1E5004559C8 /* Sources */,
+				4A57FDD42F92D1E5004559C8 /* Frameworks */,
+				4A57FDD52F92D1E5004559C8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4A57FDDC2F92D1E5004559C8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4A57FDD82F92D1E5004559C8 /* SyndicoreTests */,
+			);
+			name = SyndicoreTests;
+			packageProductDependencies = (
+			);
+			productName = SyndicoreTests;
+			productReference = 4A57FDD72F92D1E5004559C8 /* SyndicoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -339,11 +395,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					4A0000000000000000000020 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					4A57FDD62F92D1E5004559C8 = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = 4A0000000000000000000020;
 					};
 				};
 			};
@@ -364,6 +424,7 @@
 			projectRoot = "";
 			targets = (
 				4A0000000000000000000020 /* Syndicore */,
+				4A57FDD62F92D1E5004559C8 /* SyndicoreTests */,
 			);
 		};
 /* End PBXProject section */
@@ -378,6 +439,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4A57FDD52F92D1E5004559C8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -386,6 +454,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4A0000000000000000000201 /* SyndicoreApp.swift in Sources */,
+				4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */,
 				4A0000000000000000000202 /* AppState.swift in Sources */,
 				9B4CFC9B2F927EC100850457 /* TopHUD.swift in Sources */,
 				9B2E27252F9126D000CA8E81 /* City.swift in Sources */,
@@ -401,6 +470,7 @@
 				4A0000000000000000000208 /* Health.swift in Sources */,
 				9B4CFC8B2F927E8300850457 /* HQNode.swift in Sources */,
 				4A0000000000000000000209 /* APIClient.swift in Sources */,
+				4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */,
 				9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */,
 				4A0000000000000000000210 /* APIError.swift in Sources */,
 				9B4CFCA32F927EDE00850457 /* BuildSheet.swift in Sources */,
@@ -414,6 +484,7 @@
 				9B4CFC932F927E8700850457 /* ScaffoldNode.swift in Sources */,
 				4A0000000000000000000213 /* ContentView.swift in Sources */,
 				4A0000000000000000000214 /* WorldListView.swift in Sources */,
+				4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */,
 				4A0000000000000000000215 /* OnboardingView.swift in Sources */,
 				4A0000000000000000000216 /* FactionPickerView.swift in Sources */,
 				9B2E272F2F91271900CA8E81 /* AuthView.swift in Sources */,
@@ -442,7 +513,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4A57FDD32F92D1E5004559C8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4A57FDDC2F92D1E5004559C8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4A0000000000000000000020 /* Syndicore */;
+			targetProxy = 4A57FDDB2F92D1E5004559C8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4A0000000000000000000042 /* Debug */ = {
@@ -615,6 +701,53 @@
 			};
 			name = Release;
 		};
+		4A57FDDD2F92D1E5004559C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QM5HHVW582;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = NL.SyndicoreTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Syndicore.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Syndicore";
+			};
+			name = Debug;
+		};
+		4A57FDDE2F92D1E5004559C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QM5HHVW582;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = NL.SyndicoreTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Syndicore.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Syndicore";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -632,6 +765,15 @@
 			buildConfigurations = (
 				4A0000000000000000000044 /* Debug */,
 				4A0000000000000000000045 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4A57FDDF2F92D1E5004559C8 /* Build configuration list for PBXNativeTarget "SyndicoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4A57FDDD2F92D1E5004559C8 /* Debug */,
+				4A57FDDE2F92D1E5004559C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

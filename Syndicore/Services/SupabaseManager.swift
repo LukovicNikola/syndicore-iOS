@@ -47,7 +47,7 @@ final class SupabaseManager {
     var currentNonce: String?
 
     /// Task koji slusa onAuthStateChange stream. Cuva se da bi mogao da se cancel-uje.
-    private var authListenerTask: Task<Void, Never>?
+    nonisolated(unsafe) private var authListenerTask: Task<Void, Never>?
 
     // MARK: - Init
 

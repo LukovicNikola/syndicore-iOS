@@ -18,8 +18,11 @@ final class CityScene: SKScene {
 
     private let worldNode = SKNode()
     private var skyboxNode: SKSpriteNode?
-    private var tileGrid:  [[TileNode]] = []   // tileGrid[col][row]
-    private var selectedTile: TileNode?
+
+    private let tileSet = CityTileSet.build()
+    private var tileMapNode: SKTileMapNode?
+    private var selectedTileCoord: (col: Int, row: Int)?
+
     private var buildings: [BuildingInfo] = []
 
     // MARK: - Visual grid coordinate mapping
@@ -82,7 +85,7 @@ final class CityScene: SKScene {
         skyboxNode = skybox
 
         addChild(worldNode)
-        buildTileLayer()
+        buildTileMap()
         buildWallLayer()
         // Do NOT call layoutWorld here — size may still be 0.
         // didChangeSize will fire with the real size.
@@ -116,43 +119,59 @@ final class CityScene: SKScene {
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
-        // Diamond extent za 5×5 grid: 5*128=640 wide, 5*64=320 tall.
-        let diamondW = CGFloat(Isometric.gridSize) * Isometric.tileWidth   // 640
-        let diamondH = CGFloat(Isometric.gridSize) * Isometric.tileHeight  // 320
+        let gridDiamondWidth:  CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileWidth
+        let gridDiamondHeight: CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileHeight + 200
 
-        let usableW = viewSize.width  - 8
-        let usableH = viewSize.height - 160  // top HUD ~80 + bottom safe ~80
-
-        let scale = min(usableW / diamondW, usableH / diamondH)
+        let usableW = viewSize.width  - 40
+        let usableH = viewSize.height - 200
+        let scale = min(usableW / gridDiamondWidth, usableH / gridDiamondHeight, 1.0)
         worldNode.setScale(scale)
 
-        // HQ na (2,2) → world pos (0, -128). Pomeramo svet tako da HQ bude
-        // malo ispod centra ekrana da grad deluje "bliži".
-        let hqTargetY = -viewSize.height * 0.05
-        worldNode.position = CGPoint(x: 0, y: hqTargetY + 128 * scale)
+        // Center grid vertically in usable area.
+        // scenePosition(2,2) = (0, -128). We want HQ at screen center.
+        // So translate worldNode by +128 * scale on Y.
+        worldNode.position = CGPoint(x: 0, y: 128 * scale + 40)  // +40 = slight upward nudge
     }
 
     // MARK: - Build Layers
 
-    private func buildTileLayer() {
+    // MARK: - Tile map coordinate conversion
+    //
+    // SKTileMapNode (.isometric) has its row axis inverted relative to our
+    // Isometric.scenePosition formula. Measured via centerOfTile(atColumn:row:):
+    //   tileMap col step: (+64, -32) — same as our col direction ✓
+    //   tileMap row step: (+64, +32) — OPPOSITE to our row direction ✗
+    //
+    // With tileMap.position = (0, -128), the mapping that aligns a grid tile
+    // at Isometric.scenePosition(col, row) with the tileMap cell is:
+    //   tmCol = col
+    //   tmRow = (gridSize - 1) - row   (i.e. row axis flip)
+    private func tmRow(_ row: Int) -> Int { (Isometric.gridSize - 1) - row }
+
+    private func buildTileMap() {
         let n = Isometric.gridSize
-        tileGrid = []
+        let tileMap = SKTileMapNode(
+            tileSet: tileSet,
+            columns: n,
+            rows: n,
+            tileSize: CityTileSet.tileSize
+        )
+        tileMap.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        // Offset so that tile (2,2) lands on Isometric.scenePosition(2,2) = (0,-128)
+        tileMap.position = CGPoint(x: 0, y: -128)
+        tileMap.zPosition = 0
+
+        // Fill all tiles with empty group, except HQ center tile
+        guard let emptyGroup = CityTileSet.emptyGroup(in: tileSet) else { return }
         for col in 0..<n {
-            var column: [TileNode] = []
             for row in 0..<n {
-                // HQ tile preskačemo — HQNode ga vizualno pokriva
-                if !Isometric.isHQ(col: col, row: row) {
-                    let tile = TileNode(col: col, row: row)
-                    worldNode.addChild(tile)
-                    column.append(tile)
-                } else {
-                    // Placeholder u tileGrid da indeksi ostanu konzistentni
-                    let placeholder = TileNode(col: col, row: row)
-                    column.append(placeholder)  // nije dodat u worldNode
-                }
+                if Isometric.isHQ(col: col, row: row) { continue }
+                tileMap.setTileGroup(emptyGroup, forColumn: col, row: tmRow(row))
             }
-            tileGrid.append(column)
         }
+
+        worldNode.addChild(tileMap)
+        tileMapNode = tileMap
     }
 
     private func buildWallLayer() {
@@ -165,34 +184,57 @@ final class CityScene: SKScene {
             .filter { $0 is BuildingNode || $0 is HQNode }
             .forEach { $0.removeFromParent() }
 
+        // Restore all non-HQ tiles to empty before re-evaluating which are occupied
+        let n = Isometric.gridSize
+        if let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
+            for col in 0..<n {
+                for row in 0..<n {
+                    if Isometric.isHQ(col: col, row: row) { continue }
+                    tileMapNode?.setTileGroup(emptyGroup, forColumn: col, row: tmRow(row))
+                }
+            }
+        }
+
         worldNode.addChild(HQNode())
 
         for building in buildings {
             guard building.type != .HQ else { continue }
             guard let c = coord(for: building) else { continue }
             worldNode.addChild(BuildingNode(building: building, col: c.col, row: c.row))
+            // Clear tile only if the building has visible content (texture exists or scaffold).
+            // If neither exists, tile stays visible so the slot doesn't become a dark hole.
+            let hasTexture = UIImage(named: building.type.rawValue.lowercased() + "_v1") != nil
+            if building.isUpgrading || hasTexture {
+                tileMapNode?.setTileGroup(nil, forColumn: c.col, row: tmRow(c.row))
+            }
         }
     }
 
     // MARK: - Touch Handling
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        guard let touch = touches.first, let tileMap = tileMapNode else { return }
         let locationInWorld = touch.location(in: worldNode)
 
-        selectedTile?.isSelected = false
-        selectedTile = nil
+        // Reset previously selected tile
+        if let prev = selectedTileCoord,
+           let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
+            tileMap.setTileGroup(emptyGroup, forColumn: prev.col, row: tmRow(prev.row))
+        }
+        selectedTileCoord = nil
 
         guard let (col, row) = Isometric.tileCoord(at: locationInWorld) else { return }
-
-        let tile = tileGrid[col][row]
-        tile.isSelected = true
-        selectedTile = tile
 
         if Isometric.isHQ(col: col, row: row) {
             onTapHQ?()
             return
         }
+
+        // Set selected sprite on tapped tile
+        if let selectedGroup = CityTileSet.selectedGroup(in: tileSet) {
+            tileMap.setTileGroup(selectedGroup, forColumn: col, row: tmRow(row))
+        }
+        selectedTileCoord = (col, row)
 
         // Find if any building occupies this (col, row)
         let bldg = buildings.first { b in
