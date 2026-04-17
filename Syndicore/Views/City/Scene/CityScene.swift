@@ -28,16 +28,14 @@ final class CityScene: SKScene {
     // (iOS layout), not dictated by BE. Returns (col, row) for a given
     // BuildingType + optional slotIndex.
     //
-    // Strategy: fixed buildings get 8 inner-ring slots around HQ + WALL far N.
-    // Resource buildings fan out through 26 outer-ring positions by slotIndex.
-    // 6×6 grid (cols/rows 0..5), HQ at (2,2).
+    // 5×5 grid (cols/rows 0..4), HQ na (2,2) = centar.
+    // 9 fixed (8 u inner ring + WALL) + 15 flex = 24 buildable.
     //
-    //  (0,0) (1,0) (2,0) (3,0) (4,0) (5,0)
-    //  (0,1) (1,1) (2,1) (3,1) (4,1) (5,1)
-    //  (0,2) (1,2) [HQ]  (3,2) (4,2) (5,2)
-    //  (0,3) (1,3) (2,3) (3,3) (4,3) (5,3)
-    //  (0,4) (1,4) (2,4) (3,4) (4,4) (5,4)
-    //  (0,5) (1,5) (2,5) (3,5) (4,5) (5,5)
+    //  (0,0) (1,0) (2,0) (3,0) (4,0)
+    //  (0,1) (1,1) (2,1) (3,1) (4,1)
+    //  (0,2) (1,2) [HQ]  (3,2) (4,2)
+    //  (0,3) (1,3) (2,3) (3,3) (4,3)
+    //  (0,4) (1,4) (2,4) (3,4) (4,4)
     private static let fixedPositions: [BuildingType: (col: Int, row: Int)] = [
         .OPS_CENTER:    (col: 1, row: 1),   // NW od HQ
         .RALLY_POINT:   (col: 2, row: 1),   // N od HQ
@@ -50,15 +48,13 @@ final class CityScene: SKScene {
         .WALL:          (col: 2, row: 0),   // daleki sever
     ]
 
-    // 26 outer-ring slotova za flex/resource buildings (DATA_BANK, FOUNDRY, TECH_LAB, POWER_GRID)
-    // Ukupno buildable = 9 fixed + 26 flex = 35 (spec max pri HQ lvl 20 ≈ 27, ima marže).
+    // 15 outer-ring slotova za flex/resource buildings.
     private static let resourceSlotPositions: [(col: Int, row: Int)] = [
-        (0, 0), (1, 0),         (3, 0), (4, 0), (5, 0),
-        (0, 1),                                         (4, 1), (5, 1),
-        (0, 2),                                         (4, 2), (5, 2),
-        (0, 3),                                         (4, 3), (5, 3),
-        (0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4),
-        (0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5),
+        (0, 0), (1, 0),         (3, 0), (4, 0),
+        (0, 1),                                 (4, 1),
+        (0, 2),                                 (4, 2),
+        (0, 3),                                 (4, 3),
+        (0, 4), (1, 4), (2, 4), (3, 4), (4, 4),
     ]
 
     private func coord(for building: BuildingInfo) -> (col: Int, row: Int)? {
@@ -120,10 +116,9 @@ final class CityScene: SKScene {
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
-        // Diamond extent za 6×6 grid: 6*128=768 wide, 6*64=384 tall.
-        // Wall segmenti u uglovima smeju malo da clip-uju na ivicama ekrana.
-        let diamondW = CGFloat(Isometric.gridSize) * Isometric.tileWidth   // 768
-        let diamondH = CGFloat(Isometric.gridSize) * Isometric.tileHeight  // 384
+        // Diamond extent za 5×5 grid: 5*128=640 wide, 5*64=320 tall.
+        let diamondW = CGFloat(Isometric.gridSize) * Isometric.tileWidth   // 640
+        let diamondH = CGFloat(Isometric.gridSize) * Isometric.tileHeight  // 320
 
         let usableW = viewSize.width  - 8
         let usableH = viewSize.height - 160  // top HUD ~80 + bottom safe ~80
@@ -131,12 +126,10 @@ final class CityScene: SKScene {
         let scale = min(usableW / diamondW, usableH / diamondH)
         worldNode.setScale(scale)
 
-        // HQ na (2,2) u 6×6 gridu → world pos (0, -128) (sa tileHeight=64).
-        // Grid centar je ~(-64, -176) (midpoint tile-ova), HQ pomeren ka SZ.
-        // Pomeramo svet tako da HQ bude malo iznad ekrana centra, a ostatak
-        // grida se širi ka JI — ovo matchuje kompoziciju reference slike.
-        let hqTargetY = -viewSize.height * 0.02
-        worldNode.position = CGPoint(x: 32 * scale, y: hqTargetY + 160 * scale)
+        // HQ na (2,2) → world pos (0, -128). Pomeramo svet tako da HQ bude
+        // malo ispod centra ekrana da grad deluje "bliži".
+        let hqTargetY = -viewSize.height * 0.05
+        worldNode.position = CGPoint(x: 0, y: hqTargetY + 128 * scale)
     }
 
     // MARK: - Build Layers
@@ -163,9 +156,8 @@ final class CityScene: SKScene {
     }
 
     private func buildWallLayer() {
-        // WallLayout.wallPositions() već uključuje 4 corner filler segmenta
-        // umesto pylona (kontinualan zid kroz uglove, bez visokih kula).
-        WallLayout.wallPositions().forEach { worldNode.addChild(WallNode(entry: $0)) }
+        WallLayout.wallPositions().forEach  { worldNode.addChild(WallNode(entry: $0)) }
+        WallLayout.pylonPositions().forEach { worldNode.addChild(CornerPylonNode(entry: $0)) }
     }
 
     private func rebuildBuildingLayer() {

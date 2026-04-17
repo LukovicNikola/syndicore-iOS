@@ -7,9 +7,7 @@ enum WallLayout {
         let zPosition: CGFloat
     }
 
-    /// Svi wall entry-ji — 4 stranice × n segmenata + 4 corner filler-a na
-    /// pozicijama gde su ranije stajali pyloni. Corner filler-i su obični
-    /// WallNode-ovi koji vizuelno spajaju dve stranice u kontinualan zid.
+    /// Perimetarski zidovi — po n segmenata na svakoj od 4 strane grida.
     static func wallPositions() -> [WallEntry] {
         var entries: [WallEntry] = []
         let n = Isometric.gridSize
@@ -46,50 +44,56 @@ enum WallLayout {
                 zPosition: Isometric.zDepth(col: 0, row: row) - 0.5
             ))
         }
-
-        // Corner filler-i — pozicionirani na midpoint-ima gde se dve
-        // stranice sastaju. Orijentacija (xScale) matchuje slope stranice
-        // koja se nastavlja dalje po iso toku.
-        entries.append(contentsOf: cornerFillers(n: n))
-
         return entries
     }
 
-    private static func cornerFillers(n: Int) -> [WallEntry] {
+    /// 4 ugaona pylona na pravim tačkama dijamanta (midpoint susednih
+    /// wall endpoint-ova). Pokrivaju seam između dve strane perimetra.
+    static func pylonPositions() -> [WallEntry] {
+        let n = Isometric.gridSize
+
         func mid(_ a: CGPoint, _ b: CGPoint) -> CGPoint {
             CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2)
         }
 
-        // TOP corner (sever, između NW i NE) — iza svega.
         let topPos = mid(
             Isometric.scenePosition(col: -1, row:  0),
             Isometric.scenePosition(col:  0, row: -1)
         )
-        // RIGHT corner (istok, između NE i SE).
         let rightPos = mid(
             Isometric.scenePosition(col: n - 1, row: -1),
             Isometric.scenePosition(col: n,     row:  0)
         )
-        // BOTTOM corner (jug, između SE i SW) — najbliže kameri.
         let bottomPos = mid(
             Isometric.scenePosition(col: n,     row: n - 1),
             Isometric.scenePosition(col: n - 1, row: n)
         )
-        // LEFT corner (zapad, između SW i NW).
         let leftPos = mid(
             Isometric.scenePosition(col:  0, row: n),
             Isometric.scenePosition(col: -1, row: n - 1)
         )
 
         return [
-            WallEntry(position: topPos,    xScale:  1, zPosition: -5),
-            WallEntry(position: rightPos,  xScale: -1, zPosition: Isometric.zDepth(col: n - 1, row: 0) + 2),
-            WallEntry(position: bottomPos, xScale:  1, zPosition: Isometric.zDepth(col: n - 1, row: n - 1) + 3),
-            WallEntry(position: leftPos,   xScale: -1, zPosition: Isometric.zDepth(col: 0, row: n - 1) + 2),
+            // TOP (back corner) — iza svega.
+            WallEntry(position: topPos, xScale: 1, zPosition: -5),
+            // RIGHT (east) — ispred susednih zidova.
+            WallEntry(
+                position:  rightPos,
+                xScale:   -1,
+                zPosition: Isometric.zDepth(col: n - 1, row: 0) + 2.0
+            ),
+            // BOTTOM (front) — najbliže kameri.
+            WallEntry(
+                position:  bottomPos,
+                xScale:   -1,
+                zPosition: Isometric.zDepth(col: n - 1, row: n - 1) + 3.0
+            ),
+            // LEFT (west).
+            WallEntry(
+                position:  leftPos,
+                xScale:    1,
+                zPosition: Isometric.zDepth(col: 0, row: n - 1) + 2.0
+            ),
         ]
     }
-
-    /// Deprecated — pyloni uklonjeni (Opcija C layout). Ostavljeno radi
-    /// lakšeg vraćanja ako korisnik promeni mišljenje.
-    static func pylonPositions() -> [WallEntry] { [] }
 }
