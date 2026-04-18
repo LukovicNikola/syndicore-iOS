@@ -181,14 +181,16 @@ final class CityScene: SKScene {
             tileSize: CityTileSet.tileSize
         )
         tileMap.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        // Offset tako da tile (centerCol, centerRow) sedne na hqCenterPosition.
-        // Za 6×6 sa hqOrigin (2,2), centar grida je između (2.5, 2.5) tile coord.
-        // SKTileMapNode anchor (0.5, 0.5) centrira na (n/2, n/2) tile coord.
-        // Za n=6, to je (3, 3). Razlika između (2.5, 2.5) i (3, 3) = (0.5 col, 0.5 row).
-        // Trebamo pomeriti tileMap nazad za pola tile-a u col i row smeru.
-        let halfTileOffsetX = -CGFloat(0.5 - 0.5) * Isometric.tileWidth / 2  // = 0
-        let centerY = -CGFloat(Isometric.gridSize - 1) * Isometric.tileHeight / 2  // tile center y
-        tileMap.position = CGPoint(x: halfTileOffsetX, y: centerY + Isometric.hqCenterPosition.y / 2)
+        // SKTileMapNode anchor (0.5, 0.5) → centerOfTile(c, r) = position + offset_for(c, r)
+        // gde je offset_for(c, r) = ((c + r - (n-1)) * tileWidth/2, (r - c) * tileHeight/2)
+        //
+        // Hocemo da scenePosition(2, 2) = (0, -128) za 6×6 mapira na
+        // SKTileMapNode (col=2, row=tmRow(2)=3).
+        // offset_for(2, 3) = ((2+3-5)*64, (3-2)*32) = (0, 32)
+        // => tileMap.position = (0, -128) - (0, 32) = (0, -160) = hqCenterPosition.y ✓
+        //
+        // Generalno: tileMap.position.y = hqCenterPosition.y centrira grid na HQ region.
+        tileMap.position = CGPoint(x: 0, y: Isometric.hqCenterPosition.y)
         tileMap.zPosition = 0
 
         // Fill samo BUILDABLE tile-ove (skip HQ region + cornerCutouts)

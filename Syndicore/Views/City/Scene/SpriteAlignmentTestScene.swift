@@ -79,8 +79,8 @@ final class SpriteAlignmentTestScene: SKScene {
             tileSize: CityTileSet.tileSize
         )
         tileMap.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        let centerY = -CGFloat(Isometric.gridSize - 1) * Isometric.tileHeight / 2
-        tileMap.position = CGPoint(x: 0, y: centerY + Isometric.hqCenterPosition.y / 2)
+        // Centriraj tile map na HQ region (vidi CityScene.buildTileMap za detaljno objasnjenje)
+        tileMap.position = CGPoint(x: 0, y: Isometric.hqCenterPosition.y)
         tileMap.zPosition = 0
         tileMap.alpha = 0.4
 
