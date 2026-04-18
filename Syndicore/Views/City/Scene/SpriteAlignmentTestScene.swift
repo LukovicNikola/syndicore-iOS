@@ -102,6 +102,11 @@ final class SpriteAlignmentTestScene: SKScene {
             n.alpha = 0.4
             worldNode.addChild(n)
         }
+        WallLayout.cornerPositions().forEach {
+            let n = WallCornerNode(entry: $0)
+            n.alpha = 0.4
+            worldNode.addChild(n)
+        }
         WallLayout.pylonPositions().forEach {
             let n = CornerPylonNode(entry: $0)
             n.alpha = 0.4
