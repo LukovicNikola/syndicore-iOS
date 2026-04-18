@@ -268,11 +268,10 @@ final class CityScene: SKScene {
     }
 
     private func buildWallLayer() {
-        WallLayout.wallPositions().forEach  { worldNode.addChild(WallNode(entry: $0)) }
+        WallLayout.wallPositions().forEach   { worldNode.addChild(WallNode(entry: $0)) }
         WallLayout.cornerPositions().forEach { worldNode.addChild(WallCornerNode(entry: $0)) }
-        // Pyloni su opcioni — možda se preklapaju sa corner pieces.
-        // Zakomentarisati sledeći red ako izgledaju duplo:
-        WallLayout.pylonPositions().forEach { worldNode.addChild(CornerPylonNode(entry: $0)) }
+        // Pyloni uklonjeni — corner pieces već imaju integrirane LED + orange beacons,
+        // floating pyloni su delovali disconnected i estetski nepotrebni.
     }
 
     private func rebuildBuildingLayer() {
