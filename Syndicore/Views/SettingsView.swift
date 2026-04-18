@@ -5,6 +5,10 @@ struct SettingsView: View {
 
     @State private var showingSignOutConfirmation = false
 
+    // MARK: - Debug toggles (dev-only, persistirano preko UserDefaults)
+
+    @AppStorage("debug.cityGridOverlay") private var debugCityGridOverlay: Bool = false
+
     var body: some View {
         NavigationStack {
             List {
@@ -30,6 +34,20 @@ struct SettingsView: View {
                         Task { await gameState.gameConstants.refresh() }
                     }
                 }
+
+                #if DEBUG
+                Section {
+                    Toggle("City Grid Overlay", isOn: $debugCityGridOverlay)
+                    NavigationLink("Sprite Alignment Test") {
+                        SpriteAlignmentTestView()
+                    }
+                } header: {
+                    Text("Debug")
+                } footer: {
+                    Text("Cyan dijamanti + magenta tačke pokazuju gde se očekuju sprite anchor-i. Test screen ti omogućava da proveriš sprajtove pre nego što ih staviš u produkciju.")
+                        .font(.footnote)
+                }
+                #endif
 
                 Section {
                     Button("Sign Out", role: .destructive) {

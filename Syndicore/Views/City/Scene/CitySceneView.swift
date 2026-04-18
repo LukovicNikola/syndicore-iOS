@@ -8,6 +8,10 @@ struct CitySceneView: UIViewRepresentable {
     var onTapBuilding:  (BuildingInfo) -> Void
     var onTapEmptySlot: (Int) -> Void
 
+    /// Toggle debug grid overlay (cyan diamonds + anchor dots).
+    /// Menja se iz SettingsView preko `@AppStorage("debug.cityGridOverlay")`.
+    @AppStorage("debug.cityGridOverlay") private var debugOverlay: Bool = false
+
     // MARK: - Coordinator
 
     final class Coordinator {
@@ -33,6 +37,7 @@ struct CitySceneView: UIViewRepresentable {
         skView.presentScene(scene)
 
         if let city { scene.configure(with: city) }
+        scene.setDebugOverlay(debugOverlay)
 
         return skView
     }
@@ -46,5 +51,6 @@ struct CitySceneView: UIViewRepresentable {
         scene.onTapEmptySlot = onTapEmptySlot
 
         if let city { scene.configure(with: city) }
+        scene.setDebugOverlay(debugOverlay)
     }
 }
