@@ -1,0 +1,312 @@
+================================================================================
+  SYNDICORE — SPRITE GENERATION PROMPTS (v2)
+================================================================================
+
+Svi prompt-ovi za Tripo3D Image Generation (Nano Banana Pro ili GPT Image 1.5).
+Svi su ispod 1000 char-a.
+
+================================================================================
+  WORKFLOW (za svaki sprite)
+================================================================================
+
+  1. U Tripo Image Gen panelu, upload tvoj ODOBRENI HQ (hq_pyramid_v1.png)
+     kao REFERENCE IMAGE. To je style anchor za sve preostale sprajtove.
+  2. Izaberi model: GPT Image 1.5 ili Nano Banana Pro (šta god bolje radi
+     za tvoj konkretan HQ look).
+  3. Paste prompt (iz ovog fajla).
+  4. Aspect ratio: 1:1.
+  5. Number of images: 1 (ili vise ako zelis da biras).
+  6. Generate.
+  7. Download PNG.
+  8. Background removal: remove.bg ili Photoshop magic wand (crno → transparent).
+  9. Drop u Xcode → Assets.xcassets/<asset_name>_v1.imageset/
+  10. Run app → Settings → Debug → Sprite Alignment Test.
+  11. Izaberi building type, podesi 5 slidera (Anchor X/Y, Scale, Rotation, Zoom)
+      dok se plinth sprajta ne poklopi sa cyan/orange debug outline-om.
+  12. "Copy to clipboard" → paste u SpriteCatalog.swift kao novi `static let`.
+  13. Dodaj case u `SpriteCatalog.spec(for:)` switch.
+
+
+================================================================================
+  CANVAS PRAVILA (univerzalno za sve prompt-ove)
+================================================================================
+
+  - Svi sprite-ovi: 1024×1024 PNG, 1:1 aspect u Tripo generatoru.
+  - HQ izuzetak: koncept je 2×2 footprint (dvostruko siri plinth od 1×1),
+    ali Tripo forsira 1:1 canvas — prihvatamo to, AI će nacrtati širu bazu.
+  - Solid dark gray #0A0A10 background (lako se kluucira za transparent).
+
+
+================================================================================
+  HQ PYRAMID (2×2 footprint) — master reference
+================================================================================
+
+2D game sprite: HQ Pyramid — central command building for cyberpunk RTS. This is a LARGE 2×2 footprint structure, roughly TWICE the base width of a typical 1×1 building. The base plinth should span a wide ground footprint.
+
+Style: premium AAA cyberpunk industrial game asset. Dark steel, brushed carbon fiber, cyan neon (#00E0FF), orange warning lights (#FF8C00).
+
+Camera: 2:1 classic isometric game view (StarCraft / Diablo style), looking down from upper-right at steep angle. Building CENTERED in frame, no tilt.
+
+Architecture: 5-tier stepped Mesoamerican pyramid sitting on a wide square base plinth with LED perimeter markers. Each tier narrower than below. Cyan LED strips along every tier edge. Massive central staircase split into two parallel ramps — orange warning lights line each step. Top platform has a hovering cyan holographic projector emitting a stylized 'S' gear-wheel emblem (~50% opacity). Brutalist, monumental. Subtle steam from base corners.
+
+Lighting: cyan rim from upper-left, orange uplighting at base, dark dusk ambient.
+
+Background: solid flat dark gray #0A0A10. NO city, NO fog, NO atmospheric effects. Clean isolated asset.
+
+Canvas: 1:1 square.
+
+
+================================================================================
+  TILE_EMPTY_V1 (ground tile)
+================================================================================
+
+2D game ground tile sprite for cyberpunk RTS — empty buildable slot.
+
+Style: same dark steel + cyan neon palette as reference image. Subtle, low contrast — this is a background tile that must NOT compete with buildings placed on top.
+
+Visual: square canvas FILLED edge-to-edge with a single rotated 45-degree diamond shape (vertices touching the top, bottom, left, right edges of the canvas). Thin cyan LED outline (#00E0FF, ~3px wide) along all 4 diamond edges, with subtle glow. Dark steel center with very faint hex-mesh texture. Small thin cyan "+" symbol in the geometric center indicating buildable slot. Flat top-down view, no 3D depth.
+
+Background: solid flat dark gray #0A0A10 in the four corner triangles outside the diamond.
+
+Canvas: 1:1 square. Diamond fills the canvas completely.
+
+
+================================================================================
+  TILE_SELECTED_V1 (selected/highlighted ground tile)
+================================================================================
+
+2D game ground tile sprite for cyberpunk RTS — selected/highlighted buildable slot.
+
+Style: same dark steel + cyan neon palette as the empty tile reference, but with INTENSIFIED selection highlight.
+
+Visual: square canvas FILLED edge-to-edge with a 45-degree diamond shape (vertices touching all 4 canvas edges). The diamond has a BRIGHT cyan LED outline (#00E0FF, ~5px wide) glowing strongly. Inside the diamond: dark steel center with a subtle cyan inner glow filling the whole shape (about 30% opacity radial gradient from center outward). A bold cyan "+" symbol in the geometric center, slightly larger and brighter than the empty version. Suggests "this slot is ready to build on".
+
+Background: solid flat dark gray #0A0A10 in the four corner triangles outside the diamond.
+
+Canvas: 1:1 square. Diamond fills canvas.
+
+
+================================================================================
+  BUILDING TEMPLATE (za svih 14 1×1 zgrada) — koristi HQ kao reference image
+================================================================================
+
+Svaki prompt počinje istim boilerplate-om koji "zaključava" style, angle,
+i scale za HQ. Samo "Building on plinth:" linija se menja.
+
+
+----------- 1. BARRACKS --------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Barracks — low rectangular military bunker. Dark steel walls with riveted carbon fiber panels. Reinforced front entrance with orange caution stripes and a pair of small cyan warning lights flanking the door. Two rows of small horizontal windows along the sides emitting soft warm yellow glow. Low flat roof with two ventilation stacks emitting faint steam. Cyan emblem stenciled near the entrance. Angled reinforcement buttresses at base corners.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 2. MOTOR POOL ------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Motor Pool — industrial vehicle hangar. Semicircular corrugated dark steel roof. Wide front bay door open, revealing dark interior with a tank turret silhouette barely visible inside. Flanking the entrance: two fuel tanks with bold orange hazard striping. Heavy chain-link fence panel details along the sides. Cooling vents on the roof. Carbon fiber reinforcement panels at corners. Utilitarian, industrial vibe.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 3. OPS CENTER ------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Ops Center — command and control tower. Wide concrete base narrowing to a slim middle section, topped by an octagonal command room with full wraparound windows glowing cyan from within. On the roof: a rotating radar dish plus 3 antennas of varying heights. Exposed cable conduits running up the tower sides. Orange warning beacons on antenna tips. Carbon fiber paneling on the lower base.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 4. DATA BANK -------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Data Bank — vertical server farm cluster. Stack of 5-6 server racks rising tightly, exposed copper data cables snaking between them like vines. Tiny cyan LED indicator dots flashing across rack faces. Brutalist concrete base. Cooling fans visible spinning on side panels. Faint cyan holographic data streams floating above the top rack. Industrial ladder up one side.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 5. FOUNDRY ---------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Foundry — industrial smelting furnace. Massive central chimney emitting orange-glowing steam. Front shows open furnace mouth with intense orange-red fire glow inside. Riveted dark steel exterior with heat-blackened patches. Catwalks and pipes along the sides. Small slag piles at base. Sparks emitting from the furnace mouth. Cyan accent strips contrast with the dominant warm orange/red interior glow.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 6. TECH LAB --------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Tech Lab — futuristic research dome. Brushed dark steel dome with 4 large skylight panels glowing bright cyan. Multiple exterior screens on the dome showing faint scrolling holographic glyphs. Slim entrance airlock at front. Dome surrounded by ringed cooling vents. Top of dome has a small cyan-glowing antenna array. Premium clean-tech aesthetic. Floating particle dust faintly visible above dome.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 7. POWER GRID ------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Power Grid — pair of cylindrical cooling towers with venting steam at the top, connected by an exposed transformer block in the middle. Heavy electrical conduits and thick cables running between them. A static cyan electric arc visibly crackling between the tower tops. Industrial reinforced concrete base with orange hazard stripes. Small warning lights blinking orange around the base.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 8. WAREHOUSE -------------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Warehouse — low-profile industrial storage unit. Wide rolling cargo door front-facing, half-open revealing stacked dark steel shipping containers inside. Side walls show container stacks with cyan inventory codes painted on them. Loading dock platform at base with orange ground markings. Flat roof with 2 skylights. Forklift silhouette barely visible at one side. Rugged utilitarian look.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 9. WALL (fixed building, NOT perimeter wall) -----------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Reinforced Wall — defensive bunker wall section with sloped sides. Heavy dark steel armor plating with riveted carbon fiber panels. Cyan tactical strip lights running horizontally across the front. Top has crenellations with small orange warning beacons between them. Base reinforced with angled sandbag-like buttresses. Looks impenetrable. Battle-scarred patches on armor.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 10. WATCHTOWER -----------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Watchtower — tall slim observation tower with narrow square base widening to an enclosed observation deck near the top. Deck has wraparound windows glowing cyan. Spotlight mounted on roof emitting a faint cyan beam pointing outward. External ladder running up one side. Multiple small antenna stubs. Riveted dark steel construction. Warning beacon at very top blinking orange.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 11. RALLY POINT ----------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Rally Point — open ceremonial plaza. Raised stone-and-steel platform with a central tall flagpole holding a slim cyan holographic banner showing a stylized faction emblem. Four corner uplight pylons emitting cyan beams upward. Steel railings around platform edge. Perimeter has small orange warning lights set into the ground. Brutalist concrete tile pattern on platform surface.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 12. TRADE POST -----------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Trade Post — open-front market structure with awning extended. Stacks of trade crates and shipping containers visible inside, some with cyan inventory codes painted on them. Two small holographic price-display panels glowing cyan flanking the entrance. Cargo loading pads on each side with orange ground markings. Slanted awning roof. Busy commercial vibe, clean and organized.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+----------- 13. RESEARCH LAB ---------------------------------------------------
+
+2D game sprite in the EXACT style, camera angle, and scale of the reference image (HQ Pyramid).
+
+This is a 1x1 footprint building — its base plinth must be HALF the width of the HQ reference plinth. Use the SAME iso camera angle (do not tilt differently), SAME dark gray background, SAME cyan+orange cyberpunk palette, SAME material quality and LED perimeter styling on the plinth.
+
+Building on plinth: Research Lab — premium modern laboratory complex. Two-story rectangular main building with floor-to-ceiling cyan-glowing window panels. Top floor has an angled glass skylight roof. Adjacent shorter wing with antenna array on top. Premium clean architecture, no industrial grit. Faint holographic equations floating near the top windows. Polished steel exterior with carbon fiber accents. Small entrance with cyan keypad.
+
+Solid dark gray #0A0A10 background, isolated asset.
+
+Canvas: 1:1 square.
+
+
+================================================================================
+  ASSET FILE NAMES (za Assets.xcassets folder-e)
+================================================================================
+
+  hq_pyramid_v1          2×2, master reference
+  tile_empty_v1          ground tile (empty)
+  tile_selected_v1       ground tile (selected)
+  barracks_v1            BuildingType.BARRACKS
+  motor_pool_v1          BuildingType.MOTOR_POOL
+  ops_center_v1          BuildingType.OPS_CENTER
+  data_bank_v1           BuildingType.DATA_BANK
+  foundry_v1             BuildingType.FOUNDRY
+  tech_lab_v1            BuildingType.TECH_LAB
+  power_grid_v1          BuildingType.POWER_GRID
+  warehouse_v1           BuildingType.WAREHOUSE
+  wall_building_v1       BuildingType.WALL
+  watchtower_v1          BuildingType.WATCHTOWER
+  rally_point_v1         BuildingType.RALLY_POINT
+  trade_post_v1          BuildingType.TRADE_POST
+  research_lab_v1        BuildingType.RESEARCH_LAB
+
+
+================================================================================
+  PREPORUČEN REDOSLED GENERISANJA
+================================================================================
+
+  1. HQ (master reference) ........................... ✓ gotov
+  2. tile_empty_v1 (ground) .......................... ✓ gotov
+  3. tile_selected_v1 (selected ground) .............. pending
+  4. Barracks (first test) ........................... ✓ gotov
+  5. Watchtower (validation: tall vertical)
+  6. Rally Point (validation: short horizontal)
+  7. Foundry (validation: warm lighting dominance)
+  8. Motor Pool
+  9. Ops Center
+  10. Data Bank
+  11. Tech Lab
+  12. Power Grid (regenerate sa HQ reference)
+  13. Warehouse
+  14. Wall Building
+  15. Trade Post
+  16. Research Lab
+
+
+================================================================================
+  END OF FILE
+================================================================================
