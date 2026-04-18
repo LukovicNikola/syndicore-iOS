@@ -1,7 +1,68 @@
 # SYNDICORE iOS — Claude Instructions
 
-> **Verzija:** 2026-04-17 (iOS + CityView assets v1)
+> **Verzija:** 2026-04-18 (code review round 2 TODOs)
 > **Pending:** rešavanje TBD stavki nakon reconcile-a sa `syndicore-BE/CLAUDE.md`
+
+---
+
+## 📋 CODE REVIEW TODO (round 2, 2026-04-18)
+
+Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
+
+### 🔴 P0 — Regresija iz 3f3148b (fix odmah)
+
+- [ ] **Bootstrap retry double-configure crash** — `SyndicoreApp.loadConfig()` zove `GameState(config:)` → `SupabaseManager.configure()`. Drugi klik na "Pokušaj ponovo" u `ConfigErrorView` baca `assert(_shared == nil)` u debug-u. Fix: učiniti `configure()` idempotent (early-return ako je već setovan) ili odvojiti "reload config" od "reconfigure singleton".
+
+### 🟠 P1 — HIGH iz review-a (radi sledeće)
+
+- [ ] **`BuildCostResponse.buildingType: String` → `BuildingType` enum** (`Models/City.swift:~105`). Type-safe decoding, elimiše potencijalnu sync grešku sa BE-om.
+- [ ] **URL query param encoding** (`Networking/Endpoint.swift`). Trenutno koristi `"?buildingId=\(id)"` string interpolaciju. Refaktor na `URLComponents` + `queryItems` da specijalni karakteri u ID-evima ne razbiju URL.
+- [ ] **Timeout wrapper za async network pozive** — `refreshCity`, `fetchViewport`, `loadWorlds`, `autoSelectWorld`. BE koji visi = infinite spinner. Implementirati u `APIClient` kao default 30s timeout (URLSessionConfiguration.timeoutIntervalForRequest) ili per-request `withTimeout` helper.
+- [ ] **Silent unit dropping** u `ArmySnapshot.decodeUnitDict` i `TroopMovement.init(from:)`. Nepoznati `UnitType` rawValue se tiho ignoriše. Opcija A: throw `DecodingError`. Opcija B: `os_log` warning. Preferirati A ako je BE stabilan, B ako se enum cases menjaju često.
+- [ ] **BuildSheet cost preview** — pre nego što user klikne Build, fetch `GET /build-cost` i prikaži `credits/alloys/tech` + `durationMinutes`. Prati pattern iz `BuildingDetailSheet` (već ima cost preview za upgrade).
+
+### 🟡 P2 — MEDIUM (posle P0/P1)
+
+- [ ] **`MapScene.swift:116` `group.name!`** — guaranteed safe u trenutnom loop-u, ali hygiene fix: `guard let name = group.name else { continue }` pre `tileGroupCache[name] = group`.
+- [ ] **`randomNonceString` charset typo** (`Services/SupabaseManager.swift:~149`) — nedostaje `W` u `"UVXYZ"/"UVxyz"`. Pre-existing bug. Fix: `"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"`.
+- [ ] **`MapView` hardkodovana 800×800 scene size** — koristiti `GeometryReader` da se prosledi actual size, ili garantovati `scaleMode = .resizeFill` pre `addChild`.
+- [ ] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** umesto `JSONDecoder.api`. Nije bitno ako GameData nema datume, ali konsistentnost.
+- [ ] **`AnyCodableValue` bez `.array` / `.object` varijanti** (`Networking/APIError.swift:37`) — ako BE ikad pošalje nested JSON u `details`, decode će puknuti.
+- [ ] **`MapView.setupCallbacks()` closure capture** — `scene.onTileTapped = { tile in selectedTile = tile }` hvata `self` implicitno. Dodati `[weak self]` eksplicitno.
+- [ ] **`RefreshErrorBanner` bez auto-dismiss-a** — stoji na ekranu dok god user ne klikne Retry. Dodati 8s `.task` za fadeout.
+- [ ] **`WorldPickerView.loadWorlds()` bez timeout-a** — pokriveno P1 global timeout fix-om (gore).
+- [ ] **`BuildingInfo` backward-compat `currentLevel` vs `level`** tiho se fallback-uje bez error-a ako oba fale. Dodati explicit throw.
+- [ ] **`OnboardingView` error string match `err.error == "already_onboarded"`** — fragile. Definisati enum za BE error codes ili koristiti `.contains`.
+- [ ] **`GameState.bootstrap` decode fail u `api.city(id:)`** — `activeCity` ostaje stale bez indikacije. Fallback na `pw.city` iz `/me` response-a.
+- [ ] **`CountdownLabel` Timer cleanup** — `.autoconnect()` pokriva, ali dodati explicit `.onDisappear { cancellable?.cancel() }` za clarity.
+
+### 🔵 P3 — LOW (kad bude vremena)
+
+- [ ] **`Isometric.coord(forSlot:)` + `slot(forCoord:)`** — O(n²) iteracija 5×5 grida. Pre-compute static lookup dictionary.
+- [ ] **Building `displayName` helper** — repetirana `.replacingOccurrences(of: "_", with: " ").capitalized` logika. Extract u `extension BuildingType { var displayName: String }`.
+- [ ] **Apple Sign In simulator detection** preko `code == .unknown` je fragile. Zamena: `ProcessInfo.processInfo.environment["SIMULATOR_UDID"] != nil`.
+- [ ] **`FactionPickerView` bez loading state-a** tokom `join()`. User može dvaput da klikne. Dodati `isJoining` flag + disable button.
+- [ ] **`SettingsView` "Refresh Constants" button** bez loading feedback-a. Dodati `@State isRefreshing`.
+- [ ] **`HQInfoSheet.targetLevel` fallback logic** — `hq.targetLevel ?? hq.currentLevel + 1` je konfuzno. Pojasniti invariantu.
+- [ ] **`CityView.buildableTypes` hardkodovana lista** — derivišu iz `BuildingType.allCases` i filtriraj po `.flexSlots` / `.fixed`.
+- [ ] **ContentView `@unknown default`** — Swift 5.10+ warning safety za exhaustive switch kad se doda nov `Screen` case.
+- [ ] **APIClient `@unchecked Sendable`** — proveri da li može da bude `Sendable` direktno (URLSession, decoder, encoder su thread-safe).
+- [ ] **Doc komentari na public API** — APIClient metodi, GameState metodi, CityScene callbacks.
+
+### ❌ Pre-existing TODOs (poznato, čeka trigger)
+
+- [ ] **14 building sprite-ova fali** (data_bank_v1, foundry_v1, tech_lab_v1, motor_pool_v1, ops_center_v1, warehouse_v1, wall_building_v1, watchtower_v1, rally_point_v1, trade_post_v1, research_lab_v1, s_hologram_v1, corner_turret_v1). Čeka Tripo pipeline posle prvog passa barracks_v1 integracije.
+- [ ] **Particle .sks fajlovi** (electric_arc, window_pulse, spark_shower). Čeka posle statickog renderovanja.
+- [ ] **MapScene emoji occupants** (🏠💀💎🌀🏚️) — zamena sa custom sprite asset-ima za konsistentnost sa CityView stilom.
+- [ ] **WebSocket servis** (`Services/SocketService.swift`) — čeka BE protokol (Socket.IO vs native).
+- [ ] **SyndikatView, TechTreeView, ArmyView** — placeholder-i, čekaju BE API finalizaciju.
+
+### ✅ Ne diraj (false positives iz review-a)
+
+- `required init?(coder:) { fatalError() }` u SKNode subklasama — standardni SpriteKit pattern, ti objekti se nikad ne dekodiraju iz nib-a.
+- `preconditionFailure` u `SupabaseManager.shared` getter-u — namerno, dev-only defensive crash path.
+- `tileGroupCache[key]` lookup u `MapScene.loadTiles` — enum CaseIterable garantuje da ključ postoji.
+- "O(n²) warp gate lines" — BE garantuje max ~20 gate-ova po worldu, ne 100+.
 
 ---
 
