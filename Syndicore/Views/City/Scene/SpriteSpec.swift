@@ -73,16 +73,59 @@ enum SpriteCatalog {
     static let powerGrid = SpriteSpec(
         assetName: "power_grid_v1",
         footprint: (cols: 1, rows: 1),
-        renderHeight: Isometric.tileWidth * 0.80,
-        anchor: CGPoint(x: 0.500, y: 0.349)
+        renderHeight: Isometric.tileWidth * 1.13,
+        anchor: CGPoint(x: 0.500, y: 0.404),
+        rotationDegrees: 1.4
+    )
+
+    /// Warehouse — 1×1 footprint, tuned anchor/size.
+    static let warehouse = SpriteSpec(
+        assetName: "warehouse_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 0.98,
+        anchor: CGPoint(x: 0.500, y: 0.450),
+        rotationDegrees: -0.6
+    )
+
+    /// Watchtower — 1×1 footprint, tuned anchor/size.
+    static let watchtower = SpriteSpec(
+        assetName: "watchtower_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.30,
+        anchor: CGPoint(x: 0.500, y: 0.306)
+    )
+
+    /// Rally Point — 1×1 footprint, tuned anchor/size.
+    static let rallyPoint = SpriteSpec(
+        assetName: "rally_point_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.16,
+        anchor: CGPoint(x: 0.500, y: 0.400)
+    )
+
+    /// Trade Post — 1×1 footprint, tuned anchor/size.
+    static let tradePost = SpriteSpec(
+        assetName: "trade_post_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.00,
+        anchor: CGPoint(x: 0.500, y: 0.447),
+        rotationDegrees: 1.2
+    )
+
+    /// Research Lab — 1×1 footprint, tuned anchor/size.
+    static let researchLab = SpriteSpec(
+        assetName: "research_lab_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.09,
+        anchor: CGPoint(x: 0.500, y: 0.436)
     )
 
     /// Barracks — 1×1 footprint, tuned anchor/size.
     static let barracks = SpriteSpec(
         assetName: "barracks_v1",
         footprint: (cols: 1, rows: 1),
-        renderHeight: Isometric.tileWidth * 0.81,
-        anchor: CGPoint(x: 0.498, y: 0.352)
+        renderHeight: Isometric.tileWidth * 1.06,
+        anchor: CGPoint(x: 0.500, y: 0.441)
     )
 
     /// Standardna spec za 1×1 buildings. Sve buildings cited u SpriteCatalog.spec(for:) koriste ovo.
@@ -99,10 +142,15 @@ enum SpriteCatalog {
     /// (BuildingNode tada može da koristi placeholder).
     static func spec(for buildingType: BuildingType) -> SpriteSpec {
         switch buildingType {
-        case .HQ:         return hq
-        case .BARRACKS:   return barracks
-        case .POWER_GRID: return powerGrid
-        default:          return standardBuilding(assetName: "\(buildingType.rawValue.lowercased())_v1")
+        case .HQ:           return hq
+        case .BARRACKS:     return barracks
+        case .POWER_GRID:   return powerGrid
+        case .RESEARCH_LAB: return researchLab
+        case .TRADE_POST:   return tradePost
+        case .RALLY_POINT:  return rallyPoint
+        case .WATCHTOWER:   return watchtower
+        case .WAREHOUSE:    return warehouse
+        default:            return standardBuilding(assetName: "\(buildingType.rawValue.lowercased())_v1")
         }
     }
 
