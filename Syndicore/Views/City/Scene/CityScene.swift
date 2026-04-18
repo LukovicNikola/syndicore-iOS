@@ -32,6 +32,18 @@ final class CityScene: SKScene {
     /// Debug overlay (cyan tile diamonds + magenta anchor dots) — togglable iz UI-ja.
     private var debugOverlay: DebugGridOverlayNode?
 
+    // MARK: - Camera state (zoom + pan)
+
+    /// Default zoom = 1.5× za "closer to user" feel (HQ veci, bolji premium osecaj).
+    /// Pinch gesture menja ovo u opsegu [minZoom, maxZoom].
+    private static let defaultZoom: CGFloat = 1.5
+    private static let minZoom: CGFloat = 0.7   // dovoljno daleko da se vidi ceo grid + walls
+    private static let maxZoom: CGFloat = 3.5   // dovoljno blizu za detalje pojedinačnog tile-a
+
+    private var userZoom: CGFloat = CityScene.defaultZoom
+    private var userPan: CGPoint = .zero
+    private var baseScale: CGFloat = 1.0  // izracunato u layoutWorld, fit-to-view bez zoom-a
+
     // MARK: - Visual grid coordinate mapping (6×6 layout)
     //
     // Tile-ovi koji se NE vide (cornerCutouts iz Isometric):
@@ -107,7 +119,39 @@ final class CityScene: SKScene {
         addChild(worldNode)
         buildTileMap()
         buildWallLayer()
+        attachCameraGestures(to: view)
         // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
+    }
+
+    /// Pinch + pan gesture recognizers za camera zoom/pan na CityScene.
+    private func attachCameraGestures(to view: SKView) {
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+        view.addGestureRecognizer(pinch)
+
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        pan.minimumNumberOfTouches = 2  // 2 prsta za pan da ne ometa tap detection
+        pan.maximumNumberOfTouches = 2
+        view.addGestureRecognizer(pan)
+    }
+
+    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+        guard gesture.state == .changed || gesture.state == .ended else { return }
+        let newZoom = userZoom * gesture.scale
+        userZoom = max(Self.minZoom, min(Self.maxZoom, newZoom))
+        gesture.scale = 1.0
+        layoutWorld(viewSize: size)
+    }
+
+    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        guard let view else { return }
+        let translation = gesture.translation(in: view)
+        if gesture.state == .changed {
+            // SpriteKit ima y-up, UIKit y-down — invertuj y translaciju
+            userPan.x += translation.x
+            userPan.y -= translation.y
+            gesture.setTranslation(.zero, in: view)
+            applyTransforms()
+        }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -146,24 +190,41 @@ final class CityScene: SKScene {
 
     // MARK: - Layout
 
+    /// Izracunava baseScale (fit grid u view bez zoom-a) i poziva applyTransforms.
+    /// Pozvati kad god se size promeni ILI userZoom promeni (pinch).
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
         let n = CGFloat(Isometric.gridSize)
         // 6×6 dijamant: width = 6 × 128 = 768, height = 6 × 64 + zid prostor
         let gridDiamondWidth:  CGFloat = n * Isometric.tileWidth
-        let gridDiamondHeight: CGFloat = n * Isometric.tileHeight + 240   // +240 za zidove + UI padding
+        let gridDiamondHeight: CGFloat = n * Isometric.tileHeight + 240
 
         let usableW = viewSize.width  - 40
         let usableH = viewSize.height - 200
-        let scale = min(usableW / gridDiamondWidth, usableH / gridDiamondHeight, 1.0)
-        worldNode.setScale(scale)
+        baseScale = min(usableW / gridDiamondWidth, usableH / gridDiamondHeight, 1.0)
 
-        // Centriraj HQ na vertikalnoj sredini ekrana.
-        // hqCenterPosition.y = -160 za 6×6 (između tile (2,2) y=-128 i tile (3,3) y=-192)
-        // Pomeramo worldNode na +abs(hqCenterPosition.y) * scale + small upward nudge.
-        let hqOffsetY = -Isometric.hqCenterPosition.y * scale
-        worldNode.position = CGPoint(x: 0, y: hqOffsetY + 40)
+        applyTransforms()
+    }
+
+    /// Primenjuje (baseScale × userZoom) na worldNode + (basePosition + userPan).
+    /// Centriraj HQ na vertikalnoj sredini ekrana, pa dodaj user pan offset.
+    private func applyTransforms() {
+        let effectiveScale = baseScale * userZoom
+        worldNode.setScale(effectiveScale)
+
+        let hqOffsetY = -Isometric.hqCenterPosition.y * effectiveScale
+        worldNode.position = CGPoint(
+            x: userPan.x,
+            y: hqOffsetY + 40 + userPan.y
+        )
+    }
+
+    /// Reset zoom + pan na default vrednosti. Korisno za "recenter" dugme ili double-tap.
+    func resetCamera() {
+        userZoom = Self.defaultZoom
+        userPan = .zero
+        layoutWorld(viewSize: size)
     }
 
     // MARK: - Build Layers
