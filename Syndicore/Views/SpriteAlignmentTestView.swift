@@ -19,11 +19,12 @@ struct SpriteAlignmentTestView: View {
     @State private var selectedCol: Int = 1
     @State private var selectedRow: Int = 2
 
-    // MARK: - Live tuning state (tri slider-a)
+    // MARK: - Live tuning state (4 slider-a)
 
     @State private var anchorX: Double = 0.50
     @State private var anchorY: Double = 0.25
     @State private var scaleMultiplier: Double = 1.00
+    @State private var cameraZoom: Double = 1.00
 
     enum Mode: String, CaseIterable, Identifiable {
         case hq = "HQ (2×2)"
@@ -75,6 +76,7 @@ struct SpriteAlignmentTestView: View {
         .onChange(of: anchorX) { _, _ in applyCurrent() }
         .onChange(of: anchorY) { _, _ in applyCurrent() }
         .onChange(of: scaleMultiplier) { _, _ in applyCurrent() }
+        .onChange(of: cameraZoom) { _, newValue in scene.setZoom(CGFloat(newValue)) }
     }
 
     // MARK: - Subviews
@@ -126,6 +128,11 @@ struct SpriteAlignmentTestView: View {
             labeledSlider(label: "Scale ×",
                           value: $scaleMultiplier,
                           range: 0.5...3.0,
+                          format: "%.2f")
+
+            labeledSlider(label: "Zoom 🔍",
+                          value: $cameraZoom,
+                          range: 0.5...6.0,
                           format: "%.2f")
 
             Text(effectiveRenderHeightText)
@@ -238,6 +245,7 @@ struct SpriteAlignmentTestView: View {
         anchorX = 0.50
         anchorY = 0.25
         scaleMultiplier = 1.00
+        cameraZoom = 1.00
     }
 }
 
