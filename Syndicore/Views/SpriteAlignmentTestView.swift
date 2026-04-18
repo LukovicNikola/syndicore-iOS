@@ -19,11 +19,12 @@ struct SpriteAlignmentTestView: View {
     @State private var selectedCol: Int = 1
     @State private var selectedRow: Int = 2
 
-    // MARK: - Live tuning state (4 slider-a)
+    // MARK: - Live tuning state (5 slider-a)
 
     @State private var anchorX: Double = 0.50
     @State private var anchorY: Double = 0.25
     @State private var scaleMultiplier: Double = 1.00
+    @State private var rotationDegrees: Double = 0.00
     @State private var cameraZoom: Double = 1.00
 
     enum Mode: String, CaseIterable, Identifiable {
@@ -76,6 +77,7 @@ struct SpriteAlignmentTestView: View {
         .onChange(of: anchorX) { _, _ in applyCurrent() }
         .onChange(of: anchorY) { _, _ in applyCurrent() }
         .onChange(of: scaleMultiplier) { _, _ in applyCurrent() }
+        .onChange(of: rotationDegrees) { _, _ in applyCurrent() }
         .onChange(of: cameraZoom) { _, newValue in scene.setZoom(CGFloat(newValue)) }
     }
 
@@ -129,6 +131,11 @@ struct SpriteAlignmentTestView: View {
                           value: $scaleMultiplier,
                           range: 0.5...3.0,
                           format: "%.2f")
+
+            labeledSlider(label: "Rotation°",
+                          value: $rotationDegrees,
+                          range: -45...45,
+                          format: "%+.1f°")
 
             labeledSlider(label: "Zoom 🔍",
                           value: $cameraZoom,
@@ -188,6 +195,7 @@ struct SpriteAlignmentTestView: View {
     private var generatedSpecCode: String {
         let anchorStr = String(format: "CGPoint(x: %.3f, y: %.3f)", anchorX, anchorY)
         let scaleStr = String(format: "%.2f", scaleMultiplier)
+        let rotStr = String(format: "%.1f", rotationDegrees)
         let base = selectedMode == .hq ? "Isometric.tileWidth * 2" : "Isometric.tileWidth"
         let footprint = selectedMode == .hq ? "(cols: 2, rows: 2)" : "(cols: 1, rows: 1)"
 
@@ -197,12 +205,15 @@ struct SpriteAlignmentTestView: View {
         case .building: assetName = "\(selectedBuilding.rawValue.lowercased())_v1"
         }
 
+        // Izostavi rotationDegrees iz output-a ako je 0 — default kroz init
+        let rotationLine = abs(rotationDegrees) < 0.05 ? "" : ",\n    rotationDegrees: \(rotStr)"
+
         return """
         SpriteSpec(
             assetName: "\(assetName)",
             footprint: \(footprint),
             renderHeight: \(base) * \(scaleStr),
-            anchor: \(anchorStr)
+            anchor: \(anchorStr)\(rotationLine)
         )
         """
     }
@@ -228,16 +239,18 @@ struct SpriteAlignmentTestView: View {
     private func applyCurrent() {
         let anchor = CGPoint(x: anchorX, y: anchorY)
         let scale = CGFloat(scaleMultiplier)
+        let rot = CGFloat(rotationDegrees)
 
         switch selectedMode {
         case .hq:
-            scene.showHQ(anchor: anchor, scaleMultiplier: scale)
+            scene.showHQ(anchor: anchor, scaleMultiplier: scale, rotationDegrees: rot)
         case .building:
             scene.showBuilding(selectedBuilding,
                                col: selectedCol,
                                row: selectedRow,
                                anchor: anchor,
-                               scaleMultiplier: scale)
+                               scaleMultiplier: scale,
+                               rotationDegrees: rot)
         }
     }
 
@@ -245,6 +258,7 @@ struct SpriteAlignmentTestView: View {
         anchorX = 0.50
         anchorY = 0.25
         scaleMultiplier = 1.00
+        rotationDegrees = 0.00
         cameraZoom = 1.00
     }
 }

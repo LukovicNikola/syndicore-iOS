@@ -121,9 +121,9 @@ final class SpriteAlignmentTestScene: SKScene {
         applyTransforms()
     }
 
-    /// Prikaži HQ 2×2 sprite sa zadatim anchor-om i scale multiplier-om.
+    /// Prikaži HQ 2×2 sprite sa zadatim anchor-om, scale-om, i rotacijom (stepeni).
     /// Kamera se automatski centrira na HQ centar.
-    func showHQ(anchor: CGPoint, scaleMultiplier: CGFloat) {
+    func showHQ(anchor: CGPoint, scaleMultiplier: CGFloat, rotationDegrees: CGFloat) {
         clearTestSprites()
         let spec = SpriteCatalog.hq
         guard SpriteCatalog.assetExists(spec) else {
@@ -136,6 +136,7 @@ final class SpriteAlignmentTestScene: SKScene {
         let finalHeight = Isometric.tileWidth * 2 * scaleMultiplier
         sprite.size = CGSize(width: finalHeight, height: finalHeight)
         sprite.anchorPoint = anchor
+        sprite.zRotation = rotationDegrees * .pi / 180
         sprite.position = Isometric.hqCenterPosition
         sprite.zPosition = Isometric.hqZDepth + 0.5
         worldNode.addChild(sprite)
@@ -144,14 +145,15 @@ final class SpriteAlignmentTestScene: SKScene {
         applyTransforms()
     }
 
-    /// Prikaži 1×1 building sa zadatim anchor-om i scale multiplier-om.
+    /// Prikaži 1×1 building sa zadatim anchor-om, scale-om, i rotacijom (stepeni).
     /// Kamera se automatski centrira na odabrani (col, row) tile.
     func showBuilding(
         _ type: BuildingType,
         col: Int,
         row: Int,
         anchor: CGPoint,
-        scaleMultiplier: CGFloat
+        scaleMultiplier: CGFloat,
+        rotationDegrees: CGFloat
     ) {
         clearTestSprites()
         guard Isometric.isBuildable(col: col, row: row) else { return }
@@ -167,6 +169,7 @@ final class SpriteAlignmentTestScene: SKScene {
         let finalHeight = Isometric.tileWidth * scaleMultiplier
         sprite.size = CGSize(width: finalHeight, height: finalHeight)
         sprite.anchorPoint = anchor
+        sprite.zRotation = rotationDegrees * .pi / 180
         sprite.position = tilePos
         sprite.zPosition = Isometric.zDepth(col: col, row: row) + 0.5
         worldNode.addChild(sprite)

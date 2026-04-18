@@ -30,6 +30,7 @@ final class BuildingNode: SKNode {
             let sprite = SKSpriteNode(imageNamed: spec.assetName)
             sprite.size = spec.renderSize
             sprite.anchorPoint = spec.anchor
+            sprite.zRotation = spec.rotationRadians
             addChild(sprite)
         }
         // Ako tekstura ne postoji i nije u izgradnji — tile ostaje prazan

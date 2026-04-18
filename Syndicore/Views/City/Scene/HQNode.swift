@@ -10,6 +10,7 @@ final class HQNode: SKNode {
         let sprite = SKSpriteNode(imageNamed: spec.assetName)
         sprite.size = spec.renderSize
         sprite.anchorPoint = spec.anchor
+        sprite.zRotation = spec.rotationRadians
         addChild(sprite)
 
         // Position na centru 2×2 regiona (između 4 HQ tile-a)

@@ -22,6 +22,29 @@ struct SpriteSpec {
     let renderHeight: CGFloat
     /// Anchor point — gde u sprajtu sedi "kontaktna tačka" sa tile-om.
     let anchor: CGPoint
+    /// Rotacija sprajta oko anchor-a, u **stepenima**. Default 0.
+    /// Koristi se za AI drift correction kad je sprite generisan pod blago pogresnim uglom.
+    /// Tipican opseg: -15° do +15°. Šire (±45°) radi samo za eksperiment.
+    let rotationDegrees: CGFloat
+
+    init(
+        assetName: String,
+        footprint: (cols: Int, rows: Int),
+        renderHeight: CGFloat,
+        anchor: CGPoint,
+        rotationDegrees: CGFloat = 0
+    ) {
+        self.assetName = assetName
+        self.footprint = footprint
+        self.renderHeight = renderHeight
+        self.anchor = anchor
+        self.rotationDegrees = rotationDegrees
+    }
+
+    /// Rotacija u radijanima (za SKSpriteNode.zRotation).
+    var rotationRadians: CGFloat {
+        rotationDegrees * .pi / 180
+    }
 
     /// Računa render size na osnovu footprint-a i izvornog aspect ratio-a (1:1).
     var renderSize: CGSize {
