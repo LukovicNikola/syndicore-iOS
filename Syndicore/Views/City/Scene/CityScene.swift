@@ -1,11 +1,15 @@
 import SpriteKit
 
-/// SKScene za isometrijsku vizualizaciju grada (5×5 grid + perimetarski zidovi).
+/// SKScene za isometrijsku vizualizaciju grada.
 ///
-/// Komunikacija prema SwiftUI-u je isključivo callback-ovima:
-///   - `onTapHQ`          – korisnik tapnuo HQ tile
-///   - `onTapBuilding`    – korisnik tapnuo tile na kome stoji zgrada
-///   - `onTapEmptySlot`   – korisnik tapnuo prazni slot (slot index za BuildSheet)
+/// **Layout v2:** 6×6 grid sa octagonal trim (12 corner cutouts) i HQ 2×2 centered.
+/// Total buildable slots: 20 (vidi `Isometric.buildableSlotCount`).
+///
+/// Komunikacija prema SwiftUI-u je callback-ovima:
+///   - `onTapHQ`          – korisnik tapnuo bilo koji HQ tile (2×2 region)
+///   - `onTapBuilding`    – korisnik tapnuo zauzeti tile
+///   - `onTapEmptySlot`   – korisnik tapnuo prazni buildable tile (slot index za BuildSheet)
+///   - `onToggleDebug`    – nije callback, ali debug overlay se kontroliše preko `setDebugOverlay(_:)`
 final class CityScene: SKScene {
 
     // MARK: - Callbacks
@@ -25,39 +29,56 @@ final class CityScene: SKScene {
 
     private var buildings: [BuildingInfo] = []
 
-    // MARK: - Visual grid coordinate mapping
+    /// Debug overlay (cyan tile diamonds + magenta anchor dots) — togglable iz UI-ja.
+    private var debugOverlay: DebugGridOverlayNode?
 
-    // Visual grid coordinates for each building. These are OUR choices
-    // (iOS layout), not dictated by BE. Returns (col, row) for a given
-    // BuildingType + optional slotIndex.
+    // MARK: - Visual grid coordinate mapping (6×6 layout)
     //
-    // 5×5 grid (cols/rows 0..4), HQ na (2,2) = centar.
-    // 9 fixed (8 u inner ring + WALL) + 15 flex = 24 buildable.
+    // Tile-ovi koji se NE vide (cornerCutouts iz Isometric):
+    //   (0,0)(1,0)(0,1)  (4,0)(5,0)(5,1)
+    //   (0,4)(0,5)(1,5)  (5,4)(4,5)(5,5)
     //
-    //  (0,0) (1,0) (2,0) (3,0) (4,0)
-    //  (0,1) (1,1) (2,1) (3,1) (4,1)
-    //  (0,2) (1,2) [HQ]  (3,2) (4,2)
-    //  (0,3) (1,3) (2,3) (3,3) (4,3)
-    //  (0,4) (1,4) (2,4) (3,4) (4,4)
+    // HQ pokriva 2×2 region (2,2)-(3,3) — center grida.
+    //
+    // Inner ring (12 tile-ova adjacent na HQ):
+    //   N:    (2,1) (3,1)
+    //   S:    (2,4) (3,4)
+    //   W:    (1,2) (1,3)
+    //   E:    (4,2) (4,3)
+    //   diag: (1,1) (4,1) (1,4) (4,4)
+    //
+    // Outer ring (8 tile-ova, daleko od HQ-a):
+    //   top:    (2,0) (3,0)
+    //   bottom: (2,5) (3,5)
+    //   left:   (0,2) (0,3)
+    //   right:  (5,2) (5,3)
+    //
+    // Total: 12 inner + 8 outer + 4 HQ = 24 visible tiles (od 36 u 6×6).
+
+    /// Fixed buildings — pozicije zakucane po dizajnu, blizu HQ-a.
     private static let fixedPositions: [BuildingType: (col: Int, row: Int)] = [
-        .OPS_CENTER:    (col: 1, row: 1),   // NW od HQ
-        .RALLY_POINT:   (col: 2, row: 1),   // N od HQ
-        .WATCHTOWER:    (col: 3, row: 1),   // NE od HQ
-        .BARRACKS:      (col: 1, row: 2),   // W od HQ
-        .MOTOR_POOL:    (col: 3, row: 2),   // E od HQ
-        .WAREHOUSE:     (col: 1, row: 3),   // SW od HQ
-        .RESEARCH_LAB:  (col: 2, row: 3),   // S od HQ
-        .TRADE_POST:    (col: 3, row: 3),   // SE od HQ
-        .WALL:          (col: 2, row: 0),   // daleki sever
+        // Inner ring cardinal positions around HQ 2×2
+        .OPS_CENTER:    (col: 2, row: 1),   // N
+        .RALLY_POINT:   (col: 3, row: 1),   // N
+        .BARRACKS:      (col: 1, row: 2),   // W
+        .MOTOR_POOL:    (col: 4, row: 2),   // E
+        .WAREHOUSE:     (col: 1, row: 3),   // W
+        .TRADE_POST:    (col: 4, row: 3),   // E
+        .WATCHTOWER:    (col: 2, row: 4),   // S
+        .RESEARCH_LAB:  (col: 3, row: 4),   // S
+        .WALL:          (col: 1, row: 1),   // NW diagonal
     ]
 
-    // 15 outer-ring slotova za flex/resource buildings.
+    /// Flex/resource slot positions — outer ring + 3 diagonal corners za 11 ukupno.
+    /// BE slotIndex (0..N-1) mapira u ovaj array.
     private static let resourceSlotPositions: [(col: Int, row: Int)] = [
-        (0, 0), (1, 0),         (3, 0), (4, 0),
-        (0, 1),                                 (4, 1),
-        (0, 2),                                 (4, 2),
-        (0, 3),                                 (4, 3),
-        (0, 4), (1, 4), (2, 4), (3, 4), (4, 4),
+        (2, 0), (3, 0),                  // top edge
+        (4, 1),                          // NE diagonal
+        (5, 2), (5, 3),                  // right edge
+        (4, 4),                          // SE diagonal
+        (3, 5), (2, 5),                  // bottom edge
+        (1, 4),                          // SW diagonal
+        (0, 3), (0, 2),                  // left edge
     ]
 
     private func coord(for building: BuildingInfo) -> (col: Int, row: Int)? {
@@ -76,8 +97,7 @@ final class CityScene: SKScene {
         scaleMode   = .resizeFill
         backgroundColor = SKColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1)
 
-        // Skybox as a separate background layer, NOT inside worldNode,
-        // and NOT scaled by world scale.
+        // Skybox kao odvojen background sloj (NE u worldNode da se ne skalira sa world-om)
         let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
         skybox.position  = .zero
         skybox.zPosition = -200
@@ -87,14 +107,12 @@ final class CityScene: SKScene {
         addChild(worldNode)
         buildTileMap()
         buildWallLayer()
-        // Do NOT call layoutWorld here — size may still be 0.
-        // didChangeSize will fire with the real size.
+        // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
-        // Skybox covers full scene. Use aspect fill (scale to max dim)
-        // so there's no empty area at edges.
+        // Skybox aspect-fill da pokrije ceo viewport bez praznih ivica
         if let skybox = skyboxNode, let tex = skybox.texture {
             let texAspect   = tex.size().width / tex.size().height
             let sceneAspect = size.width / size.height
@@ -114,38 +132,44 @@ final class CityScene: SKScene {
         rebuildBuildingLayer()
     }
 
+    /// Toggle debug grid overlay. Pozvati iz SettingsView ili SpriteAlignmentTestView.
+    func setDebugOverlay(_ enabled: Bool) {
+        if enabled, debugOverlay == nil {
+            let overlay = DebugGridOverlayNode()
+            worldNode.addChild(overlay)
+            debugOverlay = overlay
+        } else if !enabled, let overlay = debugOverlay {
+            overlay.removeFromParent()
+            debugOverlay = nil
+        }
+    }
+
     // MARK: - Layout
 
     private func layoutWorld(viewSize: CGSize) {
         guard viewSize.width > 0 else { return }
 
-        let gridDiamondWidth:  CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileWidth
-        let gridDiamondHeight: CGFloat = CGFloat(Isometric.gridSize) * Isometric.tileHeight + 200
+        let n = CGFloat(Isometric.gridSize)
+        // 6×6 dijamant: width = 6 × 128 = 768, height = 6 × 64 + zid prostor
+        let gridDiamondWidth:  CGFloat = n * Isometric.tileWidth
+        let gridDiamondHeight: CGFloat = n * Isometric.tileHeight + 240   // +240 za zidove + UI padding
 
         let usableW = viewSize.width  - 40
         let usableH = viewSize.height - 200
         let scale = min(usableW / gridDiamondWidth, usableH / gridDiamondHeight, 1.0)
         worldNode.setScale(scale)
 
-        // Center grid vertically in usable area.
-        // scenePosition(2,2) = (0, -128). We want HQ at screen center.
-        // So translate worldNode by +128 * scale on Y.
-        worldNode.position = CGPoint(x: 0, y: 128 * scale + 40)  // +40 = slight upward nudge
+        // Centriraj HQ na vertikalnoj sredini ekrana.
+        // hqCenterPosition.y = -160 za 6×6 (između tile (2,2) y=-128 i tile (3,3) y=-192)
+        // Pomeramo worldNode na +abs(hqCenterPosition.y) * scale + small upward nudge.
+        let hqOffsetY = -Isometric.hqCenterPosition.y * scale
+        worldNode.position = CGPoint(x: 0, y: hqOffsetY + 40)
     }
 
     // MARK: - Build Layers
 
-    // MARK: - Tile map coordinate conversion
-    //
-    // SKTileMapNode (.isometric) has its row axis inverted relative to our
-    // Isometric.scenePosition formula. Measured via centerOfTile(atColumn:row:):
-    //   tileMap col step: (+64, -32) — same as our col direction ✓
-    //   tileMap row step: (+64, +32) — OPPOSITE to our row direction ✗
-    //
-    // With tileMap.position = (0, -128), the mapping that aligns a grid tile
-    // at Isometric.scenePosition(col, row) with the tileMap cell is:
-    //   tmCol = col
-    //   tmRow = (gridSize - 1) - row   (i.e. row axis flip)
+    /// SKTileMapNode (.isometric) ima invertovanu row osu u odnosu na nase Isometric.scenePosition.
+    /// Mapa: tmCol = col, tmRow = (gridSize-1) - row.
     private func tmRow(_ row: Int) -> Int { (Isometric.gridSize - 1) - row }
 
     private func buildTileMap() {
@@ -157,15 +181,21 @@ final class CityScene: SKScene {
             tileSize: CityTileSet.tileSize
         )
         tileMap.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        // Offset so that tile (2,2) lands on Isometric.scenePosition(2,2) = (0,-128)
-        tileMap.position = CGPoint(x: 0, y: -128)
+        // Offset tako da tile (centerCol, centerRow) sedne na hqCenterPosition.
+        // Za 6×6 sa hqOrigin (2,2), centar grida je između (2.5, 2.5) tile coord.
+        // SKTileMapNode anchor (0.5, 0.5) centrira na (n/2, n/2) tile coord.
+        // Za n=6, to je (3, 3). Razlika između (2.5, 2.5) i (3, 3) = (0.5 col, 0.5 row).
+        // Trebamo pomeriti tileMap nazad za pola tile-a u col i row smeru.
+        let halfTileOffsetX = -CGFloat(0.5 - 0.5) * Isometric.tileWidth / 2  // = 0
+        let centerY = -CGFloat(Isometric.gridSize - 1) * Isometric.tileHeight / 2  // tile center y
+        tileMap.position = CGPoint(x: halfTileOffsetX, y: centerY + Isometric.hqCenterPosition.y / 2)
         tileMap.zPosition = 0
 
-        // Fill all tiles with empty group, except HQ center tile
+        // Fill samo BUILDABLE tile-ove (skip HQ region + cornerCutouts)
         guard let emptyGroup = CityTileSet.emptyGroup(in: tileSet) else { return }
         for col in 0..<n {
             for row in 0..<n {
-                if Isometric.isHQ(col: col, row: row) { continue }
+                guard Isometric.isBuildable(col: col, row: row) else { continue }
                 tileMap.setTileGroup(emptyGroup, forColumn: col, row: tmRow(row))
             }
         }
@@ -184,12 +214,12 @@ final class CityScene: SKScene {
             .filter { $0 is BuildingNode || $0 is HQNode }
             .forEach { $0.removeFromParent() }
 
-        // Restore all non-HQ tiles to empty before re-evaluating which are occupied
+        // Restore sve buildable tile-ove na empty pre nego sto evaluiramo zauzetost
         let n = Isometric.gridSize
         if let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
             for col in 0..<n {
                 for row in 0..<n {
-                    if Isometric.isHQ(col: col, row: row) { continue }
+                    guard Isometric.isBuildable(col: col, row: row) else { continue }
                     tileMapNode?.setTileGroup(emptyGroup, forColumn: col, row: tmRow(row))
                 }
             }
@@ -201,10 +231,9 @@ final class CityScene: SKScene {
             guard building.type != .HQ else { continue }
             guard let c = coord(for: building) else { continue }
             worldNode.addChild(BuildingNode(building: building, col: c.col, row: c.row))
-            // Clear tile only if the building has visible content (texture exists or scaffold).
-            // If neither exists, tile stays visible so the slot doesn't become a dark hole.
-            let hasTexture = UIImage(named: building.type.rawValue.lowercased() + "_v1") != nil
-            if building.isUpgrading || hasTexture {
+            // Clear tile samo ako zgrada ima vidljiv content (texture exists ili scaffold)
+            let spec = SpriteCatalog.spec(for: building.type)
+            if building.isUpgrading || SpriteCatalog.assetExists(spec) {
                 tileMapNode?.setTileGroup(nil, forColumn: c.col, row: tmRow(c.row))
             }
         }
@@ -216,7 +245,7 @@ final class CityScene: SKScene {
         guard let touch = touches.first, let tileMap = tileMapNode else { return }
         let locationInWorld = touch.location(in: worldNode)
 
-        // Reset previously selected tile
+        // Reset prethodno selected tile
         if let prev = selectedTileCoord,
            let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
             tileMap.setTileGroup(emptyGroup, forColumn: prev.col, row: tmRow(prev.row))
@@ -230,13 +259,13 @@ final class CityScene: SKScene {
             return
         }
 
-        // Set selected sprite on tapped tile
+        // Set selected sprite na tapped tile
         if let selectedGroup = CityTileSet.selectedGroup(in: tileSet) {
             tileMap.setTileGroup(selectedGroup, forColumn: col, row: tmRow(row))
         }
         selectedTileCoord = (col, row)
 
-        // Find if any building occupies this (col, row)
+        // Da li neka zgrada zauzima ovaj (col, row)?
         let bldg = buildings.first { b in
             guard b.type != .HQ, let c = coord(for: b) else { return false }
             return c.col == col && c.row == row
@@ -245,10 +274,9 @@ final class CityScene: SKScene {
         if let bldg {
             onTapBuilding?(bldg)
         } else {
-            // Empty slot — derive a "slot number" so BuildSheet can show
-            // which flex slot is being built into. For now pass 0;
-            // proper slot derivation is a later step.
-            onTapEmptySlot?(0)
+            // Empty slot — pošalji slot index za BuildSheet (Isometric ga zna)
+            let slotIdx = Isometric.slot(forCoord: col, row: row) ?? 0
+            onTapEmptySlot?(slotIdx)
         }
     }
 }

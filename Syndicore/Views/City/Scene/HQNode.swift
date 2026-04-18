@@ -1,21 +1,23 @@
 import SpriteKit
 
+/// HQ node — sedi na 2×2 region centriran na (2,2)-(3,3) u 6×6 gridu.
+/// Sprite spec: vidi `SpriteCatalog.hq` (2048×1536 source, 256×256 render).
 final class HQNode: SKNode {
-    private static let hqSize = CGSize(
-        width:  Isometric.tileWidth * 1.0,
-        height: Isometric.tileWidth * 1.0
-    )
 
-    init(col: Int = Isometric.hqCoord.col, row: Int = Isometric.hqCoord.row) {
+    init() {
         super.init()
-        let sprite = SKSpriteNode(imageNamed: "hq_pyramid_v1")
-        sprite.size        = Self.hqSize
-        sprite.anchorPoint = CGPoint(x: 0.5, y: 0.1367)
+        let spec = SpriteCatalog.hq
+        let sprite = SKSpriteNode(imageNamed: spec.assetName)
+        sprite.size = spec.renderSize
+        sprite.anchorPoint = spec.anchor
         addChild(sprite)
-        position  = Isometric.scenePosition(col: col, row: row)
-        zPosition = Isometric.zDepth(col: col, row: row) + 0.5
+
+        // Position na centru 2×2 regiona (između 4 HQ tile-a)
+        position = Isometric.hqCenterPosition
+        // zDepth tako da je iznad svih HQ tile-ova
+        zPosition = Isometric.hqZDepth + 0.5
         isUserInteractionEnabled = false
     }
 
-    required init?(coder: NSCoder) { fatalError() }
+    required init?(coder: NSCoder) { fatalError("HQNode is code-only; not decodable from XIB") }
 }

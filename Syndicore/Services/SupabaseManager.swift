@@ -29,8 +29,9 @@ final class SupabaseManager {
 
     /// Poziva se jednom u SyndicoreApp nakon što je AppConfig učitan.
     /// Mora da se zove sa @MainActor konteksta (npr. SwiftUI .task u SyndicoreApp).
+    /// Idempotent: drugi i naredni pozivi sa istim config-om su no-op (omogucava bootstrap retry).
     static func configure(config: AppConfig) {
-        assert(_shared == nil, "SupabaseManager je vec konfigurisan")
+        if _shared != nil { return }
         _shared = SupabaseManager(config: config)
     }
 

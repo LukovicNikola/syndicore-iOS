@@ -1,18 +1,27 @@
 import CoreGraphics
 
+/// Perimeter wall placement za CityScene.
+///
+/// **v2 layout:** square 6×6 perimeter (postojeci wall_segment_v1 sprajt) sa 4 corner pylon-a.
+/// Corner cutout tile-ovi (12 tile-ova) ostaju vidljivi unutar zida kao "prazne tačke" —
+/// ovo je intencionalno dok se ne generisu novi diagonal wall sprajtovi za pravi octagonal layout.
+///
+/// **TODO (octagonal v3):** kad budu generisani sprajtovi za diagonal walls
+/// (NE/SE/SW/NW orijentacije), refaktorisati `wallPositions()` da prati octagonal outline.
 enum WallLayout {
+
     struct WallEntry {
         let position: CGPoint
-        let xScale: CGFloat
+        let xScale: CGFloat      // -1 za mirrored orientation
         let zPosition: CGFloat
     }
 
-    /// Perimetarski zidovi — po n segmenata na svakoj od 4 strane grida.
+    /// Perimeter walls — 4 strane 6×6 grida, 6 segmenata po strani = 24 ukupno.
     static func wallPositions() -> [WallEntry] {
         var entries: [WallEntry] = []
         let n = Isometric.gridSize
 
-        // NE side (row=-1, col 0..<n) — slope "\" (prirodna orijentacija).
+        // NE side (row=-1, col 0..<n) — slope "\" prirodna orijentacija.
         for col in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: col, row: -1),
@@ -28,7 +37,7 @@ enum WallLayout {
                 zPosition: Isometric.zDepth(col: n - 1, row: row) + 1.5
             ))
         }
-        // SW side (row=n, col 0..<n) — slope "\" (simetrično NE).
+        // SW side (row=n, col 0..<n) — slope "\" simetrično NE.
         for col in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: col, row: n),
@@ -36,7 +45,7 @@ enum WallLayout {
                 zPosition: Isometric.zDepth(col: col, row: n - 1) + 1.5
             ))
         }
-        // NW side (col=-1, row 0..<n) — slope "/" (simetrično SE).
+        // NW side (col=-1, row 0..<n) — slope "/" simetrično SE.
         for row in 0..<n {
             entries.append(WallEntry(
                 position: Isometric.scenePosition(col: -1, row: row),
@@ -47,8 +56,7 @@ enum WallLayout {
         return entries
     }
 
-    /// 4 ugaona pylona na pravim tačkama dijamanta (midpoint susednih
-    /// wall endpoint-ova). Pokrivaju seam između dve strane perimetra.
+    /// 4 ugaona pylona na pravim vrhovima dijamanta.
     static func pylonPositions() -> [WallEntry] {
         let n = Isometric.gridSize
 
@@ -76,7 +84,7 @@ enum WallLayout {
         return [
             // TOP (back corner) — iza svega.
             WallEntry(position: topPos, xScale: 1, zPosition: -5),
-            // RIGHT (east) — ispred susednih zidova.
+            // RIGHT (east).
             WallEntry(
                 position:  rightPos,
                 xScale:   -1,
