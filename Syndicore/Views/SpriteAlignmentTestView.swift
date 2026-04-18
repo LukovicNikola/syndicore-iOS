@@ -19,7 +19,12 @@ struct SpriteAlignmentTestView: View {
     @State private var selectedCol: Int = 1
     @State private var selectedRow: Int = 2
 
-    // MARK: - Live tuning state (5 slider-a)
+    // MARK: - Zoom / pan state (sync-uje se iz scene callback-a)
+
+    @State private var currentGridZoom: Double = 1.0
+    @State private var currentPan: CGPoint = .zero
+
+    // MARK: - Live tuning state — sprite
 
     @State private var anchorX: Double = 0.50
     @State private var anchorY: Double = 0.25
@@ -27,13 +32,37 @@ struct SpriteAlignmentTestView: View {
     @State private var rotationDegrees: Double = 0.00
     @State private var cameraZoom: Double = 1.00
 
+
     enum Mode: String, CaseIterable, Identifiable {
-        case hq = "HQ (2×2)"
-        case building = "1×1 Building"
+        case hq       = "HQ"
+        case building = "1×1"
+        case cityZoom = "Zoom"
         var id: String { rawValue }
     }
 
     var body: some View {
+        withSpriteObservers(layout)
+            .onAppear {
+                scene.onZoomChanged = { zoom in currentGridZoom = Double(zoom) }
+                scene.onPanChanged  = { pan  in currentPan = pan }
+                applyCurrent()
+            }
+    }
+
+    private func withSpriteObservers<V: View>(_ v: V) -> some View {
+        v
+            .onChange(of: selectedMode)      { _, _ in applyCurrent() }
+            .onChange(of: selectedBuilding)  { _, _ in applyCurrent() }
+            .onChange(of: selectedCol)       { _, _ in applyCurrent() }
+            .onChange(of: selectedRow)       { _, _ in applyCurrent() }
+            .onChange(of: anchorX)           { _, _ in applyCurrent() }
+            .onChange(of: anchorY)           { _, _ in applyCurrent() }
+            .onChange(of: scaleMultiplier)   { _, _ in applyCurrent() }
+            .onChange(of: rotationDegrees)   { _, _ in applyCurrent() }
+            .onChange(of: cameraZoom)        { _, v in scene.setZoom(CGFloat(v)) }
+    }
+
+    private var layout: some View {
         VStack(spacing: 0) {
             // ==== Scene ====
             SpriteView(scene: scene)
@@ -41,25 +70,29 @@ struct SpriteAlignmentTestView: View {
                 .frame(maxHeight: .infinity)
 
             // ==== Controls ====
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    modePicker
-                    if selectedMode == .building { buildingPicker }
+            if selectedMode == .cityZoom {
+                zoomPanel
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        modePicker
+                        if selectedMode == .building { buildingPicker }
 
-                    Divider()
+                        Divider()
 
-                    tuningSliders
+                        tuningSliders
 
-                    Divider()
+                        Divider()
 
-                    specOutput
+                        specOutput
 
-                    Legend()
+                        Legend()
+                    }
+                    .padding()
                 }
-                .padding()
+                .frame(maxHeight: 380)
+                .background(.thinMaterial)
             }
-            .frame(maxHeight: 360)
-            .background(.thinMaterial)
         }
         .navigationTitle("Sprite Alignment")
         .navigationBarTitleDisplayMode(.inline)
@@ -69,16 +102,6 @@ struct SpriteAlignmentTestView: View {
                     .font(.footnote)
             }
         }
-        .onAppear { applyCurrent() }
-        .onChange(of: selectedMode) { _, _ in applyCurrent() }
-        .onChange(of: selectedBuilding) { _, _ in applyCurrent() }
-        .onChange(of: selectedCol) { _, _ in applyCurrent() }
-        .onChange(of: selectedRow) { _, _ in applyCurrent() }
-        .onChange(of: anchorX) { _, _ in applyCurrent() }
-        .onChange(of: anchorY) { _, _ in applyCurrent() }
-        .onChange(of: scaleMultiplier) { _, _ in applyCurrent() }
-        .onChange(of: rotationDegrees) { _, _ in applyCurrent() }
-        .onChange(of: cameraZoom) { _, newValue in scene.setZoom(CGFloat(newValue)) }
     }
 
     // MARK: - Subviews
@@ -111,40 +134,86 @@ struct SpriteAlignmentTestView: View {
         }
     }
 
+    private var zoomPanel: some View {
+        VStack(spacing: 0) {
+            modePicker
+                .padding(.horizontal)
+                .padding(.top, 12)
+
+            Spacer()
+
+            VStack(spacing: 6) {
+                Text(String(format: "%.2f ×", currentGridZoom))
+                    .font(.system(size: 48, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.primary)
+
+                HStack(spacing: 20) {
+                    VStack(spacing: 2) {
+                        Text("Pan X")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(String(format: "%.0f", currentPan.x))
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    VStack(spacing: 2) {
+                        Text("Pan Y")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(String(format: "%.0f", currentPan.y))
+                            .font(.system(.body, design: .monospaced))
+                    }
+                }
+
+                Text("Pinch = zoom · 2 prsta drag = pan · kopiraj kad si zadovoljan")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+
+            Spacer()
+
+            let code = """
+                static let defaultZoom: CGFloat = \(String(format: "%.2f", currentGridZoom))
+                static let defaultPan:  CGPoint = CGPoint(x: \(String(format: "%.0f", currentPan.x)), y: \(String(format: "%.0f", currentPan.y)))
+                """
+            VStack(spacing: 8) {
+                Text(code)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.black.opacity(0.3))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                Button {
+                    UIPasteboard.general.string = code
+                } label: {
+                    Label("Copy to clipboard", systemImage: "doc.on.doc")
+                        .font(.caption)
+                }
+            }
+            .padding([.horizontal, .bottom])
+        }
+        .frame(maxHeight: 280)
+        .background(.thinMaterial)
+    }
+
     private var tuningSliders: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("LIVE TUNING")
                 .font(.caption2.bold())
                 .foregroundStyle(.secondary)
 
-            labeledSlider(label: "Anchor X",
-                          value: $anchorX,
-                          range: 0.0...1.0,
-                          format: "%.3f")
-
-            labeledSlider(label: "Anchor Y",
-                          value: $anchorY,
-                          range: 0.0...1.0,
-                          format: "%.3f")
-
-            labeledSlider(label: "Scale ×",
-                          value: $scaleMultiplier,
-                          range: 0.5...3.0,
-                          format: "%.2f")
-
-            labeledSlider(label: "Rotation°",
-                          value: $rotationDegrees,
-                          range: -45...45,
-                          format: "%+.1f°")
-
-            labeledSlider(label: "Zoom 🔍",
-                          value: $cameraZoom,
-                          range: 0.5...6.0,
-                          format: "%.2f")
-
+            labeledSlider(label: "Anchor X",  value: $anchorX,         range: 0.0...1.0, format: "%.3f")
+            labeledSlider(label: "Anchor Y",  value: $anchorY,         range: 0.0...1.0, format: "%.3f")
+            labeledSlider(label: "Scale ×",   value: $scaleMultiplier, range: 0.5...3.0, format: "%.2f")
+            labeledSlider(label: "Rotation°", value: $rotationDegrees, range: -45...45,  format: "%+.1f°")
             Text(effectiveRenderHeightText)
                 .font(.caption2.monospacedDigit())
                 .foregroundStyle(.secondary)
+
+            labeledSlider(label: "Zoom 🔍", value: $cameraZoom, range: 0.5...6.0, format: "%.2f")
         }
     }
 
@@ -162,12 +231,13 @@ struct SpriteAlignmentTestView: View {
     }
 
     private var specOutput: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("COPY INTO SpriteSpec.swift")
+        let (title, code) = generatedCode
+        return VStack(alignment: .leading, spacing: 6) {
+            Text(title)
                 .font(.caption2.bold())
                 .foregroundStyle(.secondary)
 
-            Text(generatedSpecCode)
+            Text(code)
                 .font(.system(.caption, design: .monospaced))
                 .textSelection(.enabled)
                 .padding(10)
@@ -176,7 +246,7 @@ struct SpriteAlignmentTestView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
             Button {
-                UIPasteboard.general.string = generatedSpecCode
+                UIPasteboard.general.string = code
             } label: {
                 Label("Copy to clipboard", systemImage: "doc.on.doc")
                     .font(.caption)
@@ -192,22 +262,22 @@ struct SpriteAlignmentTestView: View {
         return "renderHeight = \(Int(final)) units (base=\(Int(base)) × \(String(format: "%.2f", scaleMultiplier)))"
     }
 
-    private var generatedSpecCode: String {
+    /// Vraća (naslov sekcije, kod za kopiranje) za trenutni mode.
+    private var generatedCode: (String, String) {
+        ("COPY INTO SpriteSpec.swift", generatedSpriteSpecCode)
+    }
+
+    private var generatedSpriteSpecCode: String {
         let anchorStr = String(format: "CGPoint(x: %.3f, y: %.3f)", anchorX, anchorY)
-        let scaleStr = String(format: "%.2f", scaleMultiplier)
-        let rotStr = String(format: "%.1f", rotationDegrees)
-        let base = selectedMode == .hq ? "Isometric.tileWidth * 2" : "Isometric.tileWidth"
+        let scaleStr  = String(format: "%.2f", scaleMultiplier)
+        let rotStr    = String(format: "%.1f", rotationDegrees)
+        let zoomStr   = String(format: "%.2f", cameraZoom)
+        let base      = selectedMode == .hq ? "Isometric.tileWidth * 2" : "Isometric.tileWidth"
         let footprint = selectedMode == .hq ? "(cols: 2, rows: 2)" : "(cols: 1, rows: 1)"
-
-        let assetName: String
-        switch selectedMode {
-        case .hq: assetName = "hq_pyramid_v1"
-        case .building: assetName = "\(selectedBuilding.rawValue.lowercased())_v1"
-        }
-
-        // Izostavi rotationDegrees iz output-a ako je 0 — default kroz init
+        let assetName = selectedMode == .hq
+            ? "hq_pyramid_v1"
+            : "\(selectedBuilding.rawValue.lowercased())_v1"
         let rotationLine = abs(rotationDegrees) < 0.05 ? "" : ",\n    rotationDegrees: \(rotStr)"
-
         return """
         SpriteSpec(
             assetName: "\(assetName)",
@@ -215,8 +285,12 @@ struct SpriteAlignmentTestView: View {
             renderHeight: \(base) * \(scaleStr),
             anchor: \(anchorStr)\(rotationLine)
         )
+
+        // CityScene.swift — ako menjao zoom:
+        // static let defaultZoom: CGFloat = \(zoomStr)
         """
     }
+
 
     private var positionStatusText: String {
         if Isometric.isCutout(col: selectedCol, row: selectedRow) {
@@ -237,29 +311,34 @@ struct SpriteAlignmentTestView: View {
     // MARK: - Actions
 
     private func applyCurrent() {
-        let anchor = CGPoint(x: anchorX, y: anchorY)
-        let scale = CGFloat(scaleMultiplier)
-        let rot = CGFloat(rotationDegrees)
-
         switch selectedMode {
         case .hq:
-            scene.showHQ(anchor: anchor, scaleMultiplier: scale, rotationDegrees: rot)
+            scene.showHQ(
+                anchor: CGPoint(x: anchorX, y: anchorY),
+                scaleMultiplier: CGFloat(scaleMultiplier),
+                rotationDegrees: CGFloat(rotationDegrees)
+            )
         case .building:
-            scene.showBuilding(selectedBuilding,
-                               col: selectedCol,
-                               row: selectedRow,
-                               anchor: anchor,
-                               scaleMultiplier: scale,
-                               rotationDegrees: rot)
+            scene.showBuilding(
+                selectedBuilding,
+                col: selectedCol, row: selectedRow,
+                anchor: CGPoint(x: anchorX, y: anchorY),
+                scaleMultiplier: CGFloat(scaleMultiplier),
+                rotationDegrees: CGFloat(rotationDegrees)
+            )
+        case .cityZoom:
+            scene.clearTestSprites()
         }
     }
 
     private func resetToDefaults() {
-        anchorX = 0.50
-        anchorY = 0.25
-        scaleMultiplier = 1.00
-        rotationDegrees = 0.00
-        cameraZoom = 1.00
+        switch selectedMode {
+        case .hq, .building:
+            anchorX = 0.50; anchorY = 0.25; scaleMultiplier = 1.00
+            rotationDegrees = 0.00; cameraZoom = 1.00
+        case .cityZoom:
+            scene.setZoom(1.0)
+        }
     }
 }
 
@@ -297,6 +376,12 @@ private struct LegendDot: View {
             Text(label).foregroundStyle(.secondary)
         }
         .font(.caption2)
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 

@@ -73,66 +73,63 @@ enum WallLayout {
     // MARK: - Corner pieces (4 bend sprajtova u 4 cornerCutout regiona)
 
     /// 4 corner pieces koji pokrivaju diagonal cut segmente octagonal-a.
-    /// Orijentacija (zRotation) prati orijentaciju ugla:
-    /// - N corner: rotacija tako da konveks strana gleda TOP screen
-    /// - E corner: konveks gleda desno
-    /// - S corner: konveks gleda dole (natural sprite orientation = 0)
-    /// - W corner: konveks gleda levo
     ///
-    /// Sprite prirodno ima konveks DOLE i arms UP u V-formaciji (bend na dnu).
+    /// Pozicija: midpoint između krajnjih endpoint-a dva susedna wall segmenta.
+    /// - N corner: midpoint( N-wall-leftmost, W-wall-top )
+    /// - E corner: midpoint( N-wall-rightmost, E-wall-top )
+    /// - S corner: midpoint( E-wall-bottom, S-wall-rightmost )
+    /// - W corner: midpoint( S-wall-leftmost, W-wall-bottom )
+    ///
+    /// zRotation: sprite prirodno ima konveks DOLE (arms gore u V-formaciji).
+    /// - S corner (convex down): 0
+    /// - E corner (convex right): π/2
+    /// - N corner (convex up): π
+    /// - W corner (convex left): -π/2
+    ///
+    /// Anchor (0.5, 0.5) na WallCornerNode je obavezan — centered anchor
+    /// garantuje da rotacija ne pomera vizuelni centar.
     static func cornerPositions() -> [WallEntry] {
-        // Centar svakog cornerCutout regiona — srednja tačka 3 cutout tile-a.
-        // Npr. za N corner (cutouts (0,0),(1,0),(0,1)) → center = scenePosition(1/3, 1/3) ≈ (0, -21)
+        let n = Isometric.gridSize  // 6
 
-        func cutoutCenter(_ cutouts: [(Int, Int)]) -> CGPoint {
-            let positions = cutouts.map { Isometric.scenePosition(col: $0.0, row: $0.1) }
-            let sumX = positions.reduce(0) { $0 + $1.x }
-            let sumY = positions.reduce(0) { $0 + $1.y }
-            return CGPoint(
-                x: sumX / CGFloat(positions.count),
-                y: sumY / CGFloat(positions.count)
-            )
+        func mid(_ a: (Int, Int), _ b: (Int, Int)) -> CGPoint {
+            let pa = Isometric.scenePosition(col: a.0, row: a.1)
+            let pb = Isometric.scenePosition(col: b.0, row: b.1)
+            return CGPoint(x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2)
         }
 
-        // N vertex octagon-a (top of screen) — cornerCutouts (0,0)(1,0)(0,1)
-        let nPos = cutoutCenter([(0, 0), (1, 0), (0, 1)])
-        // E vertex (right of screen) — cornerCutouts (4,0)(5,0)(5,1)
-        let ePos = cutoutCenter([(4, 0), (5, 0), (5, 1)])
-        // S vertex (bottom of screen) — cornerCutouts (5,4)(4,5)(5,5)
-        let sPos = cutoutCenter([(5, 4), (4, 5), (5, 5)])
-        // W vertex (left of screen) — cornerCutouts (0,4)(0,5)(1,5)
-        let wPos = cutoutCenter([(0, 4), (0, 5), (1, 5)])
+        // N corner: between N-wall left endpoint (col=2,row=-1) and W-wall top endpoint (col=-1,row=2)
+        let nPos = mid((2, -1), (-1, 2))
+        // E corner: between N-wall right endpoint (col=3,row=-1) and E-wall top endpoint (col=n,row=2)
+        let ePos = mid((3, -1), (n, 2))
+        // S corner: between E-wall bottom endpoint (col=n,row=3) and S-wall right endpoint (col=3,row=n)
+        let sPos = mid((n, 3), (3, n))
+        // W corner: between S-wall left endpoint (col=2,row=n) and W-wall bottom endpoint (col=-1,row=3)
+        let wPos = mid((2, n), (-1, 3))
 
-        // zRotation (SpriteKit: CCW positive radians)
-        // Natural sprite (zRotation=0) ima konveks DOLE. Da dobijemo:
-        // - S corner (convex down): 0 rad
-        // - E corner (convex right): π/2
-        // - N corner (convex up): π
-        // - W corner (convex left): -π/2
         return [
             WallEntry(
                 position: nPos,
                 xScale: 1,
                 zRotation: .pi,
-                zPosition: -4.0  // iza svega (top corner je najdalji od kamere)
+                zPosition: 1.0   // ispred tile mapa (z=0), iza prednjih zidova
             ),
             WallEntry(
                 position: ePos,
                 xScale: 1,
                 zRotation: .pi / 2,
-                zPosition: Isometric.zDepth(col: 4, row: 0) + 1.0
+                zPosition: Isometric.zDepth(col: n - 1, row: 0) + 1.5
             ),
             WallEntry(
                 position: sPos,
                 xScale: 1,
                 zRotation: 0,
-                zPosition: Isometric.zDepth(col: 4, row: 4) + 2.5  // ispred svega
+                zPosition: Isometric.zDepth(col: n - 1, row: n - 1) + 2.0
             ),
             WallEntry(
                 position: wPos,
                 xScale: 1,
                 zRotation: -.pi / 2,
-                zPosition: Isometric.zDepth(col: 0, row: 4) + 1.0
+                zPosition: Isometric.zDepth(col: 0, row: n - 1) + 1.5
             ),
         ]
     }

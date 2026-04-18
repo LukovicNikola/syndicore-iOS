@@ -11,37 +11,61 @@ final class SpriteAlignmentTestScene: SKScene {
     /// Trenutno prikazani test sprite (1×1 ili HQ)
     private var testSprite: SKSpriteNode?
 
+    private var skyboxNode: SKSpriteNode?
+
     // MARK: - Zoom / camera state
 
-    /// Fit-to-view skala izracunata u layoutWorld. Menja se samo kad se view resize-uje.
     private var baseScale: CGFloat = 1.0
-    /// User-kontrolisan zoom multiplier (1.0 = fit, 2.0 = 2x uvecan)
     private var zoomMultiplier: CGFloat = 1.0
-    /// Pozicija u world space-u na koju treba centrirati kameru (HQ centar ili trenutni test tile)
+    private var userPan: CGPoint = .zero
     private var currentTargetWorldPos: CGPoint = .zero
+
+    private static let minZoom: CGFloat = 0.3
+    private static let maxZoom: CGFloat = 6.0
+
+    /// Callback koji se poziva kad god se zoom promeni (pinch ili setZoom).
+    var onZoomChanged: ((CGFloat) -> Void)?
+    /// Callback koji se poziva kad god se pan promeni (drag).
+    var onPanChanged: ((CGPoint) -> Void)?
 
     override func didMove(to view: SKView) {
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         scaleMode = .resizeFill
         backgroundColor = SKColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1)
 
-        if let skybox = UIImage(named: "hero_skybox_v1") {
-            let bg = SKSpriteNode(texture: SKTexture(image: skybox))
-            bg.alpha = 0.3
-            bg.zPosition = -200
-            addChild(bg)
-        }
+        // Skybox — fiksno u scene root-u, aspect-fill, ne pomiče se
+        let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
+        skybox.position  = .zero
+        skybox.zPosition = -200
+        addChild(skybox)
+        skyboxNode = skybox
+        resizeSkybox(to: view.bounds.size)
+
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+        view.addGestureRecognizer(pinch)
+
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        pan.minimumNumberOfTouches = 2
+        pan.maximumNumberOfTouches = 2
+        view.addGestureRecognizer(pan)
 
         addChild(worldNode)
         buildTileMap()
-        buildWallLayer()
         addDebugOverlay()
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
+        resizeSkybox(to: size)
         recomputeBaseScale(viewSize: size)
         applyTransforms()
+    }
+
+    private func resizeSkybox(to targetSize: CGSize) {
+        guard targetSize.width > 0, targetSize.height > 0,
+              let skybox = skyboxNode, let tex = skybox.texture else { return }
+        let texAspect = tex.size().width / tex.size().height
+        skybox.size = CGSize(width: targetSize.width, height: targetSize.width / texAspect)
     }
 
     /// Izracunava baseScale (fit grid u view) — koristi se samo kad se size promeni.
@@ -63,8 +87,8 @@ final class SpriteAlignmentTestScene: SKScene {
         // Centriraj target tako da je tačno u sredini ekrana.
         // WorldNode position = -(target world position) × scale — to dovodi target na (0,0) u scene space-u.
         worldNode.position = CGPoint(
-            x: -currentTargetWorldPos.x * effectiveScale,
-            y: -currentTargetWorldPos.y * effectiveScale
+            x: -currentTargetWorldPos.x * effectiveScale + userPan.x,
+            y: -currentTargetWorldPos.y * effectiveScale + userPan.y
         )
     }
 
@@ -96,30 +120,38 @@ final class SpriteAlignmentTestScene: SKScene {
         tileMapNode = tileMap
     }
 
-    private func buildWallLayer() {
-        WallLayout.wallPositions().forEach  {
-            let n = WallNode(entry: $0)
-            n.alpha = 0.4
-            worldNode.addChild(n)
-        }
-        WallLayout.cornerPositions().forEach {
-            let n = WallCornerNode(entry: $0)
-            n.alpha = 0.4
-            worldNode.addChild(n)
-        }
-        // Pyloni uklonjeni — vidi CityScene.buildWallLayer() komentar.
-    }
-
     private func addDebugOverlay() {
         worldNode.addChild(DebugGridOverlayNode())
     }
 
     // MARK: - Public test API (sa live tuning-om)
 
-    /// Kontrola camera zoom-a. 1.0 = fit-to-view, 2.0 = 2× uvecano.
-    func setZoom(_ zoom: CGFloat) {
-        zoomMultiplier = zoom
+    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+        guard gesture.state == .changed || gesture.state == .ended else { return }
+        let newZoom = zoomMultiplier * gesture.scale
+        zoomMultiplier = max(Self.minZoom, min(Self.maxZoom, newZoom))
+        gesture.scale = 1.0
         applyTransforms()
+        onZoomChanged?(zoomMultiplier)
+    }
+
+    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        guard let view, gesture.state == .changed else { return }
+        let translation = gesture.translation(in: view)
+        userPan.x += translation.x
+        userPan.y -= translation.y   // UIKit y-down → SpriteKit y-up
+        gesture.setTranslation(.zero, in: view)
+        applyTransforms()
+        onPanChanged?(userPan)
+    }
+
+    /// Kontrola camera zoom-a. 1.0 = fit-to-view, 2.0 = 2× uvecano.
+    /// Resetuje i pan offset kad se zove sa resetom (zoom == 1.0).
+    func setZoom(_ zoom: CGFloat) {
+        zoomMultiplier = max(Self.minZoom, min(Self.maxZoom, zoom))
+        if zoom == 1.0 { userPan = .zero; onPanChanged?(.zero) }
+        applyTransforms()
+        onZoomChanged?(zoomMultiplier)
     }
 
     /// Prikaži HQ 2×2 sprite sa zadatim anchor-om, scale-om, i rotacijom (stepeni).

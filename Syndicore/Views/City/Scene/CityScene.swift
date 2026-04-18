@@ -26,6 +26,7 @@ final class CityScene: SKScene {
     private let tileSet = CityTileSet.build()
     private var tileMapNode: SKTileMapNode?
     private var selectedTileCoord: (col: Int, row: Int)?
+    private var hqNode: HQNode?
 
     private var buildings: [BuildingInfo] = []
 
@@ -34,14 +35,14 @@ final class CityScene: SKScene {
 
     // MARK: - Camera state (zoom + pan)
 
-    /// Default zoom = 1.5× za "closer to user" feel (HQ veci, bolji premium osecaj).
-    /// Pinch gesture menja ovo u opsegu [minZoom, maxZoom].
-    private static let defaultZoom: CGFloat = 1.5
+    /// Default zoom i pan — tunirani u SpriteAlignmentTestView (Zoom tab).
+    private static let defaultZoom: CGFloat = 1.22
+    private static let defaultPan:  CGPoint  = CGPoint(x: -2, y: 44)
     private static let minZoom: CGFloat = 0.7   // dovoljno daleko da se vidi ceo grid + walls
     private static let maxZoom: CGFloat = 3.5   // dovoljno blizu za detalje pojedinačnog tile-a
 
     private var userZoom: CGFloat = CityScene.defaultZoom
-    private var userPan: CGPoint = .zero
+    private var userPan: CGPoint  = CityScene.defaultPan
     private var baseScale: CGFloat = 1.0  // izracunato u layoutWorld, fit-to-view bez zoom-a
 
     // MARK: - Visual grid coordinate mapping (6×6 layout)
@@ -109,16 +110,16 @@ final class CityScene: SKScene {
         scaleMode   = .resizeFill
         backgroundColor = SKColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1)
 
-        // Skybox kao odvojen background sloj (NE u worldNode da se ne skalira sa world-om)
+        // Skybox — fiksno u scene root-u, ne pomiče se sa zoom/pan-om
         let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
         skybox.position  = .zero
         skybox.zPosition = -200
         addChild(skybox)
         skyboxNode = skybox
+        resizeSkybox(to: view.bounds.size)
 
         addChild(worldNode)
         buildTileMap()
-        buildWallLayer()
         attachCameraGestures(to: view)
         // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
     }
@@ -156,17 +157,18 @@ final class CityScene: SKScene {
 
     override func didChangeSize(_ oldSize: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
-        // Skybox aspect-fill da pokrije ceo viewport bez praznih ivica
-        if let skybox = skyboxNode, let tex = skybox.texture {
-            let texAspect   = tex.size().width / tex.size().height
-            let sceneAspect = size.width / size.height
-            if sceneAspect > texAspect {
-                skybox.size = CGSize(width: size.width, height: size.width / texAspect)
-            } else {
-                skybox.size = CGSize(width: size.height * texAspect, height: size.height)
-            }
-        }
+        resizeSkybox(to: size)
         layoutWorld(viewSize: size)
+    }
+
+    private func resizeSkybox(to targetSize: CGSize) {
+        guard targetSize.width > 0, targetSize.height > 0,
+              let skybox = skyboxNode, let tex = skybox.texture else { return }
+        let texAspect = tex.size().width / tex.size().height
+        // Uvek skalirati na širinu ekrana — ceo zid (levo/desno) mora biti vidljiv.
+        // Ako je slika viša od ekrana, donji deo preseče safe area (nevidljivo).
+        // Ako je kraća, tamna pozadina ispod se vidi — ista boja kao backgroundColor.
+        skybox.size = CGSize(width: targetSize.width, height: targetSize.width / texAspect)
     }
 
     // MARK: - Public API
@@ -223,7 +225,7 @@ final class CityScene: SKScene {
     /// Reset zoom + pan na default vrednosti. Korisno za "recenter" dugme ili double-tap.
     func resetCamera() {
         userZoom = Self.defaultZoom
-        userPan = .zero
+        userPan  = Self.defaultPan
         layoutWorld(viewSize: size)
     }
 
@@ -267,12 +269,6 @@ final class CityScene: SKScene {
         tileMapNode = tileMap
     }
 
-    private func buildWallLayer() {
-        WallLayout.wallPositions().forEach   { worldNode.addChild(WallNode(entry: $0)) }
-        WallLayout.cornerPositions().forEach { worldNode.addChild(WallCornerNode(entry: $0)) }
-        // Pyloni uklonjeni — corner pieces već imaju integrirane LED + orange beacons,
-        // floating pyloni su delovali disconnected i estetski nepotrebni.
-    }
 
     private func rebuildBuildingLayer() {
         worldNode.children
@@ -290,7 +286,9 @@ final class CityScene: SKScene {
             }
         }
 
-        worldNode.addChild(HQNode())
+        let hq = HQNode()
+        worldNode.addChild(hq)
+        hqNode = hq
 
         for building in buildings {
             guard building.type != .HQ else { continue }
@@ -310,16 +308,18 @@ final class CityScene: SKScene {
         guard let touch = touches.first, let tileMap = tileMapNode else { return }
         let locationInWorld = touch.location(in: worldNode)
 
-        // Reset prethodno selected tile
+        // Reset prethodno selected tile + HQ selected stanje
         if let prev = selectedTileCoord,
            let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
             tileMap.setTileGroup(emptyGroup, forColumn: prev.col, row: tmRow(prev.row))
         }
         selectedTileCoord = nil
+        hqNode?.setSelected(false)
 
         guard let (col, row) = Isometric.tileCoord(at: locationInWorld) else { return }
 
         if Isometric.isHQ(col: col, row: row) {
+            hqNode?.setSelected(true)
             onTapHQ?()
             return
         }

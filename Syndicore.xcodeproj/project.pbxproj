@@ -71,6 +71,7 @@
 		9B4CFCA12F927EDD00850457 /* BuildingDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCA02F927EDD00850457 /* BuildingDetailSheet.swift */; };
 		9B4CFCA32F927EDE00850457 /* BuildSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCA22F927EDE00850457 /* BuildSheet.swift */; };
 		9B4CFCA52F927F1200850457 /* CountdownLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCA42F927F1200850457 /* CountdownLabel.swift */; };
+		9B4CFCB12F930000850457 /* WallCornerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCB02F930000850457 /* WallCornerNode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -151,6 +152,7 @@
 		9B4CFCA02F927EDD00850457 /* BuildingDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingDetailSheet.swift; sourceTree = "<group>"; };
 		9B4CFCA22F927EDE00850457 /* BuildSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildSheet.swift; sourceTree = "<group>"; };
 		9B4CFCA42F927F1200850457 /* CountdownLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownLabel.swift; sourceTree = "<group>"; };
+		9B4CFCB02F930000850457 /* WallCornerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallCornerNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -325,6 +327,7 @@
 				9B4CFC8A2F927E8300850457 /* HQNode.swift */,
 				9B4CFC8C2F927E8400850457 /* BuildingNode.swift */,
 				9B4CFC8E2F927E8500850457 /* WallNode.swift */,
+				9B4CFCB02F930000850457 /* WallCornerNode.swift */,
 				9B4CFC902F927E8600850457 /* CornerPylonNode.swift */,
 				9B4CFC922F927E8700850457 /* ScaffoldNode.swift */,
 				9B4CFC942F927EAB00850457 /* CityScene.swift */,
@@ -510,6 +513,7 @@
 				4B0000000000000000000002 /* GameConstantsManager.swift in Sources */,
 				4B0000000000000000000003 /* CodexView.swift in Sources */,
 				9B4CFC8F2F927E8500850457 /* WallNode.swift in Sources */,
+				9B4CFCB12F930000850457 /* WallCornerNode.swift in Sources */,
 				4B0000000000000000000004 /* UnitsView.swift in Sources */,
 				9B4CFCA12F927EDD00850457 /* BuildingDetailSheet.swift in Sources */,
 				9B4CFCA52F927F1200850457 /* CountdownLabel.swift in Sources */,

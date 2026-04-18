@@ -4,20 +4,25 @@ import SpriteKit
 /// Sprite spec: vidi `SpriteCatalog.hq` (2048×1536 source, 256×256 render).
 final class HQNode: SKNode {
 
-    override init() {
-        super.init()
-        let spec = SpriteCatalog.hq
-        let sprite = SKSpriteNode(imageNamed: spec.assetName)
-        sprite.size = spec.renderSize
-        sprite.anchorPoint = spec.anchor
-        sprite.zRotation = spec.rotationRadians
-        addChild(sprite)
+    private let sprite: SKSpriteNode
 
-        // Position na centru 2×2 regiona (između 4 HQ tile-a)
-        position = Isometric.hqCenterPosition
-        // zDepth tako da je iznad svih HQ tile-ova
+    override init() {
+        let spec = SpriteCatalog.hq
+        sprite = SKSpriteNode(imageNamed: spec.assetName)
+        super.init()
+        sprite.size        = spec.renderSize
+        sprite.anchorPoint = spec.anchor
+        sprite.zRotation   = spec.rotationRadians
+        addChild(sprite)
+        position  = Isometric.hqCenterPosition
         zPosition = Isometric.hqZDepth + 0.5
         isUserInteractionEnabled = false
+    }
+
+    /// Menja teksturu između normalnog i selected stanja.
+    func setSelected(_ selected: Bool) {
+        let name = selected ? "hq_pyramid_selected_v1" : SpriteCatalog.hq.assetName
+        sprite.texture = SKTexture(imageNamed: name)
     }
 
     required init?(coder: NSCoder) { fatalError("HQNode is code-only; not decodable from XIB") }
