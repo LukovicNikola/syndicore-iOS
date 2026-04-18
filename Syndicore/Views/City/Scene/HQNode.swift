@@ -4,7 +4,7 @@ import SpriteKit
 /// Sprite spec: vidi `SpriteCatalog.hq` (2048×1536 source, 256×256 render).
 final class HQNode: SKNode {
 
-    init() {
+    override init() {
         super.init()
         let spec = SpriteCatalog.hq
         let sprite = SKSpriteNode(imageNamed: spec.assetName)

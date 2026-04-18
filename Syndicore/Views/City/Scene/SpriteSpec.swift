@@ -42,8 +42,24 @@ enum SpriteCatalog {
     static let hq = SpriteSpec(
         assetName: "hq_pyramid_v1",
         footprint: (cols: 2, rows: 2),
-        renderHeight: Isometric.tileWidth * 2,  // 256
-        anchor: CGPoint(x: 0.5, y: 0.25)         // ground at bottom quarter (per spec)
+        renderHeight: Isometric.tileWidth * 2 * 1.01,
+        anchor: CGPoint(x: 0.493, y: 0.473)
+    )
+
+    /// Power Grid — 1×1 footprint, tuned anchor/size.
+    static let powerGrid = SpriteSpec(
+        assetName: "power_grid_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 0.80,
+        anchor: CGPoint(x: 0.500, y: 0.349)
+    )
+
+    /// Barracks — 1×1 footprint, tuned anchor/size.
+    static let barracks = SpriteSpec(
+        assetName: "barracks_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 0.81,
+        anchor: CGPoint(x: 0.498, y: 0.352)
     )
 
     /// Standardna spec za 1×1 buildings. Sve buildings cited u SpriteCatalog.spec(for:) koriste ovo.
@@ -59,8 +75,12 @@ enum SpriteCatalog {
     /// Spec za dati BuildingType. Vraca nil ako asset ne postoji u bundle-u
     /// (BuildingNode tada može da koristi placeholder).
     static func spec(for buildingType: BuildingType) -> SpriteSpec {
-        if buildingType == .HQ { return hq }
-        return standardBuilding(assetName: "\(buildingType.rawValue.lowercased())_v1")
+        switch buildingType {
+        case .HQ:         return hq
+        case .BARRACKS:   return barracks
+        case .POWER_GRID: return powerGrid
+        default:          return standardBuilding(assetName: "\(buildingType.rawValue.lowercased())_v1")
+        }
     }
 
     /// Provera da li asset za dati spec stvarno postoji u bundle-u.

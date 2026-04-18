@@ -28,6 +28,10 @@
 		4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */; };
 		4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF22F92D372004559C8 /* AppConfig.swift */; };
 		4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF42F92D838004559C8 /* CityTileSet.swift */; };
+		4A6F52692F93DA0F00992D0B /* SpriteSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F52682F93DA0F00992D0B /* SpriteSpec.swift */; };
+		4A6F526A2F93DA0F00992D0B /* DebugGridOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F52662F93DA0F00992D0B /* DebugGridOverlayNode.swift */; };
+		4A6F526B2F93DA0F00992D0B /* SpriteAlignmentTestScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F52672F93DA0F00992D0B /* SpriteAlignmentTestScene.swift */; };
+		4A6F526D2F93DA2000992D0B /* SpriteAlignmentTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F526C2F93DA2000992D0B /* SpriteAlignmentTestView.swift */; };
 		4B0000000000000000000001 /* GameData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000101 /* GameData.swift */; };
 		4B0000000000000000000002 /* GameConstantsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000102 /* GameConstantsManager.swift */; };
 		4B0000000000000000000003 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0000000000000000000103 /* CodexView.swift */; };
@@ -103,6 +107,10 @@
 		4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSONCoder+API.swift"; sourceTree = "<group>"; };
 		4A57FDF22F92D372004559C8 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		4A57FDF42F92D838004559C8 /* CityTileSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityTileSet.swift; sourceTree = "<group>"; };
+		4A6F52662F93DA0F00992D0B /* DebugGridOverlayNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugGridOverlayNode.swift; sourceTree = "<group>"; };
+		4A6F52672F93DA0F00992D0B /* SpriteAlignmentTestScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteAlignmentTestScene.swift; sourceTree = "<group>"; };
+		4A6F52682F93DA0F00992D0B /* SpriteSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteSpec.swift; sourceTree = "<group>"; };
+		4A6F526C2F93DA2000992D0B /* SpriteAlignmentTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteAlignmentTestView.swift; sourceTree = "<group>"; };
 		4B0000000000000000000101 /* GameData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameData.swift; sourceTree = "<group>"; };
 		4B0000000000000000000102 /* GameConstantsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConstantsManager.swift; sourceTree = "<group>"; };
 		4B0000000000000000000103 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexView.swift; sourceTree = "<group>"; };
@@ -236,6 +244,7 @@
 		4A0000000000000000000015 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4A6F526C2F93DA2000992D0B /* SpriteAlignmentTestView.swift */,
 				4A0000000000000000000113 /* ContentView.swift */,
 				4A0000000000000000000114 /* WorldListView.swift */,
 				4A0000000000000000000115 /* OnboardingView.swift */,
@@ -307,6 +316,9 @@
 		9B4CFC812F927D4300850457 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				4A6F52662F93DA0F00992D0B /* DebugGridOverlayNode.swift */,
+				4A6F52672F93DA0F00992D0B /* SpriteAlignmentTestScene.swift */,
+				4A6F52682F93DA0F00992D0B /* SpriteSpec.swift */,
 				9B4CFC842F927D5A00850457 /* Isometric.swift */,
 				9B4CFC862F927D6600850457 /* WallLayout.swift */,
 				9B4CFC882F927E8300850457 /* TileNode.swift */,
@@ -479,12 +491,16 @@
 				9B2E27292F9126D200CA8E81 /* BattleReport.swift in Sources */,
 				9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */,
 				4A0000000000000000000211 /* Endpoint.swift in Sources */,
+				4A6F526D2F93DA2000992D0B /* SpriteAlignmentTestView.swift in Sources */,
 				9B4CFC9F2F927EDC00850457 /* HQInfoSheet.swift in Sources */,
 				4A0000000000000000000212 /* TokenProvider.swift in Sources */,
 				9B4CFC932F927E8700850457 /* ScaffoldNode.swift in Sources */,
 				4A0000000000000000000213 /* ContentView.swift in Sources */,
 				4A0000000000000000000214 /* WorldListView.swift in Sources */,
 				4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */,
+				4A6F52692F93DA0F00992D0B /* SpriteSpec.swift in Sources */,
+				4A6F526A2F93DA0F00992D0B /* DebugGridOverlayNode.swift in Sources */,
+				4A6F526B2F93DA0F00992D0B /* SpriteAlignmentTestScene.swift in Sources */,
 				4A0000000000000000000215 /* OnboardingView.swift in Sources */,
 				4A0000000000000000000216 /* FactionPickerView.swift in Sources */,
 				9B2E272F2F91271900CA8E81 /* AuthView.swift in Sources */,
