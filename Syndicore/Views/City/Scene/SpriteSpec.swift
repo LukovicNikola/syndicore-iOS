@@ -143,6 +143,30 @@ enum SpriteCatalog {
         anchor: CGPoint(x: 0.500, y: 0.447)
     )
 
+    /// Data Bank — 1×1 footprint, tuned anchor/size.
+    static let dataBank = SpriteSpec(
+        assetName: "data_bank_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.20,
+        anchor: CGPoint(x: 0.500, y: 0.320)
+    )
+
+    /// Tech Lab — 1×1 footprint, tuned anchor/size.
+    static let techLab = SpriteSpec(
+        assetName: "tech_lab_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 0.98,
+        anchor: CGPoint(x: 0.500, y: 0.390)
+    )
+
+    /// Ops Center — 1×1 footprint, tuned anchor/size.
+    static let opsCenter = SpriteSpec(
+        assetName: "ops_center_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.32,
+        anchor: CGPoint(x: 0.500, y: 0.269)
+    )
+
     /// Standardna spec za 1×1 buildings. Sve buildings cited u SpriteCatalog.spec(for:) koriste ovo.
     static func standardBuilding(assetName: String) -> SpriteSpec {
         SpriteSpec(
@@ -167,6 +191,9 @@ enum SpriteCatalog {
         case .WAREHOUSE:    return warehouse
         case .FOUNDRY:      return foundry
         case .MOTOR_POOL:   return motorPool
+        case .DATA_BANK:    return dataBank
+        case .TECH_LAB:     return techLab
+        case .OPS_CENTER:   return opsCenter
         default:            return standardBuilding(assetName: "\(buildingType.rawValue.lowercased())_v1")
         }
     }
