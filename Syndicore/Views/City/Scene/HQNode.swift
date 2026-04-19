@@ -17,20 +17,6 @@ final class HQNode: SKNode {
         position  = Isometric.hqCenterPosition
         zPosition = Isometric.hqZDepth + 0.5
         isUserInteractionEnabled = false
-
-        startIdlePulse()
-    }
-
-    /// Suptilna "breathing" animacija — koristimo scale (a NE alpha jer
-    /// alpha bi smanjio cyan glow LED-ova što izgleda kao gašenje).
-    /// Ciklus 2.4s, varijacija ±1.5% scale-a (jedva primetno, ali daje "živi" osećaj).
-    private func startIdlePulse() {
-        let scaleUp   = SKAction.scale(to: 1.015, duration: 1.2)
-        scaleUp.timingMode = .easeInEaseOut
-        let scaleDown = SKAction.scale(to: 1.000, duration: 1.2)
-        scaleDown.timingMode = .easeInEaseOut
-        let cycle = SKAction.sequence([scaleUp, scaleDown])
-        sprite.run(.repeatForever(cycle), withKey: "idlePulse")
     }
 
     /// Menja teksturu između normalnog i selected stanja.
