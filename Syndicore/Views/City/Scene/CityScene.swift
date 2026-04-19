@@ -1,4 +1,5 @@
 import SpriteKit
+import UIKit
 
 /// SKScene za isometrijsku vizualizaciju grada.
 ///
@@ -49,6 +50,14 @@ final class CityScene: SKScene {
     private var userZoom: CGFloat = CityScene.defaultZoom
     private var userPan: CGPoint  = CityScene.defaultPan
     private var baseScale: CGFloat = 1.0  // izracunato u layoutWorld, fit-to-view bez zoom-a
+
+    // MARK: - Haptic feedback generators
+    // Držimo ih kao properties (ne lokalno) da bi taptic engine bio "warm"
+    // i reagovao instant na trigger (bez ~100ms spin-up delay-a).
+    private let hapticTap:   UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    private let hapticHQ:    UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+    private let hapticReset: UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .rigid)
+    private let hapticZoomLimit: UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .soft)
 
     // MARK: - Visual grid coordinate mapping (6×6 layout)
     //
@@ -129,7 +138,7 @@ final class CityScene: SKScene {
         // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
     }
 
-    /// Pinch + pan gesture recognizers za camera zoom/pan na CityScene.
+    /// Pinch + pan + double-tap gesture recognizers za camera kontrole.
     private func attachCameraGestures(to view: SKView) {
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         view.addGestureRecognizer(pinch)
@@ -138,14 +147,118 @@ final class CityScene: SKScene {
         pan.minimumNumberOfTouches = 2  // 2 prsta za pan da ne ometa tap detection
         pan.maximumNumberOfTouches = 2
         view.addGestureRecognizer(pan)
+
+        // Double-tap = brz reset kamere (alternativa za recenter button)
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+        doubleTap.numberOfTapsRequired = 2
+        view.addGestureRecognizer(doubleTap)
+
+        // Long-press = prikaz tooltip-a iznad zgrade
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.5
+        view.addGestureRecognizer(longPress)
+
+        // Priprema haptic engines (warm-up da ne bude lag-a na prvom trigger-u)
+        hapticTap.prepare()
+        hapticHQ.prepare()
+        hapticReset.prepare()
+        hapticZoomLimit.prepare()
     }
 
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began, let view else { return }
+        let viewLoc = gesture.location(in: view)
+        let sceneLoc = sceneLocation(from: viewLoc, viewSize: view.bounds.size)
+        let worldLoc = CGPoint(
+            x: (sceneLoc.x - worldNode.position.x) / worldNode.xScale,
+            y: (sceneLoc.y - worldNode.position.y) / worldNode.yScale
+        )
+
+        guard let (col, row) = Isometric.tileCoord(at: worldLoc) else { return }
+
+        // Pronadji zgradu na tom tile-u (ili HQ)
+        let tooltipBuilding: BuildingInfo?
+        if Isometric.isHQ(col: col, row: row) {
+            tooltipBuilding = buildings.first { $0.type == .HQ }
+        } else {
+            tooltipBuilding = buildings.first { b in
+                guard b.type != .HQ, let c = coord(for: b) else { return false }
+                return c.col == col && c.row == row
+            }
+        }
+        guard let building = tooltipBuilding else { return }
+
+        // Ukloni postojeci tooltip ako postoji (single instance)
+        worldNode.children.filter { $0 is BuildingTooltipNode }.forEach { $0.removeFromParent() }
+
+        let tooltip = BuildingTooltipNode(building: building)
+        let buildingPos = Isometric.isHQ(col: col, row: row)
+            ? Isometric.hqCenterPosition
+            : Isometric.scenePosition(col: col, row: row)
+        tooltip.position = CGPoint(x: buildingPos.x, y: buildingPos.y + Isometric.tileWidth * 1.1)
+        tooltip.zPosition = 1500   // iznad svega (iznad selected pulse, debug overlay, itd.)
+        worldNode.addChild(tooltip)
+
+        hapticTap.impactOccurred(intensity: 0.7)
+    }
+
+    @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        guard gesture.state == .ended else { return }
+        resetCamera(animated: true)
+    }
+
+    /// Pinch zoom sa **pivot na centru gesture-a** (industrial standard).
+    /// Zoom se ponaša kao u Apple Maps — tačka ispod prsta ostaje ista.
     @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
         guard gesture.state == .changed || gesture.state == .ended else { return }
-        let newZoom = userZoom * gesture.scale
-        userZoom = max(Self.minZoom, min(Self.maxZoom, newZoom))
+        guard let view else { return }
+
+        // 1. Konvertuj finger lokaciju u scene space
+        let fingerInView = gesture.location(in: view)
+        let fingerInScene = sceneLocation(from: fingerInView, viewSize: view.bounds.size)
+
+        // 2. Sačuvaj worldNode-ov koordinatni tačku ispod prsta PRE zoom promene
+        let oldEffectiveScale = worldNode.xScale  // = baseScale * userZoom
+        let worldPointUnderFinger = CGPoint(
+            x: (fingerInScene.x - worldNode.position.x) / oldEffectiveScale,
+            y: (fingerInScene.y - worldNode.position.y) / oldEffectiveScale
+        )
+
+        // 3. Apply zoom delta (clamped)
+        let oldZoom = userZoom
+        let targetZoom = userZoom * gesture.scale
+        userZoom = max(Self.minZoom, min(Self.maxZoom, targetZoom))
         gesture.scale = 1.0
-        layoutWorld(viewSize: size)
+
+        // 4. Haptic ako smo pogodili limit (prvi put)
+        let atLimit = (userZoom == Self.minZoom || userZoom == Self.maxZoom)
+        let wasAtLimit = (oldZoom == Self.minZoom || oldZoom == Self.maxZoom)
+        if atLimit && !wasAtLimit {
+            hapticZoomLimit.impactOccurred(intensity: 0.6)
+        }
+
+        // 5. Izračunaj novi userPan tako da worldPointUnderFinger ostaje pod prstom
+        let newEffectiveScale = baseScale * userZoom
+        let hqOffsetY = -Isometric.hqCenterPosition.y * newEffectiveScale
+
+        // Želimo: worldNode.position = fingerInScene - worldPointUnderFinger × newScale
+        // A formula je: worldNode.position = (userPan.x, hqOffsetY + 40 + userPan.y)
+        // => userPan.x = fingerInScene.x - worldPointUnderFinger.x × newScale
+        // => userPan.y = fingerInScene.y - worldPointUnderFinger.y × newScale - hqOffsetY - 40
+        userPan.x = fingerInScene.x - worldPointUnderFinger.x * newEffectiveScale
+        userPan.y = fingerInScene.y - worldPointUnderFinger.y * newEffectiveScale - hqOffsetY - 40
+
+        clampPan()
+        applyTransforms()
+    }
+
+    /// Konvertuje tačku iz UIKit view coords (y-down, origin top-left) u scene coords
+    /// (y-up, origin na centru view-a zbog scene.anchorPoint = 0.5, 0.5).
+    private func sceneLocation(from viewPoint: CGPoint, viewSize: CGSize) -> CGPoint {
+        CGPoint(
+            x: viewPoint.x - viewSize.width  / 2,
+            y: viewSize.height / 2 - viewPoint.y
+        )
     }
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
@@ -268,11 +381,32 @@ final class CityScene: SKScene {
         )
     }
 
-    /// Reset zoom + pan na default vrednosti. Korisno za "recenter" dugme ili double-tap.
-    func resetCamera() {
+    /// Reset zoom + pan na default vrednosti. Smooth animirano default-om (0.35s easeInEaseOut).
+    func resetCamera(animated: Bool = true) {
         userZoom = Self.defaultZoom
         userPan  = Self.defaultPan
-        layoutWorld(viewSize: size)
+
+        guard animated, size.width > 0 else {
+            layoutWorld(viewSize: size)
+            return
+        }
+
+        // Ciljane vrednosti (ista formula kao applyTransforms)
+        let effectiveScale = baseScale * userZoom
+        let hqOffsetY = -Isometric.hqCenterPosition.y * effectiveScale
+        let targetPos = CGPoint(x: userPan.x, y: hqOffsetY + 40 + userPan.y)
+
+        // Otkazi prethodnu camera anim ako postoji (double-tap spam safety)
+        worldNode.removeAction(forKey: "cameraReset")
+
+        let scaleAction = SKAction.scale(to: effectiveScale, duration: 0.35)
+        scaleAction.timingMode = .easeInEaseOut
+        let moveAction = SKAction.move(to: targetPos, duration: 0.35)
+        moveAction.timingMode = .easeInEaseOut
+        worldNode.run(.group([scaleAction, moveAction]), withKey: "cameraReset")
+
+        // Haptic impact na kraju
+        hapticReset.impactOccurred()
     }
 
     // MARK: - Build Layers
@@ -368,6 +502,7 @@ final class CityScene: SKScene {
 
         if Isometric.isHQ(col: col, row: row) {
             hqNode?.setSelected(true)
+            hapticHQ.impactOccurred()
             onTapHQ?()
             return
         }
@@ -392,11 +527,13 @@ final class CityScene: SKScene {
         }
 
         if let bldg {
-            // Brz scale pulse na tapped building-u (vizuelni feedback)
+            // Brz scale pulse na tapped building-u (vizuelni feedback) + haptic
             findBuildingNode(for: bldg)?.playTapPulse()
+            hapticTap.impactOccurred()
             onTapBuilding?(bldg)
         } else {
-            // Empty slot — pošalji slot index za BuildSheet (Isometric ga zna)
+            // Empty slot — pošalji slot index za BuildSheet (Isometric ga zna) + light haptic
+            hapticTap.impactOccurred(intensity: 0.5)
             let slotIdx = Isometric.slot(forCoord: col, row: row) ?? 0
             onTapEmptySlot?(slotIdx)
         }
