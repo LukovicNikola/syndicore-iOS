@@ -489,7 +489,11 @@ final class CityScene: SKScene {
             guard let c = coord(for: building) else { continue }
             // Forsiramo scaffold ako je ova zgrada u activeQueue — BE za novu zgradu
             // ponekad ne setuje targetLevel/endsAt na building-u, prati samo kroz queue.
-            let forceScaffold = activeQueue?.buildingId == building.id
+            // Forsiramo scaffold ako:
+            // a) BE je registrovao ovu zgradu u constructionQueue (upgrade ili nova gradnja sa queue podacima)
+            // b) building.currentLevel == 0 — zgrada nikad nije završena, sigurno je pod gradnjom
+            let isInQueue = activeQueue?.buildingId == building.id
+            let forceScaffold = isInQueue || building.currentLevel == 0
             let bn = BuildingNode(building: building, col: c.col, row: c.row,
                                   forceScaffold: forceScaffold,
                                   queueEndsAt: forceScaffold ? activeQueue?.endsAt : nil)

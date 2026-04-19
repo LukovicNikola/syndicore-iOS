@@ -107,11 +107,12 @@ struct CityView: View {
 
     /// Zgrade koje igrač još NIJE izgradio (prikazuje se u BuildSheet).
     private func buildableTypes(city: City) -> [BuildingType] {
-        let built = Set((city.buildings ?? []).map { $0.type })
+        // Zgrade koje postoje u gradu (i level 0 = pod izgradnjom) su nedostupne
+        let existingTypes = Set((city.buildings ?? []).map { $0.type })
         return [
             .BARRACKS, .MOTOR_POOL, .OPS_CENTER, .WAREHOUSE,
             .WALL, .WATCHTOWER, .RALLY_POINT, .TRADE_POST, .RESEARCH_LAB
-        ].filter { !built.contains($0) }
+        ].filter { !existingTypes.contains($0) }
     }
 }
 

@@ -228,6 +228,25 @@ final class SpriteAlignmentTestScene: SKScene {
         applyTransforms()
     }
 
+    /// Prikaži scaffold sprite (construction_scaffold_v1) — isti pipeline kao ostale 1×1 zgrade.
+    /// Kamera se centrira na odabrani (col, row) tile.
+    func showScaffold(col: Int, row: Int, anchor: CGPoint, scaleMultiplier: CGFloat, rotationDegrees: CGFloat) {
+        clearTestSprites()
+        guard Isometric.isBuildable(col: col, row: row) else { return }
+        let tilePos = Isometric.scenePosition(col: col, row: row)
+        let sprite = SKSpriteNode(imageNamed: "construction_scaffold_v1")
+        let side = Isometric.tileWidth * scaleMultiplier   // square, isti kao sve ostale zgrade
+        sprite.size        = CGSize(width: side, height: side)
+        sprite.anchorPoint = anchor
+        sprite.zRotation   = rotationDegrees * .pi / 180
+        sprite.position    = tilePos
+        sprite.zPosition   = Isometric.zDepth(col: col, row: row) + 0.5
+        worldNode.addChild(sprite)
+        testSprite = sprite
+        currentTargetWorldPos = tilePos
+        applyTransforms()
+    }
+
     func clearTestSprites() {
         testSprite?.removeFromParent()
         testSprite = nil

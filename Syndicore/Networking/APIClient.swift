@@ -15,11 +15,18 @@ final class APIClient: @unchecked Sendable {
     init(
         baseURL: URL,
         tokenProvider: TokenProvider = SupabaseTokenProvider(),
-        session: URLSession = .shared
+        session: URLSession? = nil
     ) {
         self.baseURL = baseURL
         self.tokenProvider = tokenProvider
-        self.session = session
+        if let session {
+            self.session = session
+        } else {
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest  = 90   // Render free-tier cold start može trajati 60-90s
+            config.timeoutIntervalForResource = 120
+            self.session = URLSession(configuration: config)
+        }
         self.decoder = .api
         self.encoder = .api
     }

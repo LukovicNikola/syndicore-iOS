@@ -15,7 +15,7 @@ struct SpriteAlignmentTestView: View {
     // MARK: - Mode / sprite selection
 
     @State private var selectedMode: Mode = .hq
-    @State private var selectedBuilding: BuildingType = .BARRACKS
+    @State private var selectedSprite: TestSprite = .building(.BARRACKS)
     @State private var selectedCol: Int = 1
     @State private var selectedRow: Int = 2
 
@@ -41,6 +41,25 @@ struct SpriteAlignmentTestView: View {
         var id: String { rawValue }
     }
 
+    /// Sprite koji se prikazuje u 1×1 modu — uključuje scaffold + sve building types.
+    enum TestSprite: Hashable, Identifiable {
+        case scaffold
+        case building(BuildingType)
+
+        var id: String { displayName }
+
+        var displayName: String {
+            switch self {
+            case .scaffold:       return "construction_scaffold_v1"
+            case .building(let t): return t.rawValue
+            }
+        }
+
+        static var allCases: [TestSprite] {
+            [.scaffold] + BuildingType.allCases.filter { $0 != .HQ }.map { .building($0) }
+        }
+    }
+
     var body: some View {
         withSpriteObservers(layout)
             .onAppear {
@@ -59,7 +78,7 @@ struct SpriteAlignmentTestView: View {
     private func withSpriteObservers<V: View>(_ v: V) -> some View {
         v
             .onChange(of: selectedMode)      { _, _ in applyCurrent() }
-            .onChange(of: selectedBuilding)  { _, _ in applyCurrent() }
+            .onChange(of: selectedSprite)    { _, _ in applyCurrent() }
             .onChange(of: selectedCol)       { _, _ in applyCurrent() }
             .onChange(of: selectedRow)       { _, _ in applyCurrent() }
             .onChange(of: anchorX)           { _, _ in applyCurrent() }
@@ -171,9 +190,9 @@ struct SpriteAlignmentTestView: View {
 
     private var buildingPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("Building", selection: $selectedBuilding) {
-                ForEach(BuildingType.allCases.filter { $0 != .HQ }, id: \.self) { type in
-                    Text(type.rawValue).tag(type)
+            Picker("Sprite", selection: $selectedSprite) {
+                ForEach(TestSprite.allCases) { sprite in
+                    Text(sprite.displayName).tag(sprite)
                 }
             }
             .pickerStyle(.menu)
@@ -271,11 +290,19 @@ struct SpriteAlignmentTestView: View {
         let scaleStr  = String(format: "%.2f", scaleMultiplier)
         let rotStr    = String(format: "%.1f", rotationDegrees)
         let zoomStr   = String(format: "%.2f", cameraZoom)
+
         let base      = selectedMode == .hq ? "Isometric.tileWidth * 2" : "Isometric.tileWidth"
         let footprint = selectedMode == .hq ? "(cols: 2, rows: 2)" : "(cols: 1, rows: 1)"
-        let assetName = selectedMode == .hq
-            ? "hq_pyramid_v1"
-            : "\(selectedBuilding.rawValue.lowercased())_v1"
+        let assetName: String
+        if selectedMode == .hq {
+            assetName = "hq_pyramid_v1"
+        } else if case .scaffold = selectedSprite {
+            assetName = "construction_scaffold_v1"
+        } else if case .building(let type) = selectedSprite {
+            assetName = "\(type.rawValue.lowercased())_v1"
+        } else {
+            assetName = "unknown"
+        }
         let rotationLine = abs(rotationDegrees) < 0.05 ? "" : ",\n    rotationDegrees: \(rotStr)"
         return """
         SpriteSpec(
@@ -318,13 +345,23 @@ struct SpriteAlignmentTestView: View {
                 rotationDegrees: CGFloat(rotationDegrees)
             )
         case .building:
-            scene.showBuilding(
-                selectedBuilding,
-                col: selectedCol, row: selectedRow,
-                anchor: CGPoint(x: anchorX, y: anchorY),
-                scaleMultiplier: CGFloat(scaleMultiplier),
-                rotationDegrees: CGFloat(rotationDegrees)
-            )
+            switch selectedSprite {
+            case .scaffold:
+                scene.showScaffold(
+                    col: selectedCol, row: selectedRow,
+                    anchor: CGPoint(x: anchorX, y: anchorY),
+                    scaleMultiplier: CGFloat(scaleMultiplier),
+                    rotationDegrees: CGFloat(rotationDegrees)
+                )
+            case .building(let type):
+                scene.showBuilding(
+                    type,
+                    col: selectedCol, row: selectedRow,
+                    anchor: CGPoint(x: anchorX, y: anchorY),
+                    scaleMultiplier: CGFloat(scaleMultiplier),
+                    rotationDegrees: CGFloat(rotationDegrees)
+                )
+            }
         case .grid, .cityZoom:
             scene.clearTestSprites()
         }

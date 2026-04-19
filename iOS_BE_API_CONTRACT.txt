@@ -1,0 +1,447 @@
+================================================================================
+SYNDICORE iOS → BE API CONTRACT
+Datum: 2026-04-19
+Ovo je ono sto iOS klijent salje i ocekuje od svakog BE endpointa.
+================================================================================
+
+OPSTE NAPOMENE
+--------------
+- Base URL (staging): https://syndicore-be-staging.onrender.com
+- Auth header na svim JWT rutama: Authorization: Bearer <supabase_access_token>
+- Content-Type za POST: application/json
+- Datumi: ISO8601 sa milisekundama, UTC — npr. "2026-05-01T00:00:00.000Z"
+- Error response (ocekivani uniformni format):
+    { "error": "snake_case_code", "message": "opcioni opis" }
+
+
+================================================================================
+1. GRAD (CITY)
+================================================================================
+
+--- 1a. Fetch grada ---
+
+GET /api/v1/cities/:cityId
+Headers: Authorization: Bearer <token>
+
+Ocekivani response:
+{
+  "city": {
+    "id": "string",
+    "name": "string",
+    "resources": {
+      "credits": 1234.5,
+      "alloys":  500.0,
+      "tech":    200.0,
+      "energy":  50.0
+    },
+    "tile": {
+      "x": 0,
+      "y": 0,
+      "ring": "FRINGE",
+      "terrain": "FLATLAND",
+      "rarity": "COMMON"
+    },
+    "buildings": [
+      {
+        "id": "uuid",
+        "type": "BARRACKS",
+        "currentLevel": 1,
+        "targetLevel": null,
+        "endsAt": null,
+        "slotIndex": null
+      },
+      {
+        "id": "uuid",
+        "type": "DATA_BANK",
+        "currentLevel": 2,
+        "targetLevel": null,
+        "endsAt": null,
+        "slotIndex": 0
+      }
+    ],
+    "troops": [
+      { "unitType": "GRUNT", "count": 50 }
+    ],
+    "constructionQueue": {
+      "buildingId": "uuid-od-zgrade-koja-se-gradi",
+      "type": "BARRACKS",
+      "endsAt": "2026-04-19T14:00:00.000Z"
+    }
+  }
+}
+
+VAZNO za constructionQueue:
+  - iOS koristi constructionQueue.buildingId da utvrdi koja zgrada je u gradnji
+    i prikazuje scaffold umesto sprite-a za tu zgradu
+  - constructionQueue.endsAt se koristi za countdown timer
+  - Ako zgrada ima targetLevel != null && endsAt != null -> isUpgrading = true
+    (za upgrade postoji i na samom building objektu)
+  - Za NOVU gradnju: building.targetLevel i building.endsAt mogu biti null,
+    pa iOS oslanja na constructionQueue objekat za prikaz scaffold-a
+  - constructionQueue moze biti null ako nema aktivne gradnje
+
+BUILDING TYPES (BuildingType enum, rawValue = string koji BE salje):
+  Resource (flex slotovi):  DATA_BANK, FOUNDRY, TECH_LAB, POWER_GRID
+  Fixed (jedna po gradu):   HQ, BARRACKS, MOTOR_POOL, OPS_CENTER, WAREHOUSE,
+                            WALL, WATCHTOWER, RALLY_POINT, TRADE_POST, RESEARCH_LAB
+
+
+--- 1b. Gradnja nove zgrade (fixed slot) ---
+
+POST /api/v1/cities/:cityId/build
+Headers: Authorization: Bearer <token>
+Body: { "buildingType": "BARRACKS" }
+
+Ocekivani response 200:
+{
+  "building": {
+    "id": "uuid",
+    "type": "BARRACKS",
+    "currentLevel": 0,
+    "targetLevel": 1,
+    "endsAt": "2026-04-19T14:30:00.000Z"
+  },
+  "cost": {
+    "credits": 500,
+    "alloys": 200,
+    "tech": 100
+  }
+}
+
+
+--- 1c. Gradnja nove resource zgrade (flex slot) ---
+
+POST /api/v1/cities/:cityId/build
+Headers: Authorization: Bearer <token>
+Body: { "buildingType": "DATA_BANK", "slotIndex": 0 }
+
+Ocekivani response: isti format kao 1b
+
+
+--- 1d. Upgrade postojece zgrade ---
+
+POST /api/v1/cities/:cityId/build
+Headers: Authorization: Bearer <token>
+Body: { "buildingId": "uuid-postojece-zgrade" }
+
+Ocekivani response: isti format kao 1b
+
+
+--- 1e. Preview troska gradnje ---
+
+GET /api/v1/cities/:cityId/build-cost?buildingId=<uuid>
+Headers: Authorization: Bearer <token>
+
+Ocekivani response:
+{
+  "buildingType": "BARRACKS",
+  "currentLevel": 1,
+  "targetLevel": 2,
+  "cost": {
+    "credits": 750,
+    "alloys":  300,
+    "tech":    150
+  },
+  "durationMinutes": 15
+}
+
+
+================================================================================
+2. TRENING TRUPA
+================================================================================
+
+--- 2a. Zapocni trening ---
+
+POST /api/v1/cities/:cityId/train
+Headers: Authorization: Bearer <token>
+Body: { "unitType": "GRUNT", "count": 10 }
+
+Ocekivani response 200:
+{
+  "trainingJob": {
+    "id": "uuid",
+    "unitType": "GRUNT",
+    "count": 10,
+    "endsAt": "2026-04-19T15:00:00.000Z"
+  },
+  "cost": {
+    "credits": 100,
+    "alloys": 0,
+    "tech": 0
+  }
+}
+
+
+--- 2b. Lista aktivnih treninga ---
+
+GET /api/v1/cities/:cityId/training
+Headers: Authorization: Bearer <token>
+
+Ocekivani response:
+{
+  "training": [
+    {
+      "id": "uuid",
+      "unitType": "GRUNT",
+      "count": 10,
+      "endsAt": "2026-04-19T15:00:00.000Z"
+    }
+  ]
+}
+
+UNIT TYPES (UnitType enum):
+  GRUNT, ENFORCER, SENTINEL, STRIKER, PHANTOM, BUSTER, HAULER, TITAN, SETTLER
+
+
+================================================================================
+3. SLANJE TRUPA
+================================================================================
+
+POST /api/v1/cities/:cityId/send
+Headers: Authorization: Bearer <token>
+Body:
+{
+  "targetX": 5,
+  "targetY": -3,
+  "units": { "GRUNT": 50, "ENFORCER": 10 },
+  "movementType": "ATTACK"
+}
+
+Ocekivani response 200:
+{
+  "movement": {
+    "id": "uuid",
+    "type": "ATTACK",
+    "from": { "x": 0, "y": 0 },
+    "to": { "x": 5, "y": -3 },
+    "units": { "GRUNT": 50, "ENFORCER": 10 },
+    "viaGates": [],
+    "departedAt": "2026-04-19T12:00:00.000Z",
+    "arrivesAt": "2026-04-19T13:30:00.000Z",
+    "isReturning": false
+  },
+  "route": {
+    "direct": true,
+    "viaGates": [],
+    "travelMinutes": 90,
+    "arrivesAt": "2026-04-19T13:30:00.000Z"
+  }
+}
+
+MOVEMENT TYPES: ATTACK, RAID, SCOUT, REINFORCE, TRANSPORT, SETTLE, RETURN
+
+
+================================================================================
+4. AKTIVNA KRETANJA
+================================================================================
+
+GET /api/v1/worlds/:worldId/movements
+Headers: Authorization: Bearer <token>
+
+Ocekivani response:
+{
+  "movements": [
+    {
+      "id": "uuid",
+      "type": "ATTACK",
+      "from": { "x": 0, "y": 0 },
+      "to": { "x": 5, "y": -3 },
+      "units": { "GRUNT": 50 },
+      "viaGates": [],
+      "departedAt": "2026-04-19T12:00:00.000Z",
+      "arrivesAt": "2026-04-19T13:30:00.000Z",
+      "isReturning": false
+    }
+  ]
+}
+
+
+================================================================================
+5. BATTLE REPORTS
+================================================================================
+
+GET /api/v1/worlds/:worldId/reports
+Headers: Authorization: Bearer <token>
+
+Ocekivani response:
+{
+  "reports": [
+    {
+      "id": "uuid",
+      "attackerWon": true,
+      "targetX": 5,
+      "targetY": -3,
+      "ratio": 1.8,
+      "totalAtk": 900.0,
+      "totalDef": 500.0,
+      "attackerUnits": {
+        "before": { "GRUNT": 50 },
+        "after":  { "GRUNT": 35 },
+        "lost":   { "GRUNT": 15 }
+      },
+      "defenderUnits": {
+        "before": { "ENFORCER": 20 },
+        "after":  { "ENFORCER": 0 },
+        "lost":   { "ENFORCER": 20 }
+      },
+      "resourcesStolen": { "credits": 200, "alloys": 50, "tech": 10, "energy": 0 },
+      "buildingsDamaged": [],
+      "occurredAt": "2026-04-19T13:30:00.000Z",
+      "isAttacker": true
+    }
+  ]
+}
+
+
+================================================================================
+6. MAPA (VIEWPORT)
+================================================================================
+
+GET /api/v1/worlds/:worldId/map?cx=0&cy=0&r=20
+Headers: Authorization: Bearer <token>
+
+Ocekivani response:
+{
+  "viewport": { "cx": 0, "cy": 0, "radius": 20 },
+  "tileCount": 1681,
+  "tiles": [
+    {
+      "x": 0,
+      "y": 0,
+      "ring": "FRINGE",
+      "terrain": "FLATLAND",
+      "rarity": "COMMON",
+      "city": {
+        "id": "uuid",
+        "name": "Player's Base",
+        "owner": "username",
+        "ownerId": "uuid",
+        "faction": "REAPERS"
+      },
+      "outpost": null,
+      "mine": null,
+      "warpGate": null,
+      "ruins": null
+    }
+  ]
+}
+
+TERRAIN TYPES: WASTELAND, FLATLAND, QUARRY, RUINS, GEOTHERMAL, HILLTOP, RIVERSIDE, CROSSROADS
+RING TYPES: FRINGE, GRID, CORE, NEXUS
+RARITY: COMMON, UNCOMMON, RARE
+FACTION: REAPERS, HEGEMONY, NETRUNNERS
+
+
+================================================================================
+7. GAME CONSTANTS
+================================================================================
+
+GET /api/v1/config
+Headers: If-None-Match: <prethodni ETag> (za caching)
+
+Response 200: pun game-constants.json objekat
+Response 304: Not Modified (klijent koristi keseovanu verziju)
+
+iOS caches ovaj response lokalno i koristi ETag za conditional GET.
+Vrednosti iz ovog fajla se koriste za prikaz cost formula, build timere, itd.
+
+
+================================================================================
+8. PLAYER / ONBOARDING
+================================================================================
+
+--- 8a. Fetch profila ---
+
+GET /api/v1/me
+Headers: Authorization: Bearer <token>
+
+Response 200:
+{
+  "player": {
+    "id": "uuid",
+    "username": "SomePlayer",
+    "createdAt": "2026-04-01T00:00:00.000Z",
+    "updatedAt": "2026-04-19T10:00:00.000Z",
+    "worlds": [
+      {
+        "id": "uuid",
+        "playerId": "uuid",
+        "worldId": "uuid",
+        "faction": "REAPERS",
+        "ring": "FRINGE",
+        "crystals": [],
+        "joinedAt": "2026-04-01T00:00:00.000Z",
+        "city": { ... }
+      }
+    ]
+  }
+}
+
+Response 404: { "error": "onboarding_required" }
+
+
+--- 8b. Onboarding ---
+
+POST /api/v1/me/onboarding
+Headers: Authorization: Bearer <token>
+Body: { "username": "SomePlayer" }
+
+Response 201: { "player": { ... } }
+Response 409: { "error": "already_onboarded" } ili { "error": "username_taken" }
+
+
+--- 8c. Join World ---
+
+POST /api/v1/worlds/:worldId/join
+Headers: Authorization: Bearer <token>
+Body: { "faction": "REAPERS" }
+
+Response 201:
+{
+  "playerWorld": { ... },
+  "city": { ... },
+  "tile": { ... }
+}
+
+
+================================================================================
+9. WEBSOCKET EVENTI (TBD - ceka BE potvrdu protokola)
+================================================================================
+
+iOS ocekuje real-time notifikacije za:
+  - building_complete { buildingId, newLevel }     -> room: city:<cityId>
+  - training_complete { unitType, count }           -> room: city:<cityId>
+  - troops_arrived    { movementId, type, targetX, targetY } -> room: world:<worldId>
+
+Protokol: Socket.IO ili native WebSocket - potvrditi sa BE pre implementacije.
+
+
+================================================================================
+10. SAŽETAK PROBLEMA KOJE TREBA REŠITI NA BE (otvorena pitanja)
+================================================================================
+
+1. constructionQueue.buildingId MORA biti UUID koji se poklapa sa nekim
+   id-jem iz buildings[] array-a. iOS koristi to poklapanje da zna gde da
+   stavi scaffold sprite.
+
+2. Za novu gradnju, building koji se dodaje u buildings[] moze imati
+   targetLevel: null i endsAt: null — iOS tada koristi constructionQueue
+   kao fallback za prikaz scaffold-a i countdown timera.
+   Alternativno: uvek postavi targetLevel i endsAt na building objektu,
+   pa iOS nece trebati constructionQueue fallback logiku.
+
+3. buildings[].type MORA biti jedan od BuildingType rawValue stringova
+   (DATA_BANK, FOUNDRY, TECH_LAB, POWER_GRID, HQ, BARRACKS, MOTOR_POOL,
+   OPS_CENTER, WAREHOUSE, WALL, WATCHTOWER, RALLY_POINT, TRADE_POST, RESEARCH_LAB).
+   Nepoznat tip -> decode error na iOS strani.
+
+4. buildings[].slotIndex treba da bude poslan za sve resource/flex zgrade.
+   Za fixed zgrade (BARRACKS, etc.) moze biti null — iOS ima internu mapu
+   fixedPositions: BuildingType -> (col, row) za te zgrade.
+
+5. Datumi MORAJU biti ISO8601 sa milisekundama: "2026-04-19T14:30:00.000Z"
+   Bez milisekundi takodje radi (iOS ima fallback), ali uniformnost je bolja.
+
+================================================================================
+END OF CONTRACT
+================================================================================
