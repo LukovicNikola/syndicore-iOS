@@ -36,6 +36,7 @@
 		4A5847E22F94C2E800E4C30B /* ParticleTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5847E12F94C2E800E4C30B /* ParticleTextures.swift */; };
 		4A5847E42F94C2E900E4C30B /* QueueIndicatorNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5847E32F94C2E900E4C30B /* QueueIndicatorNode.swift */; };
 		4A5847E62F94C2E900E4C30B /* ResourceTickNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5847E52F94C2E900E4C30B /* ResourceTickNode.swift */; };
+		4A5847E82F95419900E4C30B /* TileGridEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5847E72F95419900E4C30B /* TileGridEditorView.swift */; };
 		4A6F52692F93DA0F00992D0B /* SpriteSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F52682F93DA0F00992D0B /* SpriteSpec.swift */; };
 		4A6F526A2F93DA0F00992D0B /* DebugGridOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F52662F93DA0F00992D0B /* DebugGridOverlayNode.swift */; };
 		4A6F526B2F93DA0F00992D0B /* SpriteAlignmentTestScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6F52672F93DA0F00992D0B /* SpriteAlignmentTestScene.swift */; };
@@ -124,6 +125,7 @@
 		4A5847E12F94C2E800E4C30B /* ParticleTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleTextures.swift; sourceTree = "<group>"; };
 		4A5847E32F94C2E900E4C30B /* QueueIndicatorNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueIndicatorNode.swift; sourceTree = "<group>"; };
 		4A5847E52F94C2E900E4C30B /* ResourceTickNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceTickNode.swift; sourceTree = "<group>"; };
+		4A5847E72F95419900E4C30B /* TileGridEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileGridEditorView.swift; sourceTree = "<group>"; };
 		4A6F52662F93DA0F00992D0B /* DebugGridOverlayNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugGridOverlayNode.swift; sourceTree = "<group>"; };
 		4A6F52672F93DA0F00992D0B /* SpriteAlignmentTestScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteAlignmentTestScene.swift; sourceTree = "<group>"; };
 		4A6F52682F93DA0F00992D0B /* SpriteSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteSpec.swift; sourceTree = "<group>"; };
@@ -365,6 +367,7 @@
 				4A57FDF42F92D838004559C8 /* CityTileSet.swift */,
 				4A5847D62F94C21F00E4C30B /* Effects 2 */,
 				4A5847D72F94C29A00E4C30B /* SelectedTilePulseNode.swift */,
+				4A5847E72F95419900E4C30B /* TileGridEditorView.swift */,
 			);
 			path = Scene;
 			sourceTree = "<group>";
@@ -508,6 +511,7 @@
 				4A0000000000000000000203 /* Faction.swift in Sources */,
 				4A0000000000000000000204 /* Ring.swift in Sources */,
 				9B4CFC912F927E8600850457 /* CornerPylonNode.swift in Sources */,
+				4A5847E82F95419900E4C30B /* TileGridEditorView.swift in Sources */,
 				9B4CFC992F927EC000850457 /* ResourcePill.swift in Sources */,
 				9B4CFC852F927D5A00850457 /* Isometric.swift in Sources */,
 				4A0000000000000000000205 /* Player.swift in Sources */,

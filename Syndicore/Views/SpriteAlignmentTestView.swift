@@ -36,6 +36,7 @@ struct SpriteAlignmentTestView: View {
     enum Mode: String, CaseIterable, Identifiable {
         case hq       = "HQ"
         case building = "1×1"
+        case grid     = "Grid"
         case cityZoom = "Zoom"
         var id: String { rawValue }
     }
@@ -72,6 +73,8 @@ struct SpriteAlignmentTestView: View {
         Group {
             if selectedMode == .cityZoom {
                 zoomFullscreen
+            } else if selectedMode == .grid {
+                gridLayout
             } else {
                 normalLayout
             }
@@ -118,6 +121,18 @@ struct SpriteAlignmentTestView: View {
                     .padding([.trailing, .bottom], 20)
                 }
             }
+        }
+    }
+
+    /// Grid editor mode — full screen tile layout editor.
+    private var gridLayout: some View {
+        VStack(spacing: 0) {
+            modePicker
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+                .background(.thinMaterial)
+            TileGridEditorView()
         }
     }
 
@@ -310,7 +325,7 @@ struct SpriteAlignmentTestView: View {
                 scaleMultiplier: CGFloat(scaleMultiplier),
                 rotationDegrees: CGFloat(rotationDegrees)
             )
-        case .cityZoom:
+        case .grid, .cityZoom:
             scene.clearTestSprites()
         }
     }
@@ -320,6 +335,8 @@ struct SpriteAlignmentTestView: View {
         case .hq, .building:
             anchorX = 0.50; anchorY = 0.25; scaleMultiplier = 1.00
             rotationDegrees = 0.00; cameraZoom = 1.00
+        case .grid:
+            break   // TileGridEditorView handles its own reset
         case .cityZoom:
             scene.setZoom(1.0)
         }
