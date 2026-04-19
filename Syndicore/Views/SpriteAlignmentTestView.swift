@@ -43,8 +43,14 @@ struct SpriteAlignmentTestView: View {
     var body: some View {
         withSpriteObservers(layout)
             .onAppear {
-                scene.onZoomChanged = { zoom in currentGridZoom = Double(zoom) }
-                scene.onPanChanged  = { pan  in currentPan = pan }
+                scene.onZoomChanged = { zoom in
+                    currentGridZoom = Double(zoom)
+                    if selectedMode == .cityZoom { autoCopy() }
+                }
+                scene.onPanChanged = { pan in
+                    currentPan = pan
+                    if selectedMode == .cityZoom { autoCopy() }
+                }
                 applyCurrent()
             }
     }
@@ -63,35 +69,11 @@ struct SpriteAlignmentTestView: View {
     }
 
     private var layout: some View {
-        VStack(spacing: 0) {
-            // ==== Scene ====
-            SpriteView(scene: scene)
-                .ignoresSafeArea(edges: .top)
-                .frame(maxHeight: .infinity)
-
-            // ==== Controls ====
+        Group {
             if selectedMode == .cityZoom {
-                zoomPanel
+                zoomFullscreen
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 14) {
-                        modePicker
-                        if selectedMode == .building { buildingPicker }
-
-                        Divider()
-
-                        tuningSliders
-
-                        Divider()
-
-                        specOutput
-
-                        Legend()
-                    }
-                    .padding()
-                }
-                .frame(maxHeight: 380)
-                .background(.thinMaterial)
+                normalLayout
             }
         }
         .navigationTitle("Sprite Alignment")
@@ -101,6 +83,65 @@ struct SpriteAlignmentTestView: View {
                 Button("Reset") { resetToDefaults() }
                     .font(.footnote)
             }
+        }
+    }
+
+    /// Zoom mode — scena full screen, floating picker + info badge.
+    private var zoomFullscreen: some View {
+        ZStack(alignment: .top) {
+            SpriteView(scene: scene)
+                .ignoresSafeArea()
+
+            // Floating mode picker pri vrhu
+            modePicker
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .background(.ultraThinMaterial.opacity(0.85))
+
+            // Mini info badge — bottom trailing
+            VStack(alignment: .trailing, spacing: 3) {
+                Spacer()
+                HStack {
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text(String(format: "%.2f ×", currentGridZoom))
+                            .font(.system(.callout, design: .monospaced).bold())
+                        Text(String(format: "x: %.0f  y: %.0f", currentPan.x, currentPan.y))
+                            .font(.system(.caption, design: .monospaced))
+                        Text("📋 copied on change")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(10)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding([.trailing, .bottom], 20)
+                }
+            }
+        }
+    }
+
+    /// HQ / 1×1 mode — scene + bottom controls panel.
+    private var normalLayout: some View {
+        VStack(spacing: 0) {
+            SpriteView(scene: scene)
+                .ignoresSafeArea(edges: .top)
+                .frame(maxHeight: .infinity)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    modePicker
+                    if selectedMode == .building { buildingPicker }
+                    Divider()
+                    tuningSliders
+                    Divider()
+                    specOutput
+                    Legend()
+                }
+                .padding()
+            }
+            .frame(maxHeight: 380)
+            .background(.thinMaterial)
         }
     }
 
@@ -134,69 +175,12 @@ struct SpriteAlignmentTestView: View {
         }
     }
 
-    private var zoomPanel: some View {
-        VStack(spacing: 0) {
-            modePicker
-                .padding(.horizontal)
-                .padding(.top, 12)
+    private func autoCopy() {
+        UIPasteboard.general.string = zoomCode
+    }
 
-            Spacer()
-
-            VStack(spacing: 6) {
-                Text(String(format: "%.2f ×", currentGridZoom))
-                    .font(.system(size: 48, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.primary)
-
-                HStack(spacing: 20) {
-                    VStack(spacing: 2) {
-                        Text("Pan X")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(String(format: "%.0f", currentPan.x))
-                            .font(.system(.body, design: .monospaced))
-                    }
-                    VStack(spacing: 2) {
-                        Text("Pan Y")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(String(format: "%.0f", currentPan.y))
-                            .font(.system(.body, design: .monospaced))
-                    }
-                }
-
-                Text("Pinch = zoom · 2 prsta drag = pan · kopiraj kad si zadovoljan")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-
-            Spacer()
-
-            let code = """
-                static let defaultZoom: CGFloat = \(String(format: "%.2f", currentGridZoom))
-                static let defaultPan:  CGPoint = CGPoint(x: \(String(format: "%.0f", currentPan.x)), y: \(String(format: "%.0f", currentPan.y)))
-                """
-            VStack(spacing: 8) {
-                Text(code)
-                    .font(.system(.caption, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                Button {
-                    UIPasteboard.general.string = code
-                } label: {
-                    Label("Copy to clipboard", systemImage: "doc.on.doc")
-                        .font(.caption)
-                }
-            }
-            .padding([.horizontal, .bottom])
-        }
-        .frame(maxHeight: 280)
-        .background(.thinMaterial)
+    private var zoomCode: String {
+        "static let defaultZoom: CGFloat = \(String(format: "%.2f", currentGridZoom))\nstatic let defaultPan:  CGPoint = CGPoint(x: \(String(format: "%.0f", currentPan.x)), y: \(String(format: "%.0f", currentPan.y)))"
     }
 
     private var tuningSliders: some View {

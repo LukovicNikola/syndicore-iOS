@@ -27,40 +27,40 @@ enum WallLayout {
         var entries: [WallEntry] = []
         let n = Isometric.gridSize  // 6
 
-        // N side (row = -1, cols 2..3) — slope "\"
+        // N side (row = 0, cols 2..3) — pomeren 1 korak unutra da sede uz outer tiles
         for col in 2...3 {
             entries.append(WallEntry(
-                position: Isometric.scenePosition(col: col, row: -1),
+                position: Isometric.scenePosition(col: col, row: 0),
                 xScale: 1,
                 zRotation: 0,
                 zPosition: Isometric.zDepth(col: col, row: 0) - 0.5
             ))
         }
 
-        // E side (col = n, rows 2..3) — slope "/"
+        // E side (col = n-1, rows 2..3)
         for row in 2...3 {
             entries.append(WallEntry(
-                position: Isometric.scenePosition(col: n, row: row),
+                position: Isometric.scenePosition(col: n - 1, row: row),
                 xScale: -1,
                 zRotation: 0,
                 zPosition: Isometric.zDepth(col: n - 1, row: row) + 1.5
             ))
         }
 
-        // S side (row = n, cols 2..3) — slope "\" (front-facing, najbliže kameri)
+        // S side (row = n-1, cols 2..3)
         for col in 2...3 {
             entries.append(WallEntry(
-                position: Isometric.scenePosition(col: col, row: n),
+                position: Isometric.scenePosition(col: col, row: n - 1),
                 xScale: 1,
                 zRotation: 0,
                 zPosition: Isometric.zDepth(col: col, row: n - 1) + 1.5
             ))
         }
 
-        // W side (col = -1, rows 2..3) — slope "/"
+        // W side (col = 0, rows 2..3)
         for row in 2...3 {
             entries.append(WallEntry(
-                position: Isometric.scenePosition(col: -1, row: row),
+                position: Isometric.scenePosition(col: 0, row: row),
                 xScale: -1,
                 zRotation: 0,
                 zPosition: Isometric.zDepth(col: 0, row: row) - 0.5
@@ -97,14 +97,14 @@ enum WallLayout {
             return CGPoint(x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2)
         }
 
-        // N corner: between N-wall left endpoint (col=2,row=-1) and W-wall top endpoint (col=-1,row=2)
-        let nPos = mid((2, -1), (-1, 2))
-        // E corner: between N-wall right endpoint (col=3,row=-1) and E-wall top endpoint (col=n,row=2)
-        let ePos = mid((3, -1), (n, 2))
-        // S corner: between E-wall bottom endpoint (col=n,row=3) and S-wall right endpoint (col=3,row=n)
-        let sPos = mid((n, 3), (3, n))
-        // W corner: between S-wall left endpoint (col=2,row=n) and W-wall bottom endpoint (col=-1,row=3)
-        let wPos = mid((2, n), (-1, 3))
+        // N/W corner: between N-wall left (col=2,row=0) and W-wall top (col=0,row=2)
+        let nPos = mid((2, 0), (0, 2))
+        // N/E corner: between N-wall right (col=3,row=0) and E-wall top (col=n-1,row=2)
+        let ePos = mid((3, 0), (n - 1, 2))
+        // S/E corner: between E-wall bottom (col=n-1,row=3) and S-wall right (col=3,row=n-1)
+        let sPos = mid((n - 1, 3), (3, n - 1))
+        // S/W corner: between S-wall left (col=2,row=n-1) and W-wall bottom (col=0,row=3)
+        let wPos = mid((2, n - 1), (0, 3))
 
         return [
             WallEntry(

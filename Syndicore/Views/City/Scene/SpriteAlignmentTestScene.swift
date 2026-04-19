@@ -28,30 +28,44 @@ final class SpriteAlignmentTestScene: SKScene {
     /// Callback koji se poziva kad god se pan promeni (drag).
     var onPanChanged: ((CGPoint) -> Void)?
 
+    /// Gesture recognizeri koje smo mi dodali — za cleanup pri re-presentovanju.
+    private var attachedGestures: [UIGestureRecognizer] = []
+
     override func didMove(to view: SKView) {
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         scaleMode = .resizeFill
         backgroundColor = SKColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1)
 
-        // Skybox — fiksno u scene root-u, aspect-fill, ne pomiče se
-        let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
-        skybox.position  = .zero
-        skybox.zPosition = -200
-        addChild(skybox)
-        skyboxNode = skybox
+        // Skybox — idempotent
+        if skyboxNode == nil {
+            let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
+            skybox.position  = .zero
+            skybox.zPosition = -200
+            addChild(skybox)
+            skyboxNode = skybox
+        }
         resizeSkybox(to: view.bounds.size)
+
+        // worldNode — idempotent
+        if worldNode.parent == nil {
+            addChild(worldNode)
+            buildTileMap()
+            addDebugOverlay()
+        }
+
+        // Gestures — uvek re-attach (ukloni stare da nema duplikata)
+        attachedGestures.forEach { $0.view?.removeGestureRecognizer($0) }
+        attachedGestures.removeAll()
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         view.addGestureRecognizer(pinch)
+        attachedGestures.append(pinch)
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         pan.minimumNumberOfTouches = 2
         pan.maximumNumberOfTouches = 2
         view.addGestureRecognizer(pan)
-
-        addChild(worldNode)
-        buildTileMap()
-        addDebugOverlay()
+        attachedGestures.append(pan)
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -64,8 +78,11 @@ final class SpriteAlignmentTestScene: SKScene {
     private func resizeSkybox(to targetSize: CGSize) {
         guard targetSize.width > 0, targetSize.height > 0,
               let skybox = skyboxNode, let tex = skybox.texture else { return }
-        let texAspect = tex.size().width / tex.size().height
-        skybox.size = CGSize(width: targetSize.width, height: targetSize.width / texAspect)
+        let texSize = tex.size()
+        let scaleW = targetSize.width  / texSize.width
+        let scaleH = targetSize.height / texSize.height
+        let scale  = max(scaleW, scaleH)   // aspect-fill: prekrij ceo ekran
+        skybox.size = CGSize(width: texSize.width * scale, height: texSize.height * scale)
     }
 
     /// Izracunava baseScale (fit grid u view) — koristi se samo kad se size promeni.
@@ -84,11 +101,11 @@ final class SpriteAlignmentTestScene: SKScene {
         let effectiveScale = baseScale * zoomMultiplier
         worldNode.setScale(effectiveScale)
 
-        // Centriraj target tako da je tačno u sredini ekrana.
-        // WorldNode position = -(target world position) × scale — to dovodi target na (0,0) u scene space-u.
+        // Ista formula kao CityScene.applyTransforms — da vrednosti iz Zoom taba
+        // direktno odgovaraju izgledu na originalnom ekranu grada.
         worldNode.position = CGPoint(
             x: -currentTargetWorldPos.x * effectiveScale + userPan.x,
-            y: -currentTargetWorldPos.y * effectiveScale + userPan.y
+            y: -currentTargetWorldPos.y * effectiveScale + 40 + userPan.y
         )
     }
 

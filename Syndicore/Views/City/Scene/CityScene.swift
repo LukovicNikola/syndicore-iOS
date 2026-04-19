@@ -27,6 +27,9 @@ final class CityScene: SKScene {
 
     private let worldNode = SKNode()
     private var skyboxNode: SKSpriteNode?
+    /// Gesture recognizeri koje smo mi dodali — čuvamo referencu da ih možemo
+    /// ukloniti ako se scena re-presentuje na nov SKView (izbjegava duplicate-e).
+    private var attachedGestures: [UIGestureRecognizer] = []
 
     private let tileSet = CityTileSet.build()
     private var tileMapNode: SKTileMapNode?
@@ -47,8 +50,8 @@ final class CityScene: SKScene {
     // MARK: - Camera state (zoom + pan)
 
     /// Default zoom i pan — tunirani u SpriteAlignmentTestView (Zoom tab).
-    private static let defaultZoom: CGFloat = 1.22
-    private static let defaultPan:  CGPoint  = CGPoint(x: -2, y: 44)
+    private static let defaultZoom: CGFloat = 1.76
+    private static let defaultPan:  CGPoint  = CGPoint(x: 2, y: 20)
     private static let minZoom: CGFloat = 0.7   // dovoljno daleko da se vidi ceo grid + walls
     private static let maxZoom: CGFloat = 3.5   // dovoljno blizu za detalje pojedinačnog tile-a
 
@@ -129,39 +132,49 @@ final class CityScene: SKScene {
         scaleMode   = .resizeFill
         backgroundColor = SKColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1)
 
-        // Skybox — fiksno u scene root-u, ne pomiče se sa zoom/pan-om
-        let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
-        skybox.position  = .zero
-        skybox.zPosition = -200
-        addChild(skybox)
-        skyboxNode = skybox
+        // Skybox — idempotent: ne dodajemo ponovo ako je vec u sceni
+        if skyboxNode == nil {
+            let skybox = SKSpriteNode(imageNamed: "hero_skybox_v1")
+            skybox.position  = .zero
+            skybox.zPosition = -200
+            addChild(skybox)
+            skyboxNode = skybox
+        }
         resizeSkybox(to: view.bounds.size)
 
-        addChild(worldNode)
-        buildTileMap()
+        // worldNode + tileMap — idempotent: ako je vec dodat (re-present), preskoci
+        if worldNode.parent == nil {
+            addChild(worldNode)
+            buildTileMap()
+        }
+
+        // Gestures — uvek re-attach na novi view (uklanjamo stare da nema duplikata)
         attachCameraGestures(to: view)
         // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
     }
 
     /// Pinch + pan + double-tap gesture recognizers za camera kontrole.
+    /// Idempotent — uklanja prethodno zakačene gesture-e pre nego sto doda nove
+    /// (sprečava duplikate ako je scena re-presentovana na novi SKView).
     private func attachCameraGestures(to view: SKView) {
+        attachedGestures.forEach { $0.view?.removeGestureRecognizer($0) }
+        attachedGestures.removeAll()
+
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         view.addGestureRecognizer(pinch)
-
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-        pan.minimumNumberOfTouches = 2  // 2 prsta za pan da ne ometa tap detection
-        pan.maximumNumberOfTouches = 2
-        view.addGestureRecognizer(pan)
+        attachedGestures.append(pinch)
 
         // Double-tap = brz reset kamere (alternativa za recenter button)
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
         doubleTap.numberOfTapsRequired = 2
         view.addGestureRecognizer(doubleTap)
+        attachedGestures.append(doubleTap)
 
         // Long-press = prikaz tooltip-a iznad zgrade
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         longPress.minimumPressDuration = 0.5
         view.addGestureRecognizer(longPress)
+        attachedGestures.append(longPress)
 
         // Priprema haptic engines (warm-up da ne bude lag-a na prvom trigger-u)
         hapticTap.prepare()
@@ -253,7 +266,6 @@ final class CityScene: SKScene {
         userPan.x = fingerInScene.x - worldPointUnderFinger.x * newEffectiveScale
         userPan.y = fingerInScene.y - worldPointUnderFinger.y * newEffectiveScale - hqOffsetY - 40
 
-        clampPan()
         applyTransforms()
     }
 
@@ -266,30 +278,6 @@ final class CityScene: SKScene {
         )
     }
 
-    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
-        guard let view else { return }
-        let translation = gesture.translation(in: view)
-        if gesture.state == .changed {
-            // SpriteKit ima y-up, UIKit y-down — invertuj y translaciju
-            userPan.x += translation.x
-            userPan.y -= translation.y
-            clampPan()
-            gesture.setTranslation(.zero, in: view)
-            applyTransforms()
-        }
-    }
-
-    /// Sprečava da user pan-ovima gurne grad potpuno van ekrana.
-    /// Limit zavisi od trenutnog zoom-a — što je veći zoom, toleriše veći pan offset.
-    private func clampPan() {
-        // Pri zoom 1.0 → ±150px max u svakom smeru. Pri zoom 3.5× → ±525px.
-        // Formula: max pan = 150 × userZoom. Tako se pri zoom-out ne može pomerati,
-        // a pri zoom-in se može slobodno istraživati ivice.
-        let maxPan: CGFloat = 150 * userZoom
-        userPan.x = max(-maxPan, min(maxPan, userPan.x))
-        userPan.y = max(-maxPan, min(maxPan, userPan.y))
-    }
-
     override func didChangeSize(_ oldSize: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
         resizeSkybox(to: size)
@@ -299,11 +287,11 @@ final class CityScene: SKScene {
     private func resizeSkybox(to targetSize: CGSize) {
         guard targetSize.width > 0, targetSize.height > 0,
               let skybox = skyboxNode, let tex = skybox.texture else { return }
-        let texAspect = tex.size().width / tex.size().height
-        // Uvek skalirati na širinu ekrana — ceo zid (levo/desno) mora biti vidljiv.
-        // Ako je slika viša od ekrana, donji deo preseče safe area (nevidljivo).
-        // Ako je kraća, tamna pozadina ispod se vidi — ista boja kao backgroundColor.
-        skybox.size = CGSize(width: targetSize.width, height: targetSize.width / texAspect)
+        let texSize = tex.size()
+        let scaleW = targetSize.width  / texSize.width
+        let scaleH = targetSize.height / texSize.height
+        let scale  = max(scaleW, scaleH)   // aspect-fill: prekrij ceo ekran
+        skybox.size = CGSize(width: texSize.width * scale, height: texSize.height * scale)
     }
 
     // MARK: - Public API

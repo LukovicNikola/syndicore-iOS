@@ -26,14 +26,11 @@ enum Isometric {
     static let cornerCutouts: Set<GridCoord> = {
         let n = gridSize - 1  // = 5 (last index)
         return [
-            // Top-left corner cutout
-            GridCoord(0, 0), GridCoord(1, 0), GridCoord(0, 1),
-            // Top-right corner cutout
-            GridCoord(n, 0), GridCoord(n - 1, 0), GridCoord(n, 1),
-            // Bottom-left corner cutout
-            GridCoord(0, n), GridCoord(1, n), GridCoord(0, n - 1),
-            // Bottom-right corner cutout
-            GridCoord(n, n), GridCoord(n - 1, n), GridCoord(n, n - 1),
+            // Samo krajnji vrhovi — daje oštar dijamant oblik
+            GridCoord(0, 0),
+            GridCoord(n, 0),
+            GridCoord(0, n),
+            GridCoord(n, n),
         ]
     }()
 
