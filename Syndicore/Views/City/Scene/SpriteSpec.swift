@@ -127,6 +127,22 @@ enum SpriteCatalog {
         anchor: CGPoint(x: 0.500, y: 0.441)
     )
 
+    /// Foundry — 1×1 footprint, tuned anchor/size.
+    static let foundry = SpriteSpec(
+        assetName: "foundry_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 1.05,
+        anchor: CGPoint(x: 0.500, y: 0.340)
+    )
+
+    /// Motor Pool — 1×1 footprint, tuned anchor/size.
+    static let motorPool = SpriteSpec(
+        assetName: "motor_pool_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 0.90,
+        anchor: CGPoint(x: 0.500, y: 0.447)
+    )
+
     /// Standardna spec za 1×1 buildings. Sve buildings cited u SpriteCatalog.spec(for:) koriste ovo.
     static func standardBuilding(assetName: String) -> SpriteSpec {
         SpriteSpec(
@@ -149,6 +165,8 @@ enum SpriteCatalog {
         case .RALLY_POINT:  return rallyPoint
         case .WATCHTOWER:   return watchtower
         case .WAREHOUSE:    return warehouse
+        case .FOUNDRY:      return foundry
+        case .MOTOR_POOL:   return motorPool
         default:            return standardBuilding(assetName: "\(buildingType.rawValue.lowercased())_v1")
         }
     }
