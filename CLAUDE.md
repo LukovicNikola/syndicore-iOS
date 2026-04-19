@@ -1388,6 +1388,130 @@ Pod-taskovi:
 
 ---
 
+## IMPLEMENTIRANI VIEWS — FEATURE STATUS
+
+> **Ažurirano:** 2026-04-19
+> Ovaj deo dokumentuje šta je stvarno implementirano i funkcionalno u iOS klijentu.
+> Služi kao referenca za BE tim (šta iOS klijent može da konzumira) i za praćenje iOS razvoja.
+> Svaki view ima status: ✅ Implementirano | 🚧 Delimično | ❌ Placeholder
+
+---
+
+### ✅ CityView (`Views/CityView.swift`)
+
+Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
+
+#### SpriteKit scena (`CityScene`)
+- **Grid** — 6×6 isometrijski grid, octagonal cutouts (12 tile-ova), HQ 2×2 region u centru
+- **Tile mapa** — `SKTileMapNode`, buildable slotovi prikazuju `tile_empty_v1`, selected state `tile_selected_v1`
+- **HQ sprite** — `hq_pyramid_v1`, statičan, tap otvara HQInfoSheet
+- **Building sprite-ovi** — učitavaju se po `BuildingType` (npr. `barracks_v1`), scaffold prikazan dok traje gradnja
+- **Skybox** — `hero_skybox_v1`, aspect-fill, pokriva ceo ekran
+- **Pinch-to-zoom** — pivot na centru gesture-a; min 0.7×, max 3.5×; haptic na granicama
+- **Double-tap** — animirani camera reset na default zoom/pan (0.35s ease)
+- **Long-press na zgradu** — prikazuje `BuildingTooltipNode` (naziv + level) iznad zgrade
+- **Tap na prazan tile** → selected pulse overlay → otvara BuildSheet
+- **Tap na zgradu** → selected pulse + scale tap animacija → otvara BuildingDetailSheet
+- **Tap na HQ** → selected state → otvara HQInfoSheet
+- **Resource tick floaters** — `+X` animacija iznad HQ kad se resursi povećaju između refresh-a
+- **Construction progress bar** — `ConstructionProgressNode` na scaffold-u sa countdown-om
+- **Celebration burst + screen flash** — po završetku gradnje (particle efekat + haptic + refreshCity callback)
+- **Queue indicator dot** — pulsing dot iznad HQ kad postoji aktivna gradnja
+- **Debug grid overlay** — togglable cyan outline-ovi + magenta anchor točke (dev only)
+- **Camera defaults** — `defaultZoom = 1.76`, `defaultPan = CGPoint(x: 2, y: 20)`
+- **Haptic feedback** — light tap, medium HQ, rigid reset, soft zoom limit
+
+#### Fixed building pozicije (zakucane u `CityScene.fixedPositions`)
+| Building | Col | Row | Pozicija |
+|---|---|---|---|
+| OPS_CENTER | 2 | 1 | N od HQ |
+| RALLY_POINT | 3 | 1 | N od HQ |
+| BARRACKS | 1 | 2 | W od HQ |
+| MOTOR_POOL | 4 | 2 | E od HQ |
+| WAREHOUSE | 1 | 3 | W od HQ |
+| TRADE_POST | 4 | 3 | E od HQ |
+| WATCHTOWER | 2 | 4 | S od HQ |
+| RESEARCH_LAB | 3 | 4 | S od HQ |
+
+#### Resource slot pozicije (`CityScene.resourceSlotPositions`, 10 slotova)
+`(2,0)`, `(3,0)`, `(4,1)`, `(5,2)`, `(5,3)`, `(3,5)`, `(2,5)`, `(1,4)`, `(0,3)`, `(0,2)`
+
+#### HUD
+- **TopHUD** — resource pills (Credits/Alloys/Tech/Energy sa ikonama) + naziv grada (capsule)
+- **BottomHUD** — aktivna gradnja sa countdown timerom + "Train" dugme
+- **RefreshErrorBanner** — pojavljuje se kad refresh ne uspe, sa Retry dugmetom, transition animacija
+- **Recenter dugme** — `scope` ikona, gornji desni ugao, vraća kameru na default
+
+#### Sheets
+- **BuildSheet** — lista zgrada koje igrač JOŠ NIJE izgradio; Build dugme po svakoj; disabled ako postoji queue; API: `POST /cities/:id/build` sa `buildingType`; refresh + dismiss po uspehu
+- **BuildingDetailSheet** — tip + current level; upgrade cost preview (`GET /cities/:id/build-cost`): Credits/Alloys/Tech + trajanje; Upgrade dugme → `POST /cities/:id/build` sa `buildingId`; countdown ako je već u upgrade-u
+- **HQInfoSheet** — HQ level + countdown ako u upgrade; naziv grada, lokacija (x,y), ring, terrain (read-only)
+- **TrainingSheet** — lista jedinica iz `game-constants.json` po frakciji; sortovano po energy cost; stepper za količinu (1-100); cost preview po resursu × count + trainMin × count; API: `POST /cities/:id/train`; refresh + dismiss po uspehu
+
+#### Data / State management
+- **Auto-refresh loop** — svakih 30s dok je view aktivan (`.task` sa cancellation)
+- **Initial load** — `refreshCity()` na pojavi
+- **Post-action refresh** — odmah po Build / Upgrade / Train API pozivima
+- **Post-construction-timer refresh** — `onConstructionComplete` callback iz scene → `refreshCity()`
+
+---
+
+### ✅ Auth flow (multi-screen)
+
+| View | Status | Opis |
+|---|---|---|
+| `SplashView` | ✅ | Fetch `GET /api/v1/config`, ETag caching, error state sa retry |
+| `AuthView` | ✅ | Supabase email/password sign in + sign up, error display |
+| `OnboardingView` | ✅ | `GET /me` → 404 → username input → `POST /me/onboarding` |
+| `WorldListView` | ✅ | `GET /worlds`, lista servera, join navigacija |
+| `FactionPickerView` | ✅ | Izbor REAPERS/HEGEMONY/NETRUNNERS → `POST /worlds/:id/join` |
+| `MainGameView` | ✅ | `TabView` kontejner (City, Map, Army, Syndikat, Codex) |
+
+---
+
+### 🚧 MapView (`Map/MapView.swift` + `Map/MapScene.swift`)
+
+- ✅ `SKTileMapNode` terrain grid sa ring bojama
+- ✅ Occupant overlay (`SKSpriteNode` za gradove, outposts, mines, warp gates)
+- ✅ Warp Gate linije (`SKShapeNode` compound path)
+- ✅ Camera pan/zoom sa `SKCameraNode`
+- ✅ Tap na tile → `MapInfoView` popup (tip, ring, terrain, occupant info)
+- ✅ Debounced viewport refetch kad se kamera pomeri >30% radiusa
+- ❌ Troop movement linije (nema animiranih putanja)
+- ❌ "Send troops" akcija iz mape (samo info)
+
+---
+
+### 🚧 Codex tab (`Views/CodexView.swift`)
+
+- ✅ `UnitsView` — lista svih jedinica iz `game-constants.json` sa stats (ATK/DEF/SPD/CARRY)
+- ✅ `UnitDetailView` — detalji po jedinici
+- ✅ `BuildingsView` — lista svih zgrada sa opisima
+- 🚧 `TechTreeView` — prikazuje grane, ali upgrade još nije vezan za API
+- ❌ Research API nije vezan (`GET/POST /worlds/:id/research`)
+
+---
+
+### ❌ ArmyView — placeholder
+
+- Nije implementirano. Čeka BE finalizaciju movement/combat API-ja.
+
+---
+
+### ❌ SyndikatView — placeholder
+
+- Nije implementirano. Čeka BE finalizaciju syndikat API-ja.
+
+---
+
+### 🛠 Dev Tools
+
+- **SpriteAlignmentTestView** — 4 tab-a: HQ (anchor/scale/rotation tuning), 1×1 (building tuning), Grid (interaktivni tile editor), Zoom (camera defaults tuning)
+- **TileGridEditorView** — isometrijski grid editor: drag-to-rearrange tile-ovi, tap-to-delete/restore, generiše Swift kod za kopiranje u `CityScene` i `Isometric`
+- **DebugGridOverlayNode** — toggleable iz Settings-a; cyan tile outlines + magenta anchor točke
+
+---
+
 ## GAME DESIGN REFERENCE
 
 Kompletan GDD je u BE repo-u: `github.com/LukovicNikola/syndicore-BE/blob/main/CLAUDE.md`
