@@ -9,6 +9,9 @@ struct CityView: View {
     @State private var showHQInfo    = false
     @State private var showTraining  = false
 
+    /// Increment-uje se kad user tapne recenter dugme — CitySceneView observira i poziva resetCamera().
+    @State private var cameraResetCounter: Int = 0
+
     private var city: City? { gameState.activeCity }
 
     var body: some View {
@@ -19,7 +22,8 @@ struct CityView: View {
                 city: city,
                 onTapHQ:        { showHQInfo = true },
                 onTapBuilding:  { selectedBuilding = $0 },
-                onTapEmptySlot: { buildSlot = SlotSelection(id: $0) }
+                onTapEmptySlot: { buildSlot = SlotSelection(id: $0) },
+                cameraResetCounter: cameraResetCounter
             )
             .ignoresSafeArea()
 
@@ -39,6 +43,25 @@ struct CityView: View {
                 )
             }
             .ignoresSafeArea(edges: .bottom)
+
+            // MARK: Floating recenter button (gornji desni ugao)
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        cameraResetCounter += 1
+                    } label: {
+                        Image(systemName: "scope")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.top, 60)  // ispod TopHUD-a
+                }
+                Spacer()
+            }
         }
         // Sheets
         .sheet(item: $selectedBuilding) { building in

@@ -26,6 +26,7 @@ final class CityScene: SKScene {
     private let tileSet = CityTileSet.build()
     private var tileMapNode: SKTileMapNode?
     private var selectedTileCoord: (col: Int, row: Int)?
+    private var selectedTilePulse: SelectedTilePulseNode?
     private var hqNode: HQNode?
 
     private var buildings: [BuildingInfo] = []
@@ -150,9 +151,21 @@ final class CityScene: SKScene {
             // SpriteKit ima y-up, UIKit y-down — invertuj y translaciju
             userPan.x += translation.x
             userPan.y -= translation.y
+            clampPan()
             gesture.setTranslation(.zero, in: view)
             applyTransforms()
         }
+    }
+
+    /// Sprečava da user pan-ovima gurne grad potpuno van ekrana.
+    /// Limit zavisi od trenutnog zoom-a — što je veći zoom, toleriše veći pan offset.
+    private func clampPan() {
+        // Pri zoom 1.0 → ±150px max u svakom smeru. Pri zoom 3.5× → ±525px.
+        // Formula: max pan = 150 × userZoom. Tako se pri zoom-out ne može pomerati,
+        // a pri zoom-in se može slobodno istraživati ivice.
+        let maxPan: CGFloat = 150 * userZoom
+        userPan.x = max(-maxPan, min(maxPan, userPan.x))
+        userPan.y = max(-maxPan, min(maxPan, userPan.y))
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -308,12 +321,14 @@ final class CityScene: SKScene {
         guard let touch = touches.first, let tileMap = tileMapNode else { return }
         let locationInWorld = touch.location(in: worldNode)
 
-        // Reset prethodno selected tile + HQ selected stanje
+        // Reset prethodno selected tile + HQ selected stanje + pulse overlay
         if let prev = selectedTileCoord,
            let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
             tileMap.setTileGroup(emptyGroup, forColumn: prev.col, row: tmRow(prev.row))
         }
         selectedTileCoord = nil
+        selectedTilePulse?.removeFromParent()
+        selectedTilePulse = nil
         hqNode?.setSelected(false)
 
         guard let (col, row) = Isometric.tileCoord(at: locationInWorld) else { return }
@@ -330,6 +345,13 @@ final class CityScene: SKScene {
         }
         selectedTileCoord = (col, row)
 
+        // Pulsing cyan diamond overlay iznad selected tile-a
+        let pulsePos = Isometric.scenePosition(col: col, row: row)
+        let pulseZ = Isometric.zDepth(col: col, row: row) + 0.05
+        let pulse = SelectedTilePulseNode(at: pulsePos, zPosition: pulseZ)
+        worldNode.addChild(pulse)
+        selectedTilePulse = pulse
+
         // Da li neka zgrada zauzima ovaj (col, row)?
         let bldg = buildings.first { b in
             guard b.type != .HQ, let c = coord(for: b) else { return false }
@@ -337,11 +359,23 @@ final class CityScene: SKScene {
         }
 
         if let bldg {
+            // Brz scale pulse na tapped building-u (vizuelni feedback)
+            findBuildingNode(for: bldg)?.playTapPulse()
             onTapBuilding?(bldg)
         } else {
             // Empty slot — pošalji slot index za BuildSheet (Isometric ga zna)
             let slotIdx = Isometric.slot(forCoord: col, row: row) ?? 0
             onTapEmptySlot?(slotIdx)
         }
+    }
+
+    /// Pomocni — pronalazi BuildingNode u sceni za dati BuildingInfo (poredi po id-u).
+    private func findBuildingNode(for building: BuildingInfo) -> BuildingNode? {
+        for child in worldNode.children {
+            if let bn = child as? BuildingNode, bn.building.id == building.id {
+                return bn
+            }
+        }
+        return nil
     }
 }
