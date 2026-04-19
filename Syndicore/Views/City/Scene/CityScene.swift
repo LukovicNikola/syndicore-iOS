@@ -31,6 +31,10 @@ final class CityScene: SKScene {
 
     private var buildings: [BuildingInfo] = []
 
+    /// Prethodne vrednosti resursa — za tick animaciju (diff prikazujemo iznad HQ-a).
+    /// nil pri prvom configure() — ne prikazujemo tick ako još nemamo baseline.
+    private var previousResources: Resources?
+
     /// Debug overlay (cyan tile diamonds + magenta anchor dots) — togglable iz UI-ja.
     private var debugOverlay: DebugGridOverlayNode?
 
@@ -189,6 +193,35 @@ final class CityScene: SKScene {
     func configure(with city: City) {
         buildings = city.buildings ?? []
         rebuildBuildingLayer()
+        spawnResourceTicksIfNeeded(newResources: city.resources)
+    }
+
+    /// Diff vs prethodne resources — prikazuje "+X" tick iznad HQ-a za svaki pozitivan delta.
+    private func spawnResourceTicksIfNeeded(newResources: Resources?) {
+        guard let new = newResources else { return }
+        defer { previousResources = new }
+
+        guard let prev = previousResources else { return }  // prvi load — ne prikazujemo
+
+        // Pozicije iznad HQ-a (gornji centar, sa malim horizontalnim offset-om za 4 resursa)
+        // Spawn-ujemo ih sa malim staggerom da se ne preklapaju ako više resursa raste odjednom.
+        let basePos = CGPoint(x: Isometric.hqCenterPosition.x,
+                              y: Isometric.hqCenterPosition.y + Isometric.tileWidth * 0.9)
+        let baseZ = Isometric.hqZDepth + 10
+
+        func tryTick(delta: Double, resource: ResourceTickNode.Resource, offsetX: CGFloat) {
+            let amount = Int(delta.rounded())
+            guard amount > 0 else { return }
+            let pos = CGPoint(x: basePos.x + offsetX, y: basePos.y)
+            let tick = ResourceTickNode(amount: amount, resource: resource, at: pos, zPosition: baseZ)
+            worldNode.addChild(tick)
+        }
+
+        // 4 resursa, svaki na svojoj horizontalnoj poziciji da se ne preklapaju
+        tryTick(delta: new.credits - prev.credits, resource: .credits, offsetX: -60)
+        tryTick(delta: new.alloys  - prev.alloys,  resource: .alloys,  offsetX: -20)
+        tryTick(delta: new.tech    - prev.tech,    resource: .tech,    offsetX:  20)
+        tryTick(delta: (new.energy ?? 0) - (prev.energy ?? 0), resource: .energy, offsetX: 60)
     }
 
     /// Toggle debug grid overlay. Pozvati iz SettingsView ili SpriteAlignmentTestView.

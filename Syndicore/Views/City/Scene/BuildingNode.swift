@@ -42,9 +42,38 @@ final class BuildingNode: SKNode {
         if let s = resolvedSprite { addChild(s) }
         // Ako tekstura ne postoji i nije u izgradnji — tile ostaje prazan
 
+        // Per-building particle effekti (samo kad zgrada NIJE u izgradnji)
+        if !building.isUpgrading, resolvedSprite != nil {
+            attachParticleEffect(for: building.type)
+        }
+
+        // Construction progress overlay — countdown + progress bar iznad scaffold-a
+        if building.isUpgrading, let endsAt = building.endsAt {
+            let progress = ConstructionProgressNode(endsAt: endsAt)
+            // Pozicija iznad scaffold-a (scaffold height ≈ tileHeight * 1.5 = 96)
+            progress.position = CGPoint(x: 0, y: Isometric.tileHeight * 1.7)
+            progress.zPosition = 0.5  // iznad scaffold-a u istom node-u
+            addChild(progress)
+        }
+
         position  = Isometric.scenePosition(col: col, row: row)
         zPosition = Isometric.zDepth(col: col, row: row) + 0.5
         isUserInteractionEnabled = false
+    }
+
+    /// Dodaje per-building particle efekt iznad sprite-a (npr. electric arc za Power Grid).
+    /// Pozicije su tunirane manuelno — vidi komentare za svaki case.
+    private func attachParticleEffect(for type: BuildingType) {
+        switch type {
+        case .POWER_GRID:
+            // Arc lebdi između dva cooling tower-a (vrh sprite-a, malo ulevo od centra).
+            let arc = ElectricArcNode()
+            arc.position = CGPoint(x: 0, y: Isometric.tileWidth * 0.55)
+            arc.zPosition = 0.1   // iznad sprite-a u istom node-u
+            addChild(arc)
+        default:
+            break
+        }
     }
 
     /// Brzi scale pulse animacija — poziva se kad user tapne zgradu.
