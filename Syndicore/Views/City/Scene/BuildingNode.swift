@@ -38,6 +38,15 @@ final class BuildingNode: SKNode {
             sprite.anchorPoint = spec.anchor
             sprite.zRotation = spec.rotationRadians
             resolvedSprite = sprite
+        } else {
+            // Asset ne postoji — prikaži placeholder tile da tile ne ostane prazan
+            let placeholder = SKSpriteNode(imageNamed: "tile_empty_v1")
+            placeholder.size = CGSize(width: Isometric.tileWidth, height: Isometric.tileHeight)
+            placeholder.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+            placeholder.alpha = 0.5
+            placeholder.color = .orange
+            placeholder.colorBlendFactor = 0.6
+            resolvedSprite = placeholder
         }
         self.spriteNode = resolvedSprite
 

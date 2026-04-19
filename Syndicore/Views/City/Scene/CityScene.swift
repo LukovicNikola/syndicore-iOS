@@ -492,11 +492,9 @@ final class CityScene: SKScene {
                     self?.handleConstructionComplete(at: buildingPos)
                 }
             }
-            // Clear tile samo ako zgrada ima vidljiv content (texture exists ili scaffold)
-            let spec = SpriteCatalog.spec(for: building.type)
-            if building.isUpgrading || SpriteCatalog.assetExists(spec) {
-                tileMapNode?.setTileGroup(nil, forColumn: c.col, row: tmRow(c.row))
-            }
+            // Uvek obrisi tile kad zgrada postoji — da tile_empty_v1 ne ostane vidljiv
+            // kad je zgrada izgradjena ali nema sprajt asset-a (npr. foundry_v1 fali).
+            tileMapNode?.setTileGroup(nil, forColumn: c.col, row: tmRow(c.row))
         }
     }
 
