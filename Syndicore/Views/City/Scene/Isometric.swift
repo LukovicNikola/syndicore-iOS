@@ -24,10 +24,10 @@ enum Isometric {
 
     /// Tile-ovi koji su izrezani iz grida (ne renderuju se, ne mogu da se grade na njima).
     static let cornerCutouts: Set<GridCoord> = [
-        GridCoord(4, 0), GridCoord(5, 0),
-        GridCoord(1, 1), GridCoord(5, 1),
-        GridCoord(0, 4), GridCoord(4, 4),
-        GridCoord(0, 5), GridCoord(1, 5),
+        GridCoord(0, 0), GridCoord(1, 0), GridCoord(4, 0), GridCoord(5, 0),
+        GridCoord(0, 1),                                   GridCoord(5, 1),
+        GridCoord(0, 4),                                   GridCoord(5, 4),
+        GridCoord(0, 5), GridCoord(1, 5), GridCoord(4, 5), GridCoord(5, 5),
     ]
 
     // MARK: - Scene projection (grid → screen)

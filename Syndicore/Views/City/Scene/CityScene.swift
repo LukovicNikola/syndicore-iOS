@@ -106,7 +106,7 @@ final class CityScene: SKScene {
     /// Flex/resource slot positions — outer ring (9 slotova).
     /// BE slotIndex (0..N-1) mapira u ovaj array.
     private static let resourceSlotPositions: [(col: Int, row: Int)] = [
-        (2, 0),                          // top edge
+        (2, 0), (3, 0),                  // top edge
         (4, 1),                          // NE diagonal
         (5, 2), (5, 3),                  // right edge
         (3, 5), (2, 5),                  // bottom edge
