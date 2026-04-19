@@ -108,8 +108,7 @@ enum SpriteCatalog {
         assetName: "trade_post_v1",
         footprint: (cols: 1, rows: 1),
         renderHeight: Isometric.tileWidth * 1.00,
-        anchor: CGPoint(x: 0.500, y: 0.447),
-        rotationDegrees: 1.2
+        anchor: CGPoint(x: 0.500, y: 0.445)
     )
 
     /// Research Lab — 1×1 footprint, tuned anchor/size.
