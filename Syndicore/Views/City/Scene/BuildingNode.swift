@@ -11,6 +11,10 @@ final class BuildingNode: SKNode {
     /// na tap (selection pulse).
     private let spriteNode: SKSpriteNode?
 
+    /// Construction progress overlay (samo za upgrading buildings).
+    /// Public read-access da CityScene može da prikači onComplete callback.
+    private(set) var progressNode: ConstructionProgressNode?
+
     /// Scaffold sprite size — non-uniform, prati staro ponašanje. Refaktor kad bude novi scaffold sprite.
     private static let scaffoldSize = CGSize(
         width:  Isometric.tileWidth,
@@ -54,6 +58,7 @@ final class BuildingNode: SKNode {
             progress.position = CGPoint(x: 0, y: Isometric.tileHeight * 1.7)
             progress.zPosition = 0.5  // iznad scaffold-a u istom node-u
             addChild(progress)
+            self.progressNode = progress
         }
 
         position  = Isometric.scenePosition(col: col, row: row)

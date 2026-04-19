@@ -23,6 +23,9 @@ struct CityView: View {
                 onTapHQ:        { showHQInfo = true },
                 onTapBuilding:  { selectedBuilding = $0 },
                 onTapEmptySlot: { buildSlot = SlotSelection(id: $0) },
+                onConstructionComplete: {
+                    Task { await gameState.refreshCity() }
+                },
                 cameraResetCounter: cameraResetCounter
             )
             .ignoresSafeArea()
@@ -88,7 +91,16 @@ struct CityView: View {
             TrainingSheet()
                 .presentationDetents([.medium, .large])
         }
-        .task { await gameState.refreshCity() }
+        .task {
+            // Initial load + auto-refresh loop dok je view aktivan.
+            // SwiftUI .task se automatski cancel-uje na .onDisappear pa nema leak-a.
+            await gameState.refreshCity()
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                if Task.isCancelled { return }
+                await gameState.refreshCity()
+            }
+        }
     }
 
     // MARK: - Helpers

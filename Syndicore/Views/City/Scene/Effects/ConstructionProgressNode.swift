@@ -22,6 +22,13 @@ final class ConstructionProgressNode: SKNode {
 
     private let endsAt: Date
 
+    /// Callback koji se poziva tačno jednom kad countdown padne na 0.
+    /// CityScene ga wire-uje da spawn-uje celebration burst + trigger refresh.
+    var onComplete: (() -> Void)?
+
+    /// Bool da se onComplete ne pozove dvaput (idempotent).
+    private var didFireComplete = false
+
     init(endsAt: Date) {
         self.endsAt = endsAt
 
@@ -86,6 +93,11 @@ final class ConstructionProgressNode: SKNode {
             label.text = "READY"
             label.fontColor = SKColor(red: 0.5, green: 1.0, blue: 0.5, alpha: 1)
             removeAction(forKey: "countdown")
+            // Trigger one-shot completion callback (npr. spawn burst + refresh)
+            if !didFireComplete {
+                didFireComplete = true
+                onComplete?()
+            }
             return
         }
         label.text = formatRemaining(remaining)

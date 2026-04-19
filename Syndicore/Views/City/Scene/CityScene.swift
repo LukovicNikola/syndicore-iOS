@@ -19,6 +19,10 @@ final class CityScene: SKScene {
     var onTapBuilding:    ((BuildingInfo) -> Void)?
     var onTapEmptySlot:   ((Int) -> Void)?
 
+    /// Pozvan kad neka zgrada zavrsi upgrade timer u UI-ju.
+    /// SwiftUI sloj wire-uje na refreshCity() da povuče novi state sa BE-a.
+    var onConstructionComplete: (() -> Void)?
+
     // MARK: - Private
 
     private let worldNode = SKNode()
@@ -29,6 +33,7 @@ final class CityScene: SKScene {
     private var selectedTileCoord: (col: Int, row: Int)?
     private var selectedTilePulse: SelectedTilePulseNode?
     private var hqNode: HQNode?
+    private var queueIndicator: QueueIndicatorNode?
 
     private var buildings: [BuildingInfo] = []
 
@@ -307,6 +312,25 @@ final class CityScene: SKScene {
         buildings = city.buildings ?? []
         rebuildBuildingLayer()
         spawnResourceTicksIfNeeded(newResources: city.resources)
+        updateQueueIndicator(hasQueue: city.constructionQueue != nil)
+    }
+
+    /// Show/hide pulsing dot iznad HQ-a — visible kad postoji aktivna gradnja.
+    private func updateQueueIndicator(hasQueue: Bool) {
+        if hasQueue, queueIndicator == nil {
+            let q = QueueIndicatorNode()
+            // Iznad gornjeg vrha HQ-a (vrh pyramid + S hologram)
+            q.position = CGPoint(
+                x: Isometric.hqCenterPosition.x + Isometric.tileWidth * 0.55,
+                y: Isometric.hqCenterPosition.y + Isometric.tileWidth * 1.4
+            )
+            q.zPosition = 950
+            worldNode.addChild(q)
+            queueIndicator = q
+        } else if !hasQueue, let q = queueIndicator {
+            q.removeFromParent()
+            queueIndicator = nil
+        }
     }
 
     /// Diff vs prethodne resources — prikazuje "+X" tick iznad HQ-a za svaki pozitivan delta.
@@ -473,13 +497,51 @@ final class CityScene: SKScene {
         for building in buildings {
             guard building.type != .HQ else { continue }
             guard let c = coord(for: building) else { continue }
-            worldNode.addChild(BuildingNode(building: building, col: c.col, row: c.row))
+            let bn = BuildingNode(building: building, col: c.col, row: c.row)
+            worldNode.addChild(bn)
+            // Wire construction-complete callback (samo za upgrading buildings)
+            if let progress = bn.progressNode {
+                let buildingPos = Isometric.scenePosition(col: c.col, row: c.row)
+                progress.onComplete = { [weak self] in
+                    self?.handleConstructionComplete(at: buildingPos)
+                }
+            }
             // Clear tile samo ako zgrada ima vidljiv content (texture exists ili scaffold)
             let spec = SpriteCatalog.spec(for: building.type)
             if building.isUpgrading || SpriteCatalog.assetExists(spec) {
                 tileMapNode?.setTileGroup(nil, forColumn: c.col, row: tmRow(c.row))
             }
         }
+    }
+
+    /// Pozvan iz ConstructionProgressNode kad timer dođe na 0.
+    /// Spawn-uje celebration burst + screen flash + haptic + signalira refresh.
+    private func handleConstructionComplete(at buildingPos: CGPoint) {
+        // 1. Particle burst u world space-u (na zgradu)
+        let burst = CelebrationBurstNode()
+        burst.position = buildingPos
+        burst.zPosition = 800
+        worldNode.addChild(burst)
+
+        // 2. Screen flash (ne u worldNode — fixed full screen)
+        let flash = SKShapeNode(rectOf: size)
+        flash.fillColor = .white
+        flash.strokeColor = .clear
+        flash.zPosition = 9999
+        flash.alpha = 0.55
+        addChild(flash)
+        flash.run(.sequence([
+            .fadeAlpha(to: 0, duration: 0.45),
+            .removeFromParent()
+        ]))
+
+        // 3. Haptic notification — success vibe
+        let notify = UINotificationFeedbackGenerator()
+        notify.prepare()
+        notify.notificationOccurred(.success)
+
+        // 4. Signaliziraj SwiftUI sloju da povuče novi state sa BE-a
+        onConstructionComplete?()
     }
 
     // MARK: - Touch Handling
