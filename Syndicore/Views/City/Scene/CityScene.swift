@@ -101,16 +101,14 @@ final class CityScene: SKScene {
         .TRADE_POST:    (col: 4, row: 3),   // E
         .WATCHTOWER:    (col: 2, row: 4),   // S
         .RESEARCH_LAB:  (col: 3, row: 4),   // S
-        .WALL:          (col: 1, row: 1),   // NW diagonal
     ]
 
-    /// Flex/resource slot positions — outer ring + 3 diagonal corners za 11 ukupno.
+    /// Flex/resource slot positions — outer ring (9 slotova).
     /// BE slotIndex (0..N-1) mapira u ovaj array.
     private static let resourceSlotPositions: [(col: Int, row: Int)] = [
-        (2, 0), (3, 0),                  // top edge
+        (2, 0),                          // top edge
         (4, 1),                          // NE diagonal
         (5, 2), (5, 3),                  // right edge
-        (4, 4),                          // SE diagonal
         (3, 5), (2, 5),                  // bottom edge
         (1, 4),                          // SW diagonal
         (0, 3), (0, 2),                  // left edge

@@ -23,16 +23,12 @@ enum Isometric {
     // Removes 3 corner tiles per corner = octagonal silhouette as on hero reference image.
 
     /// Tile-ovi koji su izrezani iz grida (ne renderuju se, ne mogu da se grade na njima).
-    static let cornerCutouts: Set<GridCoord> = {
-        let n = gridSize - 1  // = 5 (last index)
-        return [
-            // Samo krajnji vrhovi — daje oštar dijamant oblik
-            GridCoord(0, 0),
-            GridCoord(n, 0),
-            GridCoord(0, n),
-            GridCoord(n, n),
-        ]
-    }()
+    static let cornerCutouts: Set<GridCoord> = [
+        GridCoord(4, 0), GridCoord(5, 0),
+        GridCoord(1, 1), GridCoord(5, 1),
+        GridCoord(0, 4), GridCoord(4, 4),
+        GridCoord(0, 5), GridCoord(1, 5),
+    ]
 
     // MARK: - Scene projection (grid → screen)
 
