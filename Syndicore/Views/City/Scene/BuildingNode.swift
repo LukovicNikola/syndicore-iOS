@@ -21,13 +21,13 @@ final class BuildingNode: SKNode {
         height: Isometric.tileHeight * 1.5
     )
 
-    init(building: BuildingInfo, col: Int, row: Int) {
+    init(building: BuildingInfo, col: Int, row: Int, forceScaffold: Bool = false, queueEndsAt: Date? = nil) {
         self.building = building
         let spec = SpriteCatalog.spec(for: building.type)
 
         // Pripremi sprite pre super.init (Swift 6 init order)
         var resolvedSprite: SKSpriteNode? = nil
-        if building.isUpgrading {
+        if building.isUpgrading || forceScaffold {
             let scaffold = SKSpriteNode(imageNamed: "construction_scaffold_v1")
             scaffold.size = Self.scaffoldSize
             scaffold.anchorPoint = CGPoint(x: 0.5, y: 0.0)
@@ -56,12 +56,14 @@ final class BuildingNode: SKNode {
         // Ako tekstura ne postoji i nije u izgradnji — tile ostaje prazan
 
         // Per-building particle effekti (samo kad zgrada NIJE u izgradnji)
-        if !building.isUpgrading, resolvedSprite != nil {
+        if !building.isUpgrading, !forceScaffold, resolvedSprite != nil {
             attachParticleEffect(for: building.type)
         }
 
         // Construction progress overlay — countdown + progress bar iznad scaffold-a
-        if building.isUpgrading, let endsAt = building.endsAt {
+        // endsAt dolazi sa building-a (upgrade) ili iz queue-a (nova gradnja, forceScaffold).
+        let effectiveEndsAt = building.endsAt ?? queueEndsAt
+        if (building.isUpgrading || forceScaffold), let endsAt = effectiveEndsAt {
             let progress = ConstructionProgressNode(endsAt: endsAt)
             // Pozicija iznad scaffold-a (scaffold height ≈ tileHeight * 1.5 = 96)
             progress.position = CGPoint(x: 0, y: Isometric.tileHeight * 1.7)

@@ -39,6 +39,9 @@ final class CityScene: SKScene {
     private var queueIndicator: QueueIndicatorNode?
 
     private var buildings: [BuildingInfo] = []
+    /// Aktivan construction queue — koristi se da forsira scaffold prikaz čak i kad
+    /// BE ne setuje targetLevel/endsAt na building-u tokom gradnje nove zgrade.
+    private var activeQueue: ConstructionQueue?
 
     /// Prethodne vrednosti resursa — za tick animaciju (diff prikazujemo iznad HQ-a).
     /// nil pri prvom configure() — ne prikazujemo tick ako još nemamo baseline.
@@ -296,6 +299,7 @@ final class CityScene: SKScene {
 
     func configure(with city: City) {
         buildings = city.buildings ?? []
+        activeQueue = city.constructionQueue
         rebuildBuildingLayer()
         spawnResourceTicksIfNeeded(newResources: city.resources)
         updateQueueIndicator(hasQueue: city.constructionQueue != nil)
@@ -483,7 +487,12 @@ final class CityScene: SKScene {
         for building in buildings {
             guard building.type != .HQ else { continue }
             guard let c = coord(for: building) else { continue }
-            let bn = BuildingNode(building: building, col: c.col, row: c.row)
+            // Forsiramo scaffold ako je ova zgrada u activeQueue — BE za novu zgradu
+            // ponekad ne setuje targetLevel/endsAt na building-u, prati samo kroz queue.
+            let forceScaffold = activeQueue?.buildingId == building.id
+            let bn = BuildingNode(building: building, col: c.col, row: c.row,
+                                  forceScaffold: forceScaffold,
+                                  queueEndsAt: forceScaffold ? activeQueue?.endsAt : nil)
             worldNode.addChild(bn)
             // Wire construction-complete callback (samo za upgrading buildings)
             if let progress = bn.progressNode {
