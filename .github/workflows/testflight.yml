@@ -36,6 +36,8 @@ jobs:
       - name: Run Fastlane beta
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          GH_PAT: ${{ secrets.GH_PAT }}
           BUILD_NUMBER: ${{ github.run_number }}
-        run: fastlane beta
+        run: |
+          export MATCH_GIT_BASIC_AUTHORIZATION=$(echo -n "LukovicNikola:$GH_PAT" | base64)
+          fastlane beta
