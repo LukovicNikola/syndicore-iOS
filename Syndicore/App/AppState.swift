@@ -103,8 +103,7 @@ final class GameState {
         } catch let error as APIError {
             switch error {
             case .onboardingRequired:
-                // Sign out stale session — onboarding starts fresh after auth
-                await signOut()
+                activeScreen = .onboarding
             case .unauthorized:
                 activeScreen = .auth
             default:
