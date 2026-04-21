@@ -3,12 +3,13 @@ import Foundation
 struct GameData: Codable {
     let factions: [String: FactionData]
     let resources: [String]
-    let units: [String: [String: UnitStats]]
-    let clanUnit: [String: ClanUnitStats]
+    let units: [String: UnitStats]
+    let clanUnit: [String: ClanUnitStats]?
     let buildingFormulas: BuildingFormulas
     let buildings: BuildingsData
-    let techTree: [String: TechBranch]
+    let techTree: TechTreeData
     let map: MapData
+    let movement: MovementData?
     let combat: CombatData
     let syndikat: SyndikatData
     let clanBuildings: [String: ClanBuildingData]
@@ -30,7 +31,6 @@ struct FactionData: Codable {
 // MARK: - Units
 
 struct UnitStats: Codable {
-    let role: String
     let atk: Int
     let def: Int
     let spd: Int
@@ -38,19 +38,9 @@ struct UnitStats: Codable {
     let energy: Int
     let trainMin: Int
     let cost: [String: Int]
-    let special: String?
-    let scout: Int?
-    let siege: Int?
-    let defAway: Int?
-    let auraValue: Int?
-    let auraMaxStack: Int?
-    let shieldPct: Double?
-    let counterScout: Int?
-    let pveBonus: Double?
-    let bypassPct: Double?
-    let catchMultiplier: Double?
-    let productionPenalty: Double?
-    let penaltyHours: Int?
+    let trainsAt: String
+    let unlockLevel: Int
+    let maxPerClan: Int?
 }
 
 struct ClanUnitStats: Codable {
@@ -105,10 +95,20 @@ struct FixedBuildingData: Codable {
 
 // MARK: - Tech Tree
 
-struct TechBranch: Codable {
-    let levels: Int
-    let bonuses: [Double]?
-    let capstone: String
+struct TechTreeData: Codable {
+    let researchCostMultiplier: Double?
+    let researchTimeMultiplier: Double?
+    let universal: [String: TechBranchData]
+    let faction: [String: TechBranchData]
+}
+
+struct TechBranchData: Codable {
+    let faction: String?
+    let maxLevel: Int
+    let pointCosts: [Int]
+    let baseCost: [String: Int]
+    let baseTimeMinutes: Int
+    let effects: [[String: AnyCodableValue]]
 }
 
 // MARK: - Map
@@ -135,9 +135,18 @@ struct RarityData: Codable {
     let distribution: Double
 }
 
+// MARK: - Movement
+
+struct MovementData: Codable {
+    let warpGateDelayMinutes: Int?
+    let warpGateInterceptionEnabled: Bool?
+}
+
 // MARK: - Combat
 
 struct CombatData: Codable {
+    let wallHpPerLevel: Int?
+    let lootMaxPerAttack: Int?
     let casualtyMultiplier: Double
     let rallyBonusPerPlayer: Double
     let rallyMaxPlayers: Int

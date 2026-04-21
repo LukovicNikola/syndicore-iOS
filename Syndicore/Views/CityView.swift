@@ -44,11 +44,29 @@ struct CityView: View {
                 Spacer()
                 BottomHUD(
                     constructionQueue: city?.constructionQueue,
-                    trainingJobs: gameState.activeTrainingJobs,
-                    onOpenTraining: { showTraining = true }
+                    trainingJobs: gameState.activeTrainingJobs
                 )
             }
             .ignoresSafeArea(edges: .bottom)
+
+            // MARK: Train dugme — donji levi ugao, iznad safe area
+            VStack {
+                Spacer()
+                HStack {
+                    Button(action: { showTraining = true }) {
+                        Label("Train", systemImage: "person.2.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 9)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                            .foregroundStyle(.white)
+                    }
+                    Spacer()
+                }
+                .padding(.leading, 20)
+                .padding(.bottom, 90)
+            }
         }
         // Sheets
         .sheet(item: $selectedBuilding) { building in

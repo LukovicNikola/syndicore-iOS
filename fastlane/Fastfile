@@ -5,11 +5,22 @@ platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
 
+    create_keychain(
+      name: "build.keychain",
+      password: "buildpassword",
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false
+    )
+
     match(
       type: "appstore",
       readonly: true,
       git_url: "https://github.com/LukovicNikola/syndicore-certificates.git",
-      app_identifier: "com.syndicore.ios"
+      app_identifier: "com.syndicore.ios",
+      keychain_name: "build.keychain",
+      keychain_password: "buildpassword"
     )
 
     update_code_signing_settings(

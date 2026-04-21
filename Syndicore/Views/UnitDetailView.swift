@@ -3,7 +3,6 @@ import SwiftUI
 struct UnitDetailView: View {
     let name: String
     let stats: UnitStats
-    let faction: Faction
 
     private var displayName: String {
         name.replacingOccurrences(of: "_", with: " ").capitalized
@@ -26,38 +25,9 @@ struct UnitDetailView: View {
                 }
             }
 
-            if let special = stats.special {
-                Section("Ability") {
-                    Label(special.replacingOccurrences(of: "_", with: " "), systemImage: "star.fill")
-                        .foregroundStyle(.yellow)
-
-                    if let scout = stats.scout {
-                        StatRow(label: "Scout Range", value: "\(scout)", icon: "eye.fill", tint: .cyan)
-                    }
-                    if let siege = stats.siege {
-                        StatRow(label: "Siege Power", value: "\(siege)", icon: "hammer.fill", tint: .red)
-                    }
-                    if let counterScout = stats.counterScout {
-                        StatRow(label: "Counter-Scout", value: "\(counterScout)", icon: "eye.trianglebadge.exclamationmark", tint: .orange)
-                    }
-                    if let shieldPct = stats.shieldPct {
-                        StatRow(label: "Shield", value: "\(Int(shieldPct * 100))%", icon: "shield.checkered", tint: .blue)
-                    }
-                    if let bypassPct = stats.bypassPct {
-                        StatRow(label: "Warehouse Bypass", value: "\(Int(bypassPct * 100))%", icon: "lock.open.fill", tint: .orange)
-                    }
-                    if let pveBonus = stats.pveBonus {
-                        StatRow(label: "PvE Bonus", value: "+\(Int(pveBonus * 100))%", icon: "target", tint: .green)
-                    }
-                    if let prodPenalty = stats.productionPenalty, let hours = stats.penaltyHours {
-                        StatRow(label: "Econ Damage", value: "-\(Int(prodPenalty * 100))% for \(hours)h", icon: "chart.line.downtrend.xyaxis", tint: .red)
-                    }
-                }
-            }
-
             Section("Info") {
-                LabeledContent("Role", value: stats.role.capitalized)
-                LabeledContent("Faction", value: faction.displayName)
+                LabeledContent("Trains At", value: stats.trainsAt.replacingOccurrences(of: "_", with: " ").capitalized)
+                LabeledContent("Unlock Level", value: "\(stats.unlockLevel)")
             }
         }
         .navigationTitle(displayName)

@@ -2,30 +2,16 @@ import SwiftUI
 
 struct UnitsView: View {
     let gameData: GameData
-    @State private var selectedFaction: Faction = .reapers
-
     private var units: [(name: String, stats: UnitStats)] {
-        let key = selectedFaction.rawValue.lowercased()
-        guard let factionUnits = gameData.units[key] else { return [] }
-        return factionUnits.map { (name: $0.key, stats: $0.value) }
+        gameData.units.map { (name: $0.key, stats: $0.value) }
             .sorted { $0.stats.energy < $1.stats.energy }
     }
 
     var body: some View {
         List {
-            Picker("Faction", selection: $selectedFaction) {
-                ForEach(Faction.allCases) { faction in
-                    Text(faction.displayName).tag(faction)
-                }
-            }
-            .pickerStyle(.segmented)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
-            .padding(.horizontal)
-
             ForEach(units, id: \.name) { unit in
                 NavigationLink {
-                    UnitDetailView(name: unit.name, stats: unit.stats, faction: selectedFaction)
+                    UnitDetailView(name: unit.name, stats: unit.stats)
                 } label: {
                     UnitRow(name: unit.name, stats: unit.stats)
                 }
@@ -44,7 +30,7 @@ private struct UnitRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(name.replacingOccurrences(of: "_", with: " ").capitalized)
                     .font(.headline)
-                Text(stats.role.capitalized)
+                Text("Trains at \(stats.trainsAt.replacingOccurrences(of: "_", with: " ").capitalized)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

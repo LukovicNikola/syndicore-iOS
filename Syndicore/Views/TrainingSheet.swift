@@ -9,21 +9,15 @@ struct TrainingSheet: View {
     @State private var isTraining = false
     @State private var errorMessage: String?
 
-    private var factionKey: String? {
-        gameState.activePlayerWorld?.faction.rawValue.lowercased()
-    }
-
     private var availableUnits: [(name: String, stats: UnitStats)] {
-        guard let key = factionKey,
-              let gameData = gameState.gameConstants.gameData,
-              let units = gameData.units[key] else { return [] }
-        return units.map { (name: $0.key, stats: $0.value) }
+        guard let gameData = gameState.gameConstants.gameData else { return [] }
+        return gameData.units.map { (name: $0.key, stats: $0.value) }
             .sorted { $0.stats.energy < $1.stats.energy }
     }
 
     @ViewBuilder
     private func unitRow(unit: (name: String, stats: UnitStats)) -> some View {
-        let subtitle = "\(unit.stats.role.capitalized) · ATK \(unit.stats.atk) · DEF \(unit.stats.def)"
+        let subtitle = "ATK \(unit.stats.atk) · DEF \(unit.stats.def) · SPD \(unit.stats.spd)"
         let isSelected = selectedUnit == unit.name
         HStack {
             VStack(alignment: .leading, spacing: 2) {
