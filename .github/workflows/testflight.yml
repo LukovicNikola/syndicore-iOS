@@ -40,7 +40,7 @@ jobs:
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-              <key>supabase_url</key>
+              <key>SUPABASE_URL</key>
               <string>${{ secrets.SUPABASE_URL }}</string>
               <key>SUPABASE_ANON_KEY</key>
               <string>${{ secrets.SUPABASE_ANON_KEY }}</string>
