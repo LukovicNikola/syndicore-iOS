@@ -22,7 +22,12 @@ struct BuildSheet: View {
                     )
                 } else {
                     List(buildableTypes, id: \.self) { type in
-                        BuildableRow(buildingType: type, cityId: cityId, disabled: hasQueue)
+                        BuildableRow(
+                            buildingType: type,
+                            cityId: cityId,
+                            disabled: hasQueue,
+                            costPreview: costPreview(for: type)
+                        )
                     }
                 }
             }
@@ -35,6 +40,38 @@ struct BuildSheet: View {
             }
         }
     }
+
+    /// Računa cost za level 1 nove zgrade iz game-constants.json
+    private func costPreview(for type: BuildingType) -> BuildCostPreview? {
+        guard let gd = gameState.gameConstants.gameData else { return nil }
+        let key = type.rawValue.lowercased()
+
+        // Probaj resource buildings pa fixed buildings
+        if let rb = gd.buildings.resource[key] {
+            return BuildCostPreview(
+                credits: rb.baseCost["credits"] ?? 0,
+                alloys: rb.baseCost["alloys"] ?? 0,
+                tech: rb.baseCost["tech"] ?? 0,
+                durationMinutes: rb.baseTimeMinutes
+            )
+        }
+        if let fb = gd.buildings.fixed[key] {
+            return BuildCostPreview(
+                credits: fb.baseCost["credits"] ?? 0,
+                alloys: fb.baseCost["alloys"] ?? 0,
+                tech: fb.baseCost["tech"] ?? 0,
+                durationMinutes: fb.baseTimeMinutes
+            )
+        }
+        return nil
+    }
+}
+
+struct BuildCostPreview {
+    let credits: Int
+    let alloys: Int
+    let tech: Int
+    let durationMinutes: Int
 }
 
 // MARK: - Row
@@ -43,6 +80,7 @@ private struct BuildableRow: View {
     let buildingType: BuildingType
     let cityId: String
     let disabled: Bool
+    let costPreview: BuildCostPreview?
 
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
@@ -52,11 +90,20 @@ private struct BuildableRow: View {
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(buildingType.rawValue
                         .replacingOccurrences(of: "_", with: " ")
                         .capitalized)
                     .font(.subheadline)
+                if let cost = costPreview {
+                    HStack(spacing: 8) {
+                        if cost.credits > 0 { Label("\(cost.credits)", systemImage: "dollarsign.circle").font(.caption2) }
+                        if cost.alloys > 0  { Label("\(cost.alloys)", systemImage: "gearshape.fill").font(.caption2) }
+                        if cost.tech > 0    { Label("\(cost.tech)", systemImage: "cpu").font(.caption2) }
+                        Label("\(cost.durationMinutes)m", systemImage: "clock").font(.caption2)
+                    }
+                    .foregroundStyle(.secondary)
+                }
                 if let errorMessage {
                     Text(errorMessage)
                         .font(.caption)

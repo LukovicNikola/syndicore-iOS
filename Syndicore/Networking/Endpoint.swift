@@ -10,12 +10,14 @@ struct Endpoint {
     let method: HTTPMethod
     let requiresAuth: Bool
     let body: (any Encodable & Sendable)?
+    let queryItems: [URLQueryItem]
 
-    init(path: String, method: HTTPMethod = .get, requiresAuth: Bool = false, body: (any Encodable & Sendable)? = nil) {
+    init(path: String, method: HTTPMethod = .get, requiresAuth: Bool = false, body: (any Encodable & Sendable)? = nil, queryItems: [URLQueryItem] = []) {
         self.path = path
         self.method = method
         self.requiresAuth = requiresAuth
         self.body = body
+        self.queryItems = queryItems
     }
 }
 
@@ -68,7 +70,11 @@ extension Endpoint {
     }
 
     static func buildCost(cityId: String, buildingId: String) -> Endpoint {
-        Endpoint(path: "/api/v1/cities/\(cityId)/build-cost?buildingId=\(buildingId)", requiresAuth: true)
+        Endpoint(
+            path: "/api/v1/cities/\(cityId)/build-cost",
+            requiresAuth: true,
+            queryItems: [URLQueryItem(name: "buildingId", value: buildingId)]
+        )
     }
 
     static func train(cityId: String, unitType: String, count: Int) -> Endpoint {
@@ -90,8 +96,13 @@ extension Endpoint {
 extension Endpoint {
     static func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) -> Endpoint {
         Endpoint(
-            path: "/api/v1/worlds/\(worldId)/map?cx=\(cx)&cy=\(cy)&r=\(radius)",
-            requiresAuth: true
+            path: "/api/v1/worlds/\(worldId)/map",
+            requiresAuth: true,
+            queryItems: [
+                URLQueryItem(name: "cx", value: String(cx)),
+                URLQueryItem(name: "cy", value: String(cy)),
+                URLQueryItem(name: "r", value: String(radius))
+            ]
         )
     }
 }

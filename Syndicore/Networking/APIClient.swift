@@ -33,8 +33,10 @@ final class APIClient: @unchecked Sendable {
 
     // MARK: - Generic request
 
-    func request<T: Decodable>(_ endpoint: Endpoint, as type: T.Type) async throws -> T {
-        let (data, _) = try await raw(endpoint)
+    func request<T: Decodable>(_ endpoint: Endpoint, as type: T.Type, timeout: TimeInterval? = nil) async throws -> T {
+        let (data, _) = try await withOptionalTimeout(timeout) {
+            try await self.raw(endpoint)
+        }
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
@@ -43,8 +45,28 @@ final class APIClient: @unchecked Sendable {
         }
     }
 
-    func requestVoid(_ endpoint: Endpoint) async throws {
-        let _ = try await raw(endpoint)
+    func requestVoid(_ endpoint: Endpoint, timeout: TimeInterval? = nil) async throws {
+        let _ = try await withOptionalTimeout(timeout) {
+            try await self.raw(endpoint)
+        }
+    }
+
+    // MARK: - Timeout helper
+
+    /// Wraps an async operation with an optional timeout. If timeout is nil, runs without timeout.
+    /// URLSession already has a 90s timeout for Render cold starts; this adds a per-request cap.
+    private func withOptionalTimeout<T: Sendable>(_ timeout: TimeInterval?, operation: @escaping @Sendable () async throws -> T) async throws -> T {
+        guard let timeout else { return try await operation() }
+        return try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask { try await operation() }
+            group.addTask {
+                try await Task.sleep(for: .seconds(timeout))
+                throw APIError.timeout(timeout)
+            }
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
     }
 
     // MARK: - Private
@@ -53,7 +75,14 @@ final class APIClient: @unchecked Sendable {
     /// Na 401: pokusava jedan refresh token + replay. Ako i posle refresh-a dobije 401,
     /// baca APIError.unauthorized (pozivalac treba da sign-out-uje korisnika).
     private func raw(_ endpoint: Endpoint, retryingAfter401: Bool = false) async throws -> (Data, HTTPURLResponse) {
-        guard let url = URL(string: endpoint.path, relativeTo: baseURL) else {
+        guard let baseEndpointURL = URL(string: endpoint.path, relativeTo: baseURL),
+              var components = URLComponents(url: baseEndpointURL, resolvingAgainstBaseURL: true) else {
+            throw APIError.invalidURL
+        }
+        if !endpoint.queryItems.isEmpty {
+            components.queryItems = (components.queryItems ?? []) + endpoint.queryItems
+        }
+        guard let url = components.url else {
             throw APIError.invalidURL
         }
 
@@ -148,7 +177,7 @@ extension APIClient {
 
     // Worlds
     func worlds() async throws -> [World] {
-        try await request(.worlds, as: WorldsResponse.self).worlds
+        try await request(.worlds, as: WorldsResponse.self, timeout: 30).worlds
     }
 
     func joinWorld(id: String, faction: Faction) async throws -> JoinWorldResponse {
@@ -157,12 +186,12 @@ extension APIClient {
 
     // City
     func city(id: String) async throws -> City {
-        try await request(.city(id: id), as: CityResponse.self).city
+        try await request(.city(id: id), as: CityResponse.self, timeout: 30).city
     }
 
     // Map
     func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) async throws -> MapViewport {
-        try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapViewport.self)
+        try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapViewport.self, timeout: 30)
     }
 
     // Movements

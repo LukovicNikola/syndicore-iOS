@@ -103,7 +103,7 @@ struct BuildResponse: Codable {
 }
 
 struct BuildCostResponse: Codable {
-    let buildingType: String
+    let buildingType: BuildingType
     let currentLevel: Int
     let targetLevel: Int
     let cost: Resources

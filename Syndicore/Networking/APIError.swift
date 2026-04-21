@@ -16,6 +16,7 @@ enum APIError: LocalizedError {
     case networkError(Error)
     case decodingError(Error)
     case unexpectedStatus(Int, Data)
+    case timeout(TimeInterval)
 
     var errorDescription: String? {
         switch self {
@@ -29,6 +30,7 @@ enum APIError: LocalizedError {
         case .networkError(let err): err.localizedDescription
         case .decodingError(let err): "Decoding error: \(err.localizedDescription)"
         case .unexpectedStatus(let code, _): "Unexpected status: \(code)"
+        case .timeout(let seconds): "Request timed out after \(Int(seconds))s"
         }
     }
 }

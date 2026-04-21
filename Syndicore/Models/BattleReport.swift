@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 struct BattleReport: Codable, Identifiable {
     let id: String
@@ -38,9 +39,15 @@ struct ArmySnapshot: Codable {
         try c.encode(lost.stringKeyed(), forKey: .lost)
     }
 
+    private static let log = Logger(subsystem: "com.syndicore.ios", category: "ArmySnapshot")
+
     private static func decodeUnitDict(_ raw: [String: Int]) -> [UnitType: Int] {
         raw.reduce(into: [:]) { acc, kv in
-            if let unit = UnitType(rawValue: kv.key) { acc[unit] = kv.value }
+            if let unit = UnitType(rawValue: kv.key) {
+                acc[unit] = kv.value
+            } else {
+                log.warning("Unknown UnitType '\(kv.key, privacy: .public)' dropped during decoding (count: \(kv.value))")
+            }
         }
     }
 }
@@ -69,7 +76,12 @@ struct TroopMovement: Codable, Identifiable {
         to          = try c.decode(Coordinate.self,   forKey: .to)
         let rawUnits = try c.decode([String: Int].self, forKey: .units)
         units       = rawUnits.reduce(into: [:]) { acc, kv in
-            if let unit = UnitType(rawValue: kv.key) { acc[unit] = kv.value }
+            if let unit = UnitType(rawValue: kv.key) {
+                acc[unit] = kv.value
+            } else {
+                Logger(subsystem: "com.syndicore.ios", category: "TroopMovement")
+                    .warning("Unknown UnitType '\(kv.key, privacy: .public)' dropped during decoding (count: \(kv.value))")
+            }
         }
         viaGates    = try c.decode([String].self,     forKey: .viaGates)
         departedAt  = try c.decode(Date.self,         forKey: .departedAt)
