@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Donji HUD overlay — aktivna gradnja + dugme za trening.
+/// Donji HUD overlay — aktivna gradnja + trening queue + dugme za trening.
 struct BottomHUD: View {
     let constructionQueue: ConstructionQueue?
+    let trainingJobs: [TrainingJob]
     let onOpenTraining: () -> Void
 
     var body: some View {
@@ -19,6 +20,24 @@ struct BottomHUD: View {
                         .foregroundStyle(.white)
                     Spacer()
                     CountdownLabel(endsAt: endsAt)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 20)
+            }
+
+            // Aktivni trening jobs
+            ForEach(trainingJobs) { job in
+                HStack {
+                    Image(systemName: "person.fill.badge.plus")
+                        .foregroundStyle(.cyan)
+                    Text("\(job.count)× \(job.unitType.rawValue.capitalized)")
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                    Spacer()
+                    CountdownLabel(endsAt: job.endsAt)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)

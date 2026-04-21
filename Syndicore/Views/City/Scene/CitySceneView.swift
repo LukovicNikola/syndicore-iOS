@@ -12,10 +12,6 @@ struct CitySceneView: UIViewRepresentable {
     /// Parent SwiftUI view treba da pozove refreshCity() da povuče novi state sa BE-a.
     var onConstructionComplete: () -> Void = {}
 
-    /// One-shot trigger za reset kamere — increment-uj iz parent SwiftUI view-a (npr. recenter dugme).
-    /// updateUIView detektuje promenu vrednosti i poziva scene.resetCamera().
-    var cameraResetCounter: Int = 0
-
     /// Toggle debug grid overlay (cyan diamonds + anchor dots).
     /// Menja se iz SettingsView preko `@AppStorage("debug.cityGridOverlay")`.
     @AppStorage("debug.cityGridOverlay") private var debugOverlay: Bool = false
@@ -24,7 +20,6 @@ struct CitySceneView: UIViewRepresentable {
 
     final class Coordinator {
         var scene: CityScene?
-        var lastResetCounter: Int = 0
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -43,7 +38,6 @@ struct CitySceneView: UIViewRepresentable {
         scene.onTapEmptySlot         = onTapEmptySlot
         scene.onConstructionComplete = onConstructionComplete
         context.coordinator.scene = scene
-        context.coordinator.lastResetCounter = cameraResetCounter
 
         skView.presentScene(scene)
 
@@ -64,11 +58,5 @@ struct CitySceneView: UIViewRepresentable {
 
         if let city { scene.configure(with: city) }
         scene.setDebugOverlay(debugOverlay)
-
-        // One-shot reset kamere ako je counter inkrementovan
-        if cameraResetCounter != context.coordinator.lastResetCounter {
-            scene.resetCamera()
-            context.coordinator.lastResetCounter = cameraResetCounter
-        }
     }
 }

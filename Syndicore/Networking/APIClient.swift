@@ -208,9 +208,9 @@ extension APIClient {
         try await request(.build(cityId: cityId, body: BuildUpgradeRequest(buildingId: buildingId)), as: BuildResponse.self)
     }
 
-    func buildNew(cityId: String, buildingType: BuildingType) async throws -> BuildResponse {
-        struct Body: Encodable { let buildingType: String }
-        return try await request(.build(cityId: cityId, body: Body(buildingType: buildingType.rawValue)), as: BuildResponse.self)
+    func buildNew(cityId: String, buildingType: BuildingType, slotIndex: Int? = nil) async throws -> BuildResponse {
+        struct Body: Encodable { let buildingType: String; let slotIndex: Int? }
+        return try await request(.build(cityId: cityId, body: Body(buildingType: buildingType.rawValue, slotIndex: slotIndex)), as: BuildResponse.self)
     }
 
     func train(cityId: String, unitType: String, count: Int) async throws -> TrainResponse {

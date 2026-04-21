@@ -15,22 +15,18 @@ final class BuildingNode: SKNode {
     /// Public read-access da CityScene može da prikači onComplete callback.
     private(set) var progressNode: ConstructionProgressNode?
 
-    /// Scaffold sprite size — non-uniform, prati staro ponašanje. Refaktor kad bude novi scaffold sprite.
-    private static let scaffoldSize = CGSize(
-        width:  Isometric.tileWidth,
-        height: Isometric.tileHeight * 1.5
-    )
-
     init(building: BuildingInfo, col: Int, row: Int, forceScaffold: Bool = false, queueEndsAt: Date? = nil) {
         self.building = building
         let spec = SpriteCatalog.spec(for: building.type)
+        let scaffoldSpec = SpriteCatalog.scaffold
 
         // Pripremi sprite pre super.init (Swift 6 init order)
         var resolvedSprite: SKSpriteNode? = nil
         if building.isUpgrading || forceScaffold {
-            let scaffold = SKSpriteNode(imageNamed: "construction_scaffold_v1")
-            scaffold.size = Self.scaffoldSize
-            scaffold.anchorPoint = CGPoint(x: 0.5, y: 0.0)
+            let scaffold = SKSpriteNode(imageNamed: scaffoldSpec.assetName)
+            scaffold.size = scaffoldSpec.renderSize
+            scaffold.anchorPoint = scaffoldSpec.anchor
+            scaffold.zRotation = scaffoldSpec.rotationRadians
             resolvedSprite = scaffold
         } else if SpriteCatalog.assetExists(spec) {
             let sprite = SKSpriteNode(imageNamed: spec.assetName)
@@ -65,8 +61,9 @@ final class BuildingNode: SKNode {
         let effectiveEndsAt = building.endsAt ?? queueEndsAt
         if (building.isUpgrading || forceScaffold), let endsAt = effectiveEndsAt {
             let progress = ConstructionProgressNode(endsAt: endsAt)
-            // Pozicija iznad scaffold-a (scaffold height ≈ tileHeight * 1.5 = 96)
-            progress.position = CGPoint(x: 0, y: Isometric.tileHeight * 1.7)
+            // Pozicija iznad scaffold-a — vrh scaffold-a je renderHeight × (1 - anchorY) iznad anchor-a
+            let scaffoldTop = scaffoldSpec.renderHeight * (1 - scaffoldSpec.anchor.y)
+            progress.position = CGPoint(x: 0, y: scaffoldTop + 8)
             progress.zPosition = 0.5  // iznad scaffold-a u istom node-u
             addChild(progress)
             self.progressNode = progress

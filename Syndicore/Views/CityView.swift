@@ -9,9 +9,6 @@ struct CityView: View {
     @State private var showHQInfo    = false
     @State private var showTraining  = false
 
-    /// Increment-uje se kad user tapne recenter dugme — CitySceneView observira i poziva resetCamera().
-    @State private var cameraResetCounter: Int = 0
-
     private var city: City? { gameState.activeCity }
 
     var body: some View {
@@ -25,8 +22,7 @@ struct CityView: View {
                 onTapEmptySlot: { buildSlot = SlotSelection(id: $0) },
                 onConstructionComplete: {
                     Task { await gameState.refreshCity() }
-                },
-                cameraResetCounter: cameraResetCounter
+                }
             )
             .ignoresSafeArea()
 
@@ -38,33 +34,21 @@ struct CityView: View {
                         gameState.cityRefreshError = nil
                         Task { await gameState.refreshCity() }
                     }
+                    .task {
+                        try? await Task.sleep(for: .seconds(8))
+                        if !Task.isCancelled {
+                            withAnimation { gameState.cityRefreshError = nil }
+                        }
+                    }
                 }
                 Spacer()
                 BottomHUD(
                     constructionQueue: city?.constructionQueue,
+                    trainingJobs: gameState.activeTrainingJobs,
                     onOpenTraining: { showTraining = true }
                 )
             }
             .ignoresSafeArea(edges: .bottom)
-
-            // MARK: Floating recenter button (gornji desni ugao)
-            VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        cameraResetCounter += 1
-                    } label: {
-                        Image(systemName: "scope")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 40, height: 40)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
-                    .padding(.trailing, 16)
-                    .padding(.top, 60)  // ispod TopHUD-a
-                }
-                Spacer()
-            }
         }
         // Sheets
         .sheet(item: $selectedBuilding) { building in
@@ -78,6 +62,7 @@ struct CityView: View {
                 BuildSheet(
                     cityId: city.id,
                     hasQueue: city.constructionQueue != nil,
+                    usedResourceSlots: Set((city.buildings ?? []).compactMap { $0.slotIndex }),
                     buildableTypes: buildableTypes(city: city)
                 )
                 .presentationDetents([.medium, .large])
@@ -105,14 +90,25 @@ struct CityView: View {
 
     // MARK: - Helpers
 
-    /// Zgrade koje igrač još NIJE izgradio (prikazuje se u BuildSheet).
+    /// Zgrade koje igrač može da izgradi (prikazuje se u BuildSheet).
     private func buildableTypes(city: City) -> [BuildingType] {
-        // Zgrade koje postoje u gradu (i level 0 = pod izgradnjom) su nedostupne
-        let existingTypes = Set((city.buildings ?? []).map { $0.type })
-        return [
+        let buildings = city.buildings ?? []
+        let existingTypes = Set(buildings.map { $0.type })
+
+        // Fixed buildings: svaka se može izgraditi samo jednom
+        var result: [BuildingType] = [
             .BARRACKS, .MOTOR_POOL, .OPS_CENTER, .WAREHOUSE,
             .WALL, .WATCHTOWER, .RALLY_POINT, .TRADE_POST, .RESEARCH_LAB
         ].filter { !existingTypes.contains($0) }
+
+        // Resource buildings: mogu se graditi u flex slotovima dok ima slobodnih
+        let usedResourceSlots = buildings.compactMap { $0.slotIndex }.count
+        let totalResourceSlots = 10  // CityScene.resourceSlotPositions.count
+        if usedResourceSlots < totalResourceSlots {
+            result.append(contentsOf: [.DATA_BANK, .FOUNDRY, .TECH_LAB, .POWER_GRID])
+        }
+
+        return result
     }
 }
 

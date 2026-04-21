@@ -6,7 +6,11 @@ import SpriteKit
 final class ScaffoldNode: SKNode {
     init(col: Int, row: Int) {
         super.init()
-        let sprite = SKSpriteNode(imageNamed: "construction_scaffold_v1")
+        let spec = SpriteCatalog.scaffold
+        let sprite = SKSpriteNode(imageNamed: spec.assetName)
+        sprite.size = spec.renderSize
+        sprite.anchorPoint = spec.anchor
+        sprite.zRotation = spec.rotationRadians
         addChild(sprite)
         position  = Isometric.scenePosition(col: col, row: row)
         zPosition = Isometric.zDepth(col: col, row: row) + 0.5

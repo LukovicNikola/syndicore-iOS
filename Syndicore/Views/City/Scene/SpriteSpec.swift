@@ -167,6 +167,14 @@ enum SpriteCatalog {
         anchor: CGPoint(x: 0.500, y: 0.269)
     )
 
+    /// Construction scaffold — prikazuje se dok gradnja traje.
+    static let scaffold = SpriteSpec(
+        assetName: "construction_scaffold_v1",
+        footprint: (cols: 1, rows: 1),
+        renderHeight: Isometric.tileWidth * 0.79,
+        anchor: CGPoint(x: 0.500, y: 0.381)
+    )
+
     /// Standardna spec za 1×1 buildings. Sve buildings cited u SpriteCatalog.spec(for:) koriste ovo.
     static func standardBuilding(assetName: String) -> SpriteSpec {
         SpriteSpec(

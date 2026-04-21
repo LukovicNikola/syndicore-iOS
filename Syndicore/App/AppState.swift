@@ -55,6 +55,7 @@ final class GameState {
     var activeWorld: World?
     var activePlayerWorld: PlayerWorld?
     var activeCity: City?
+    var activeTrainingJobs: [TrainingJob] = []
 
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
@@ -154,7 +155,11 @@ final class GameState {
     func refreshCity() async {
         guard let cityId = activeCity?.id else { return }
         do {
-            activeCity = try await api.city(id: cityId)
+            async let cityTask = api.city(id: cityId)
+            async let trainingTask = api.trainingJobs(cityId: cityId)
+            let (city, jobs) = try await (cityTask, trainingTask)
+            activeCity = city
+            activeTrainingJobs = jobs
             cityRefreshError = nil
         } catch {
             // Zadrzi stale data ali upozori UI — korisnik mora da zna da je refresh otkazao.

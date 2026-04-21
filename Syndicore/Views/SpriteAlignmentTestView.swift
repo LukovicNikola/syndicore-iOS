@@ -191,8 +191,9 @@ struct SpriteAlignmentTestView: View {
     private var buildingPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             Picker("Sprite", selection: $selectedSprite) {
-                ForEach(TestSprite.allCases) { sprite in
-                    Text(sprite.displayName).tag(sprite)
+                Text("🔧 scaffold").tag(TestSprite.scaffold)
+                ForEach(BuildingType.allCases.filter { $0 != .HQ }, id: \.self) { type in
+                    Text(type.rawValue).tag(TestSprite.building(type))
                 }
             }
             .pickerStyle(.menu)

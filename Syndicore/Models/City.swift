@@ -51,11 +51,16 @@ struct BuildingInfo: Codable, Identifiable {
         type        = try c.decode(BuildingType.self,  forKey: .type)
         slotIndex   = try? c.decode(Int.self,          forKey: .slotIndex)
         targetLevel = try? c.decode(Int.self,          forKey: .targetLevel)
-        // "currentLevel" (novi BE) ili "level" (stari BE)
+        // "currentLevel" (novi BE) ili "level" (stari BE) — explicit throw ako oba fale
         if let v = try? c.decode(Int.self, forKey: .currentLevel) {
             currentLevel = v
+        } else if let v = try? c.decode(Int.self, forKey: .level) {
+            currentLevel = v
         } else {
-            currentLevel = try c.decode(Int.self, forKey: .level)
+            throw DecodingError.keyNotFound(
+                CodingKeys.currentLevel,
+                .init(codingPath: c.codingPath, debugDescription: "Neither 'currentLevel' nor 'level' found in BuildingInfo")
+            )
         }
         // "endsAt" (novi BE) ili "upgradeEnd" (stari BE)
         endsAt = (try? c.decode(Date.self, forKey: .endsAt))

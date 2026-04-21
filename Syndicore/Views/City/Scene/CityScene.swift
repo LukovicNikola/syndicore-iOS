@@ -27,8 +27,6 @@ final class CityScene: SKScene {
 
     private let worldNode = SKNode()
     private var skyboxNode: SKSpriteNode?
-    /// Gesture recognizeri koje smo mi dodali — čuvamo referencu da ih možemo
-    /// ukloniti ako se scena re-presentuje na nov SKView (izbjegava duplicate-e).
     private var attachedGestures: [UIGestureRecognizer] = []
 
     private let tileSet = CityTileSet.build()
@@ -43,6 +41,10 @@ final class CityScene: SKScene {
     /// BE ne setuje targetLevel/endsAt na building-u tokom gradnje nove zgrade.
     private var activeQueue: ConstructionQueue?
 
+    /// Building ID-evi koji su prethodno prikazivali scaffold — za fade-in animaciju
+    /// kad gradnja završi i scaffold se zameni pravim sprite-om.
+    private var scaffoldedBuildingIds: Set<String> = []
+
     /// Prethodne vrednosti resursa — za tick animaciju (diff prikazujemo iznad HQ-a).
     /// nil pri prvom configure() — ne prikazujemo tick ako još nemamo baseline.
     private var previousResources: Resources?
@@ -50,25 +52,15 @@ final class CityScene: SKScene {
     /// Debug overlay (cyan tile diamonds + magenta anchor dots) — togglable iz UI-ja.
     private var debugOverlay: DebugGridOverlayNode?
 
-    // MARK: - Camera state (zoom + pan)
+    // MARK: - Camera state
 
-    /// Default zoom i pan — tunirani u SpriteAlignmentTestView (Zoom tab).
-    private static let defaultZoom: CGFloat = 1.76
-    private static let defaultPan:  CGPoint  = CGPoint(x: 2, y: 20)
-    private static let minZoom: CGFloat = 0.7   // dovoljno daleko da se vidi ceo grid + walls
-    private static let maxZoom: CGFloat = 3.5   // dovoljno blizu za detalje pojedinačnog tile-a
+    /// Fiksiran zoom — tunirano u SpriteAlignmentTestView (Zoom tab).
+    private static let fixedZoom: CGFloat = 1.76
+    private static let fixedPan:  CGPoint = CGPoint(x: 2, y: 20)
+    private var baseScale: CGFloat = 1.0
 
-    private var userZoom: CGFloat = CityScene.defaultZoom
-    private var userPan: CGPoint  = CityScene.defaultPan
-    private var baseScale: CGFloat = 1.0  // izracunato u layoutWorld, fit-to-view bez zoom-a
-
-    // MARK: - Haptic feedback generators
-    // Držimo ih kao properties (ne lokalno) da bi taptic engine bio "warm"
-    // i reagovao instant na trigger (bez ~100ms spin-up delay-a).
-    private let hapticTap:   UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
-    private let hapticHQ:    UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
-    private let hapticReset: UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .rigid)
-    private let hapticZoomLimit: UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .soft)
+    private let hapticTap: UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    private let hapticHQ:  UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
 
     // MARK: - Visual grid coordinate mapping (6×6 layout)
     //
@@ -149,39 +141,22 @@ final class CityScene: SKScene {
             buildTileMap()
         }
 
-        // Gestures — uvek re-attach na novi view (uklanjamo stare da nema duplikata)
-        attachCameraGestures(to: view)
+        // Long-press gesture za tooltip — re-attach na novi view
+        attachLongPressGesture(to: view)
         // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
     }
 
-    /// Pinch + pan + double-tap gesture recognizers za camera kontrole.
-    /// Idempotent — uklanja prethodno zakačene gesture-e pre nego sto doda nove
-    /// (sprečava duplikate ako je scena re-presentovana na novi SKView).
-    private func attachCameraGestures(to view: SKView) {
+    private func attachLongPressGesture(to view: SKView) {
         attachedGestures.forEach { $0.view?.removeGestureRecognizer($0) }
         attachedGestures.removeAll()
 
-        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
-        view.addGestureRecognizer(pinch)
-        attachedGestures.append(pinch)
-
-        // Double-tap = brz reset kamere (alternativa za recenter button)
-        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
-        doubleTap.numberOfTapsRequired = 2
-        view.addGestureRecognizer(doubleTap)
-        attachedGestures.append(doubleTap)
-
-        // Long-press = prikaz tooltip-a iznad zgrade
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         longPress.minimumPressDuration = 0.5
         view.addGestureRecognizer(longPress)
         attachedGestures.append(longPress)
 
-        // Priprema haptic engines (warm-up da ne bude lag-a na prvom trigger-u)
         hapticTap.prepare()
         hapticHQ.prepare()
-        hapticReset.prepare()
-        hapticZoomLimit.prepare()
     }
 
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -219,55 +194,6 @@ final class CityScene: SKScene {
         worldNode.addChild(tooltip)
 
         hapticTap.impactOccurred(intensity: 0.7)
-    }
-
-    @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
-        guard gesture.state == .ended else { return }
-        resetCamera(animated: true)
-    }
-
-    /// Pinch zoom sa **pivot na centru gesture-a** (industrial standard).
-    /// Zoom se ponaša kao u Apple Maps — tačka ispod prsta ostaje ista.
-    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-        guard gesture.state == .changed || gesture.state == .ended else { return }
-        guard let view else { return }
-
-        // 1. Konvertuj finger lokaciju u scene space
-        let fingerInView = gesture.location(in: view)
-        let fingerInScene = sceneLocation(from: fingerInView, viewSize: view.bounds.size)
-
-        // 2. Sačuvaj worldNode-ov koordinatni tačku ispod prsta PRE zoom promene
-        let oldEffectiveScale = worldNode.xScale  // = baseScale * userZoom
-        let worldPointUnderFinger = CGPoint(
-            x: (fingerInScene.x - worldNode.position.x) / oldEffectiveScale,
-            y: (fingerInScene.y - worldNode.position.y) / oldEffectiveScale
-        )
-
-        // 3. Apply zoom delta (clamped)
-        let oldZoom = userZoom
-        let targetZoom = userZoom * gesture.scale
-        userZoom = max(Self.minZoom, min(Self.maxZoom, targetZoom))
-        gesture.scale = 1.0
-
-        // 4. Haptic ako smo pogodili limit (prvi put)
-        let atLimit = (userZoom == Self.minZoom || userZoom == Self.maxZoom)
-        let wasAtLimit = (oldZoom == Self.minZoom || oldZoom == Self.maxZoom)
-        if atLimit && !wasAtLimit {
-            hapticZoomLimit.impactOccurred(intensity: 0.6)
-        }
-
-        // 5. Izračunaj novi userPan tako da worldPointUnderFinger ostaje pod prstom
-        let newEffectiveScale = baseScale * userZoom
-        let hqOffsetY = -Isometric.hqCenterPosition.y * newEffectiveScale
-
-        // Želimo: worldNode.position = fingerInScene - worldPointUnderFinger × newScale
-        // A formula je: worldNode.position = (userPan.x, hqOffsetY + 40 + userPan.y)
-        // => userPan.x = fingerInScene.x - worldPointUnderFinger.x × newScale
-        // => userPan.y = fingerInScene.y - worldPointUnderFinger.y × newScale - hqOffsetY - 40
-        userPan.x = fingerInScene.x - worldPointUnderFinger.x * newEffectiveScale
-        userPan.y = fingerInScene.y - worldPointUnderFinger.y * newEffectiveScale - hqOffsetY - 40
-
-        applyTransforms()
     }
 
     /// Konvertuje tačku iz UIKit view coords (y-down, origin top-left) u scene coords
@@ -382,45 +308,16 @@ final class CityScene: SKScene {
         applyTransforms()
     }
 
-    /// Primenjuje (baseScale × userZoom) na worldNode + (basePosition + userPan).
-    /// Centriraj HQ na vertikalnoj sredini ekrana, pa dodaj user pan offset.
+    /// Primenjuje fiksni zoom + pan na worldNode.
     private func applyTransforms() {
-        let effectiveScale = baseScale * userZoom
+        let effectiveScale = baseScale * Self.fixedZoom
         worldNode.setScale(effectiveScale)
 
         let hqOffsetY = -Isometric.hqCenterPosition.y * effectiveScale
         worldNode.position = CGPoint(
-            x: userPan.x,
-            y: hqOffsetY + 40 + userPan.y
+            x: Self.fixedPan.x,
+            y: hqOffsetY + 40 + Self.fixedPan.y
         )
-    }
-
-    /// Reset zoom + pan na default vrednosti. Smooth animirano default-om (0.35s easeInEaseOut).
-    func resetCamera(animated: Bool = true) {
-        userZoom = Self.defaultZoom
-        userPan  = Self.defaultPan
-
-        guard animated, size.width > 0 else {
-            layoutWorld(viewSize: size)
-            return
-        }
-
-        // Ciljane vrednosti (ista formula kao applyTransforms)
-        let effectiveScale = baseScale * userZoom
-        let hqOffsetY = -Isometric.hqCenterPosition.y * effectiveScale
-        let targetPos = CGPoint(x: userPan.x, y: hqOffsetY + 40 + userPan.y)
-
-        // Otkazi prethodnu camera anim ako postoji (double-tap spam safety)
-        worldNode.removeAction(forKey: "cameraReset")
-
-        let scaleAction = SKAction.scale(to: effectiveScale, duration: 0.35)
-        scaleAction.timingMode = .easeInEaseOut
-        let moveAction = SKAction.move(to: targetPos, duration: 0.35)
-        moveAction.timingMode = .easeInEaseOut
-        worldNode.run(.group([scaleAction, moveAction]), withKey: "cameraReset")
-
-        // Haptic impact na kraju
-        hapticReset.impactOccurred()
     }
 
     // MARK: - Build Layers
@@ -465,6 +362,8 @@ final class CityScene: SKScene {
 
 
     private func rebuildBuildingLayer() {
+        let previousScaffolds = scaffoldedBuildingIds
+
         worldNode.children
             .filter { $0 is BuildingNode || $0 is HQNode }
             .forEach { $0.removeFromParent() }
@@ -484,19 +383,29 @@ final class CityScene: SKScene {
         worldNode.addChild(hq)
         hqNode = hq
 
+        var newScaffolds: Set<String> = []
+
         for building in buildings {
             guard building.type != .HQ else { continue }
             guard let c = coord(for: building) else { continue }
             // Forsiramo scaffold ako je ova zgrada u activeQueue — BE za novu zgradu
             // ponekad ne setuje targetLevel/endsAt na building-u, prati samo kroz queue.
-            // Forsiramo scaffold ako:
-            // a) BE je registrovao ovu zgradu u constructionQueue (upgrade ili nova gradnja sa queue podacima)
-            // b) building.currentLevel == 0 — zgrada nikad nije završena, sigurno je pod gradnjom
             let isInQueue = activeQueue?.buildingId == building.id
-            let forceScaffold = isInQueue || building.currentLevel == 0
+            let forceScaffold = isInQueue
+            let showsScaffold = forceScaffold || building.isUpgrading
+
+            if showsScaffold { newScaffolds.insert(building.id) }
+
             let bn = BuildingNode(building: building, col: c.col, row: c.row,
                                   forceScaffold: forceScaffold,
                                   queueEndsAt: forceScaffold ? activeQueue?.endsAt : nil)
+
+            // Fade-in ako je zgrada upravo završila gradnju (bila scaffold, sad nije)
+            if !showsScaffold && previousScaffolds.contains(building.id) {
+                bn.alpha = 0
+                bn.run(.fadeIn(withDuration: 0.5))
+            }
+
             worldNode.addChild(bn)
             // Wire construction-complete callback (samo za upgrading buildings)
             if let progress = bn.progressNode {
@@ -509,6 +418,8 @@ final class CityScene: SKScene {
             // kad je zgrada izgradjena ali nema sprajt asset-a (npr. foundry_v1 fali).
             tileMapNode?.setTileGroup(nil, forColumn: c.col, row: tmRow(c.row))
         }
+
+        scaffoldedBuildingIds = newScaffolds
     }
 
     /// Pozvan iz ConstructionProgressNode kad timer dođe na 0.
