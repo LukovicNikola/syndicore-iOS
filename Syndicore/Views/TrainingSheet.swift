@@ -111,7 +111,7 @@ struct TrainingSheet: View {
             await gameState.refreshCity()
             dismiss()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "\(error)"
         }
         isTraining = false
     }
