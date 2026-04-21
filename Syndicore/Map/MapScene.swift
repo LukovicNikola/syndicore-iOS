@@ -16,9 +16,11 @@ final class MapScene: SKScene {
 
     private let cameraNode = SKCameraNode()
     private let tileLayer = SKNode()
+    private let movementLayer = SKNode()  // iznad tile-ova
     private var tileNodes: [String: SKSpriteNode] = [:]
     private var occupantNodes: [String: SKSpriteNode] = [:]
     private var labelNodes: [String: SKLabelNode] = [:]
+    private var movementLineNodes: [String: MovementLineNode] = [:]  // keyed by movement.id
     private var lastFetchCenter = (cx: 0, cy: 0)
     private let fetchThreshold = 10
 
@@ -60,6 +62,11 @@ final class MapScene: SKScene {
 
         tileLayer.position = .zero
         addChild(tileLayer)
+
+        // Movement linije iznad tile-ova ali ispod occupant sprajtova
+        movementLayer.position = .zero
+        movementLayer.zPosition = 500   // well above tile zDepth (max ~100 for 50-tile grid)
+        addChild(movementLayer)
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         view.addGestureRecognizer(pinch)
@@ -143,6 +150,32 @@ final class MapScene: SKScene {
                 tileLayer.addChild(label)
                 labelNodes[key] = label
             }
+        }
+    }
+
+    // MARK: - Movement lines
+
+    /// Reconciles movement linije sa trenutnim state-om.
+    /// - Dodaje MovementLineNode za nove movements
+    /// - Uklanja linije cija movement.id vise nije u listi
+    /// - Postojece ostavlja (particle animacija nastavlja)
+    func setMovements(_ movements: [TroopMovement]) {
+        let activeIds = Set(movements.map { $0.id })
+
+        // Remove lines for movements that are no longer active
+        for (id, node) in movementLineNodes where !activeIds.contains(id) {
+            node.removeFromParent()
+            movementLineNodes.removeValue(forKey: id)
+        }
+
+        // Add new lines
+        for movement in movements {
+            guard movementLineNodes[movement.id] == nil else { continue }
+            let start = tileToWorld(col: movement.from.x, row: movement.from.y)
+            let end   = tileToWorld(col: movement.to.x,   row: movement.to.y)
+            let line = MovementLineNode(movement: movement, start: start, end: end)
+            movementLayer.addChild(line)
+            movementLineNodes[movement.id] = line
         }
     }
 

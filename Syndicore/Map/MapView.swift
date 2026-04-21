@@ -72,12 +72,26 @@ struct MapView: View {
             .presentationDetents([.medium, .large])
         }
         .animation(.easeInOut(duration: 0.2), value: selectedTile?.x)
+        .onChange(of: gameState.activeMovements.map(\.id)) { _, _ in
+            // Re-push movement lines na scene kad se lista menja
+            scene.setMovements(gameState.activeMovements)
+        }
         .task {
             setupCallbacks()
             if let tile = gameState.activeCity?.tile {
                 viewportCenter = (cx: tile.x, cy: tile.y)
             }
             await fetchViewport()
+            await gameState.refreshMovements()
+            scene.setMovements(gameState.activeMovements)
+
+            // Auto-refresh loop: svakih 30s osveži viewport + movements dok je view aktivan
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                if Task.isCancelled { return }
+                await fetchViewport()
+                await gameState.refreshMovements()
+            }
         }
     }
 

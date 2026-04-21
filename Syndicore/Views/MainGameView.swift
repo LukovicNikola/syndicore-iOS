@@ -20,6 +20,7 @@ struct MainGameView: View {
                 .tabItem {
                     Label("Army", systemImage: "shield")
                 }
+                .badge(gameState.activeMovements.count)
 
             SyndikatPlaceholderView()
                 .tabItem {
