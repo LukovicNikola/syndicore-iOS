@@ -15,6 +15,9 @@ struct MapView: View {
     @State private var isLoading = true
     @State private var viewportCenter = (cx: 0, cy: 0)
 
+    /// Kad user klikne Attack/Scout/etc u info card-u, ovo se setuje i otvara SendTroopsSheet.
+    @State private var sendTroopsTarget: SendTroopsTarget?
+
     private var worldId: String? {
         gameState.activePlayerWorld?.worldId
     }
@@ -44,12 +47,29 @@ struct MapView: View {
         }
         .overlay(alignment: .bottom) {
             if let tile = selectedTile {
-                TileInfoCard(tile: tile) {
-                    selectedTile = nil
-                }
+                TileInfoCard(
+                    tile: tile,
+                    onDismiss: { selectedTile = nil },
+                    onAction: { movementTypes in
+                        sendTroopsTarget = SendTroopsTarget(
+                            x: tile.x,
+                            y: tile.y,
+                            allowedMovementTypes: movementTypes
+                        )
+                    },
+                    homeTile: gameState.activeCity?.tile
+                )
                 .transition(.move(edge: .bottom))
                 .padding()
             }
+        }
+        .sheet(item: $sendTroopsTarget) { target in
+            SendTroopsSheet(
+                targetX: target.x,
+                targetY: target.y,
+                allowedMovementTypes: target.allowedMovementTypes
+            )
+            .presentationDetents([.medium, .large])
         }
         .animation(.easeInOut(duration: 0.2), value: selectedTile?.x)
         .task {
@@ -104,11 +124,51 @@ struct MapView: View {
     }
 }
 
+// MARK: - Send Troops Target
+
+/// Wrapper za .sheet(item:) — drzi target coords + allowed movement types.
+struct SendTroopsTarget: Identifiable {
+    var id: String { "\(x),\(y)" }
+    let x: Int
+    let y: Int
+    let allowedMovementTypes: [MovementType]
+}
+
 // MARK: - Tile Info Card
 
 private struct TileInfoCard: View {
     let tile: MapTile
     let onDismiss: () -> Void
+    let onAction: ([MovementType]) -> Void
+    /// Igracev home city tile — da znamo da li user taphe svoju ili stranu lokaciju.
+    let homeTile: TileInfo?
+
+    /// Da li je ovaj tile igračev home city? Onda nema Send dugme.
+    private var isOwnCity: Bool {
+        guard let home = homeTile else { return false }
+        return home.x == tile.x && home.y == tile.y
+    }
+
+    /// Movement type-ovi koji su validni za tap na ovaj tile.
+    /// Pravila (client-side validacija; BE ima final say):
+    /// - Enemy city: ATTACK, RAID, SCOUT, REINFORCE, TRANSPORT
+    /// - Outpost: ATTACK, SCOUT
+    /// - Mine: ATTACK, SCOUT
+    /// - Warp Gate: SCOUT
+    /// - Ruins: SCOUT
+    /// - Empty tile: SETTLE (samo sa SETTLER unit)
+    /// - Own city: nijedan (nije self-target)
+    private var allowedActions: [MovementType] {
+        if isOwnCity { return [] }
+        if tile.city != nil {
+            return [.ATTACK, .RAID, .SCOUT, .REINFORCE, .TRANSPORT]
+        }
+        if tile.outpost != nil { return [.ATTACK, .SCOUT] }
+        if tile.mine != nil    { return [.ATTACK, .SCOUT] }
+        if tile.warpGate != nil { return [.SCOUT] }
+        if tile.ruins != nil    { return [.SCOUT] }
+        return [.SETTLE]
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -162,10 +222,51 @@ private struct TileInfoCard: View {
                     .font(.caption)
                     .foregroundStyle(.gray)
             }
+
+            // Action dugme — vidljivo samo ako nije home city i ima validnih movement type-ova
+            if !isOwnCity, !allowedActions.isEmpty {
+                Divider()
+                    .padding(.vertical, 2)
+                Button {
+                    onAction(allowedActions)
+                } label: {
+                    Label(primaryActionLabel, systemImage: primaryActionIcon)
+                        .font(.footnote.bold())
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(actionTint)
+            } else if isOwnCity {
+                Text("Your home base")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
+            }
         }
         .padding(12)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    /// Primary action label — pokazuje najagresivniju dozvoljenu akciju.
+    private var primaryActionLabel: String {
+        if allowedActions.contains(.ATTACK) { return "Send Troops" }
+        if allowedActions.contains(.SCOUT) { return "Scout" }
+        if allowedActions.contains(.SETTLE) { return "Settle" }
+        return "Send"
+    }
+
+    private var primaryActionIcon: String {
+        if allowedActions.contains(.ATTACK) { return "shield.lefthalf.filled.badge.checkmark" }
+        if allowedActions.contains(.SCOUT) { return "eye" }
+        if allowedActions.contains(.SETTLE) { return "flag.fill" }
+        return "arrow.forward.circle"
+    }
+
+    private var actionTint: Color {
+        if allowedActions.contains(.ATTACK) { return .red }
+        if allowedActions.contains(.SCOUT) { return .cyan }
+        return .blue
     }
 
     private var ringColor: Color {

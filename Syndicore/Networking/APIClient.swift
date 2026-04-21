@@ -245,6 +245,33 @@ extension APIClient {
         try await requestVoid(.skipMovement(worldId: worldId, movementId: movementId))
     }
 
+    // Send Troops
+    /// Šalje vojsku iz grada `cityId` na tile `(targetX, targetY)` sa tipom pokreta
+    /// `movementType` (ATTACK / RAID / SCOUT / REINFORCE / TRANSPORT / SETTLE).
+    /// BE vraca kreirani `TroopMovement` + `Route` (direct ili preko warp gate-ova).
+    func sendTroops(
+        cityId: String,
+        targetX: Int,
+        targetY: Int,
+        units: [UnitType: Int],
+        movementType: MovementType
+    ) async throws -> SendTroopsResponse {
+        // BE ocekuje string keys za units (UnitType rawValue-ovi)
+        let stringKeyedUnits = units.reduce(into: [String: Int]()) { acc, pair in
+            acc[pair.key.rawValue] = pair.value
+        }
+        let body = SendTroopsRequest(
+            targetX: targetX,
+            targetY: targetY,
+            units: stringKeyedUnits,
+            movementType: movementType.rawValue
+        )
+        return try await request(
+            .sendTroops(cityId: cityId, body: body),
+            as: SendTroopsResponse.self
+        )
+    }
+
     // Reports (paginated)
     /// Vraca jednu stranu battle reports-a. Za prvu stranu `before` = nil.
     /// Za sledecu stranu, prosledi `nextCursor` iz prethodne odgovora.

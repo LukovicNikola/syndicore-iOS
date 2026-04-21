@@ -1,10 +1,15 @@
 import SwiftUI
 
 /// Countdown tajmer koji se automatski ažurira svake sekunde.
+/// Podrzava onComplete callback koji se fire-uje tacno jednom kad tajmer dostigne 0.
+/// Korisno za auto-refresh u view-ovima (npr. movement arrival → refreshMovements).
 struct CountdownLabel: View {
     let endsAt: Date
+    /// Pozvan tacno jednom kad tajmer dostigne 0. Parent view koristi za auto-refresh.
+    var onComplete: (() -> Void)? = nil
 
     @State private var remaining: TimeInterval = 0
+    @State private var didFireComplete = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -26,5 +31,10 @@ struct CountdownLabel: View {
 
     private func updateRemaining() {
         remaining = max(0, endsAt.timeIntervalSinceNow)
+        // Fire onComplete tacno jednom kad tajmer dostigne 0
+        if remaining <= 0, !didFireComplete {
+            didFireComplete = true
+            onComplete?()
+        }
     }
 }
