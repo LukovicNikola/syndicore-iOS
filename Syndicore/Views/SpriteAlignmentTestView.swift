@@ -32,12 +32,28 @@ struct SpriteAlignmentTestView: View {
     @State private var rotationDegrees: Double = 0.00
     @State private var cameraZoom: Double = 1.00
 
+    // MARK: - Map tile tuning state
+
+    @State private var mapTileWidth: Double = 88
+    @State private var mapTileHeight: Double = 50
+    @State private var mapSpacingX: Double = -4.9
+    @State private var mapSpacingY: Double = -10.8
+    @State private var mapColorBlend: Double = 0.0
+    @State private var mapScene: MapTileTestScene?
+
+    // Occupant tuning
+    @State private var mapSelectedOccupant: MapOccupantType = .city
+    @State private var mapOccScale: Double = 1.4
+    @State private var mapOccAnchorX: Double = 0.5
+    @State private var mapOccAnchorY: Double = 0.12
+
 
     enum Mode: String, CaseIterable, Identifiable {
         case hq       = "HQ"
         case building = "1×1"
         case grid     = "Grid"
         case cityZoom = "Zoom"
+        case mapTile  = "Map"
         var id: String { rawValue }
     }
 
@@ -57,6 +73,25 @@ struct SpriteAlignmentTestView: View {
 
         static var allCases: [TestSprite] {
             [.scaffold] + BuildingType.allCases.filter { $0 != .HQ }.map { .building($0) }
+        }
+    }
+
+    enum MapOccupantType: String, CaseIterable, Identifiable {
+        case city     = "map_city_v1"
+        case outpost  = "map_outpost_v1"
+        case mine     = "map_mine_v1"
+        case warpGate = "map_warp_gate_v1"
+        case ruins    = "map_ruins_v1"
+
+        var id: String { rawValue }
+        var displayName: String {
+            switch self {
+            case .city:     "City"
+            case .outpost:  "Outpost"
+            case .mine:     "Mine"
+            case .warpGate: "Warp Gate"
+            case .ruins:    "Ruins"
+            }
         }
     }
 
@@ -94,6 +129,8 @@ struct SpriteAlignmentTestView: View {
                 zoomFullscreen
             } else if selectedMode == .grid {
                 gridLayout
+            } else if selectedMode == .mapTile {
+                mapTileLayout
             } else {
                 normalLayout
             }
@@ -152,6 +189,127 @@ struct SpriteAlignmentTestView: View {
                 .padding(.bottom, 4)
                 .background(.thinMaterial)
             TileGridEditorView()
+        }
+    }
+
+    /// Map tile tuning — SpriteKit scene sa 7×7 gridom map tile-ova + sliders.
+    private var mapTileLayout: some View {
+        VStack(spacing: 0) {
+            if let ms = mapScene {
+                SpriteView(scene: ms)
+                    .ignoresSafeArea(edges: .top)
+                    .frame(maxHeight: .infinity)
+            } else {
+                Color.black.frame(maxHeight: .infinity)
+                    .overlay { ProgressView() }
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    modePicker
+
+                    Text("MAP TILE TUNING")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+
+                    labeledSlider(label: "Width",    value: $mapTileWidth,   range: 48...256,   format: "%.0f")
+                    labeledSlider(label: "Height",   value: $mapTileHeight,  range: 24...128,   format: "%.0f")
+                    labeledSlider(label: "Gap X",    value: $mapSpacingX,    range: -20...20,   format: "%+.1f")
+                    labeledSlider(label: "Gap Y",    value: $mapSpacingY,    range: -20...20,   format: "%+.1f")
+                    labeledSlider(label: "Grey %",   value: $mapColorBlend,  range: 0.0...1.0,  format: "%.2f")
+
+                    Divider()
+
+                    Text("OCCUPANT TUNING")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+
+                    Picker("Occupant", selection: $mapSelectedOccupant) {
+                        ForEach(MapOccupantType.allCases) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    labeledSlider(label: "Scale ×",  value: $mapOccScale,    range: 0.3...3.0,  format: "%.2f")
+                    labeledSlider(label: "Anchor X", value: $mapOccAnchorX,  range: 0.0...1.0,  format: "%.3f")
+                    labeledSlider(label: "Anchor Y", value: $mapOccAnchorY,  range: -0.5...1.0, format: "%.3f")
+
+                    Divider()
+
+                    mapSpecOutput
+                }
+                .padding()
+            }
+            .frame(maxHeight: 420)
+            .background(.thinMaterial)
+        }
+        .onAppear { ensureMapScene() }
+        .onChange(of: mapTileWidth)        { _, _ in updateMapScene() }
+        .onChange(of: mapTileHeight)       { _, _ in updateMapScene() }
+        .onChange(of: mapSpacingX)         { _, _ in updateMapScene() }
+        .onChange(of: mapSpacingY)         { _, _ in updateMapScene() }
+        .onChange(of: mapColorBlend)       { _, _ in updateMapScene() }
+        .onChange(of: mapSelectedOccupant) { _, _ in updateMapScene() }
+        .onChange(of: mapOccScale)         { _, _ in updateMapScene() }
+        .onChange(of: mapOccAnchorX)       { _, _ in updateMapScene() }
+        .onChange(of: mapOccAnchorY)       { _, _ in updateMapScene() }
+    }
+
+    private func ensureMapScene() {
+        if mapScene == nil {
+            let s = MapTileTestScene(size: CGSize(width: 400, height: 600))
+            s.scaleMode = .resizeFill
+            mapScene = s
+        }
+        updateMapScene()
+    }
+
+    private func updateMapScene() {
+        mapScene?.updateTiles(
+            tileWidth: CGFloat(mapTileWidth),
+            tileHeight: CGFloat(mapTileHeight),
+            spacingX: CGFloat(mapSpacingX),
+            spacingY: CGFloat(mapSpacingY),
+            colorBlend: CGFloat(mapColorBlend)
+        )
+        mapScene?.updateOccupant(
+            assetName: mapSelectedOccupant.rawValue,
+            scale: CGFloat(mapOccScale),
+            anchorX: CGFloat(mapOccAnchorX),
+            anchorY: CGFloat(mapOccAnchorY)
+        )
+    }
+
+    private var mapSpecOutput: some View {
+        let code = """
+            // Tile grid
+            static let tileWidth:  CGFloat = \(String(format: "%.0f", mapTileWidth))
+            static let tileHeight: CGFloat = \(String(format: "%.0f", mapTileHeight))
+            static let spacingX:   CGFloat = \(String(format: "%.1f", mapSpacingX))
+            static let spacingY:   CGFloat = \(String(format: "%.1f", mapSpacingY))
+
+            // Occupant: \(mapSelectedOccupant.displayName)
+            occ.size = CGSize(width: tileWidth * \(String(format: "%.2f", mapOccScale)), height: tileWidth * \(String(format: "%.2f", mapOccScale)))
+            occ.anchorPoint = CGPoint(x: \(String(format: "%.3f", mapOccAnchorX)), y: \(String(format: "%.3f", mapOccAnchorY)))
+            """
+        return VStack(alignment: .leading, spacing: 6) {
+            Text("COPY INTO MapScene.swift")
+                .font(.caption2.bold())
+                .foregroundStyle(.secondary)
+            Text(code)
+                .font(.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.black.opacity(0.3))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            Button {
+                UIPasteboard.general.string = code
+            } label: {
+                Label("Copy to clipboard", systemImage: "doc.on.doc")
+                    .font(.caption)
+            }
         }
     }
 
@@ -365,6 +523,8 @@ struct SpriteAlignmentTestView: View {
             }
         case .grid, .cityZoom:
             scene.clearTestSprites()
+        case .mapTile:
+            break  // MapTileTestScene handles its own updates
         }
     }
 
@@ -377,6 +537,9 @@ struct SpriteAlignmentTestView: View {
             break   // TileGridEditorView handles its own reset
         case .cityZoom:
             scene.setZoom(1.0)
+        case .mapTile:
+            mapTileWidth = 88; mapTileHeight = 50; mapSpacingX = -4.9; mapSpacingY = -10.8; mapColorBlend = 0.0
+            mapOccScale = 1.4; mapOccAnchorX = 0.5; mapOccAnchorY = 0.12
         }
     }
 }

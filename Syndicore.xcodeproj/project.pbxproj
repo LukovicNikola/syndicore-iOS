@@ -81,6 +81,8 @@
 		9B4CFCA32F927EDE00850457 /* BuildSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCA22F927EDE00850457 /* BuildSheet.swift */; };
 		9B4CFCA52F927F1200850457 /* CountdownLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCA42F927F1200850457 /* CountdownLabel.swift */; };
 		9B4CFCB12F930000850457 /* WallCornerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCB02F930000850457 /* WallCornerNode.swift */; };
+		9BDE06A22F97C2720033330D /* ArmyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A12F97C2710033330D /* ArmyView.swift */; };
+		9BDE06A42F97E61C0033330D /* MapTileTestScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A32F97E61C0033330D /* MapTileTestScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,6 +173,8 @@
 		9B4CFCA22F927EDE00850457 /* BuildSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildSheet.swift; sourceTree = "<group>"; };
 		9B4CFCA42F927F1200850457 /* CountdownLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownLabel.swift; sourceTree = "<group>"; };
 		9B4CFCB02F930000850457 /* WallCornerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallCornerNode.swift; sourceTree = "<group>"; };
+		9BDE06A12F97C2710033330D /* ArmyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyView.swift; sourceTree = "<group>"; };
+		9BDE06A32F97E61C0033330D /* MapTileTestScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTileTestScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -283,6 +287,7 @@
 				4B0000000000000000000111 /* TrainingSheet.swift */,
 				9B4CFC802F927D4000850457 /* City */,
 				9B4CFCA42F927F1200850457 /* CountdownLabel.swift */,
+				9BDE06A12F97C2710033330D /* ArmyView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -325,6 +330,7 @@
 			children = (
 				4B0000000000000000000112 /* MapScene.swift */,
 				4B0000000000000000000113 /* MapView.swift */,
+				9BDE06A32F97E61C0033330D /* MapTileTestScene.swift */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -524,6 +530,7 @@
 				4A5847E02F94C2E800E4C30B /* CelebrationBurstNode.swift in Sources */,
 				4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */,
 				9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */,
+				9BDE06A22F97C2720033330D /* ArmyView.swift in Sources */,
 				4A0000000000000000000210 /* APIError.swift in Sources */,
 				9B4CFCA32F927EDE00850457 /* BuildSheet.swift in Sources */,
 				9B4CFC8D2F927E8400850457 /* BuildingNode.swift in Sources */,
@@ -550,6 +557,7 @@
 				4B0000000000000000000001 /* GameData.swift in Sources */,
 				4B0000000000000000000002 /* GameConstantsManager.swift in Sources */,
 				4B0000000000000000000003 /* CodexView.swift in Sources */,
+				9BDE06A42F97E61C0033330D /* MapTileTestScene.swift in Sources */,
 				9B4CFC8F2F927E8500850457 /* WallNode.swift in Sources */,
 				9B4CFCB12F930000850457 /* WallCornerNode.swift in Sources */,
 				4B0000000000000000000004 /* UnitsView.swift in Sources */,
@@ -724,7 +732,7 @@
 				INFOPLIST_FILE = Syndicore/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Syndicore;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.strategy-games";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -756,7 +764,7 @@
 				INFOPLIST_FILE = Syndicore/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Syndicore;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.strategy-games";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

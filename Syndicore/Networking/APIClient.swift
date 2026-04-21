@@ -221,6 +221,19 @@ extension APIClient {
         try await request(.training(cityId: cityId), as: TrainingListResponse.self).training
     }
 
+    // Skip (instant complete — test/premium feature)
+    func skipBuild(cityId: String) async throws {
+        try await requestVoid(.skipBuild(cityId: cityId))
+    }
+
+    func skipTraining(cityId: String, jobId: String) async throws {
+        try await requestVoid(.skipTraining(cityId: cityId, jobId: jobId))
+    }
+
+    func skipMovement(worldId: String, movementId: String) async throws {
+        try await requestVoid(.skipMovement(worldId: worldId, movementId: movementId))
+    }
+
     // Reports
     func reports(worldId: String) async throws -> [BattleReport] {
         try await request(.reports(worldId: worldId), as: ReportsResponse.self).reports

@@ -89,6 +89,22 @@ extension Endpoint {
     static func training(cityId: String) -> Endpoint {
         Endpoint(path: "/api/v1/cities/\(cityId)/training", requiresAuth: true)
     }
+
+    static func skipBuild(cityId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/build/skip", method: .post, requiresAuth: true)
+    }
+
+    static func skipTraining(cityId: String, jobId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/train/\(jobId)/skip", method: .post, requiresAuth: true)
+    }
+}
+
+// MARK: - Movements
+
+extension Endpoint {
+    static func skipMovement(worldId: String, movementId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/movements/\(movementId)/skip", method: .post, requiresAuth: true)
+    }
 }
 
 // MARK: - Map

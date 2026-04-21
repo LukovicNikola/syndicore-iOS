@@ -56,6 +56,7 @@ final class GameState {
     var activePlayerWorld: PlayerWorld?
     var activeCity: City?
     var activeTrainingJobs: [TrainingJob] = []
+    var activeMovements: [TroopMovement] = []
 
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
@@ -102,7 +103,8 @@ final class GameState {
         } catch let error as APIError {
             switch error {
             case .onboardingRequired:
-                activeScreen = .onboarding
+                // Sign out stale session — onboarding starts fresh after auth
+                await signOut()
             case .unauthorized:
                 activeScreen = .auth
             default:
@@ -148,7 +150,7 @@ final class GameState {
 
     func didJoinWorld(response: JoinWorldResponse) {
         activePlayerWorld = response.playerWorld
-        activeCity = response.city
+        activeCity = response.city ?? response.playerWorld.city
         activeScreen = .mainGame
     }
 
@@ -165,6 +167,15 @@ final class GameState {
             // Zadrzi stale data ali upozori UI — korisnik mora da zna da je refresh otkazao.
             Self.log.info("City refresh failed: \(error.localizedDescription, privacy: .public)")
             cityRefreshError = error.localizedDescription
+        }
+    }
+
+    func refreshMovements() async {
+        guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        do {
+            activeMovements = try await api.movements(worldId: worldId)
+        } catch {
+            Self.log.info("Movements refresh failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

@@ -13,8 +13,8 @@ struct PlayerWorld: Codable, Identifiable {
     let playerId: String?   // nije u join response-u, prisutan u GET /me
     let worldId: String?    // nije u join response-u, prisutan u GET /me
     let faction: Faction
-    let ring: Ring
-    let crystals: [String]
+    let ring: Ring?         // nije uvek u join response-u
+    let crystals: [String]? // nije uvek u join response-u
     let joinedAt: Date?     // nije u join response-u, prisutan u GET /me
     let city: City?
 }
@@ -35,6 +35,6 @@ struct JoinWorldRequest: Codable {
 
 struct JoinWorldResponse: Codable {
     let playerWorld: PlayerWorld
-    let city: City
-    let tile: TileInfo
+    let city: City?
+    let tile: TileInfo?
 }

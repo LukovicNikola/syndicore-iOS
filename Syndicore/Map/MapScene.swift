@@ -1,61 +1,24 @@
 import SpriteKit
 import UIKit
 
-/// World map scena. Optimizacija: SKTileMapNode za terrain/ring background (jedan node umesto 10k),
-/// plus odvojen occupant layer za tile-ove koji imaju city/outpost/mine/gate/ruins
-/// (tipicno <5% viewport-a). Warp gate linije stoje kao jedan compound SKShapeNode.
+/// Isometric world map scene. Uses pre-rendered iso diamond asset (map_tile_iso_v1),
+/// same projection math as CityScene. No rotation/skew — just size and position.
 final class MapScene: SKScene {
 
-    // MARK: - Constants
+    // MARK: - Iso Constants
 
-    static let tileSize: CGFloat = 48
-
-    /// 8 terrain × 4 ring = 32 kombinacije blended boja → cache-ovane kao SKTileGroup.
-    private static let ringColors: [Ring: SKColor] = [
-        .fringe: SKColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1),
-        .grid:   SKColor(red: 1.00, green: 0.55, blue: 0.00, alpha: 1),
-        .core:   SKColor(red: 0.86, green: 0.08, blue: 0.24, alpha: 1),
-        .nexus:  SKColor(red: 0.61, green: 0.19, blue: 1.00, alpha: 1),
-    ]
-
-    private static let terrainColors: [Terrain: SKColor] = [
-        .FLATLAND:    SKColor(red: 0.30, green: 0.60, blue: 0.30, alpha: 1),
-        .QUARRY:      SKColor(red: 0.55, green: 0.40, blue: 0.25, alpha: 1),
-        .RUINS:       SKColor(red: 0.35, green: 0.35, blue: 0.35, alpha: 1),
-        .GEOTHERMAL:  SKColor(red: 0.85, green: 0.40, blue: 0.15, alpha: 1),
-        .HILLTOP:     SKColor(red: 0.65, green: 0.55, blue: 0.40, alpha: 1),
-        .RIVERSIDE:   SKColor(red: 0.25, green: 0.50, blue: 0.75, alpha: 1),
-        .CROSSROADS:  SKColor(red: 0.80, green: 0.75, blue: 0.30, alpha: 1),
-        .WASTELAND:   SKColor(red: 0.25, green: 0.25, blue: 0.28, alpha: 1),
-    ]
-
-    /// Maksimalni map radius (cap sa BE). Columns/rows = 2 * maxRadius + 1.
-    private static let maxRadius = 50
-    private static var tileMapColumns: Int { maxRadius * 2 + 1 }
-    private static var tileMapRows: Int { maxRadius * 2 + 1 }
+    static let tileWidth:  CGFloat = 88
+    static let tileHeight: CGFloat = 50
+    static let spacingX:   CGFloat = -4.9
+    static let spacingY:   CGFloat = -10.8
 
     // MARK: - State
 
     private let cameraNode = SKCameraNode()
-
-    /// Background tile map sa svim terrain/ring bojama. Jedan node za ceo grid.
-    private var backgroundTileMap: SKTileMapNode!
-
-    /// Layer za occupant ikonice (city/outpost/mine/gate/ruins) — samo tile-ovi koji imaju okupant-e.
-    private let occupantLayer = SKNode()
-
-    /// Layer za rarity border-e (UNCOMMON/RARE) — samo za tile-ove koji nisu COMMON.
-    private let rarityLayer = SKNode()
-
-    /// Key (x,y) → occupant node, za cleanup na loadTiles.
-    private var occupantNodes: [String: SKNode] = [:]
-    private var rarityNodes: [String: SKNode] = [:]
-
-    /// Cache tile grupa po (terrain, ring) — kreira se jednom pri setup-u.
-    private var tileGroupCache: [String: SKTileGroup] = [:]
-
-    private var gatePositions: [CGPoint] = []
-    private var gateLineNode: SKShapeNode?
+    private let tileLayer = SKNode()
+    private var tileNodes: [String: SKSpriteNode] = [:]
+    private var occupantNodes: [String: SKSpriteNode] = [:]
+    private var labelNodes: [String: SKLabelNode] = [:]
     private var lastFetchCenter = (cx: 0, cy: 0)
     private let fetchThreshold = 10
 
@@ -64,19 +27,39 @@ final class MapScene: SKScene {
 
     private var tiles: [MapTile] = []
 
+    // MARK: - Iso Math (identical to CityScene)
+
+    private static let stepX: CGFloat = tileWidth / 2.0 + spacingX
+    private static let stepY: CGFloat = tileHeight / 2.0 + spacingY
+
+    private func tileToWorld(col: Int, row: Int) -> CGPoint {
+        let x = CGFloat(col - row) * Self.stepX
+        let y = CGFloat(col + row) * (-Self.stepY)
+        return CGPoint(x: x, y: y)
+    }
+
+    private func worldToTile(point: CGPoint) -> (col: Int, row: Int) {
+        let fx =  point.x / Self.stepX
+        let fy = -point.y / Self.stepY
+        let col = Int(((fx + fy) / 2.0).rounded())
+        let row = Int(((fy - fx) / 2.0).rounded())
+        return (col, row)
+    }
+
     // MARK: - Setup
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1)
+        backgroundColor = SKColor(red: 0.05, green: 0.05, blue: 0.08, alpha: 1)
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        scaleMode = .resizeFill
 
         camera = cameraNode
         addChild(cameraNode)
-        cameraNode.setScale(1.0)
+        cameraNode.setScale(2.0)
+        cameraNode.position = .zero
 
-        setupTileMap()
-        addChild(rarityLayer)
-        addChild(occupantLayer)
+        tileLayer.position = .zero
+        addChild(tileLayer)
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         view.addGestureRecognizer(pinch)
@@ -87,178 +70,80 @@ final class MapScene: SKScene {
         view.addGestureRecognizer(pan)
     }
 
-    private func setupTileMap() {
-        let tileSet = SKTileSet(tileGroups: buildTileGroups())
-        backgroundTileMap = SKTileMapNode(
-            tileSet: tileSet,
-            columns: Self.tileMapColumns,
-            rows: Self.tileMapRows,
-            tileSize: CGSize(width: Self.tileSize, height: Self.tileSize)
-        )
-        backgroundTileMap.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        backgroundTileMap.zPosition = -10
-        addChild(backgroundTileMap)
-    }
-
-    /// Kreira 32 tile grupe — jednu za svaku (terrain × ring) kombinaciju sa blended bojom.
-    private func buildTileGroups() -> [SKTileGroup] {
-        var groups: [SKTileGroup] = []
-        for terrain in Terrain.allCases {
-            guard let terrainColor = Self.terrainColors[terrain] else { continue }
-            for ring in [Ring.fringe, .grid, .core, .nexus] {
-                guard let ringColor = Self.ringColors[ring] else { continue }
-                let blended = terrainColor.blended(withFraction: 0.25, of: ringColor) ?? terrainColor
-                let texture = Self.colorTexture(blended, size: CGSize(width: Self.tileSize, height: Self.tileSize))
-                let def = SKTileDefinition(texture: texture)
-                let group = SKTileGroup(tileDefinition: def)
-                group.name = Self.groupKey(terrain: terrain, ring: ring)
-                groups.append(group)
-                tileGroupCache[group.name!] = group
-            }
-        }
-        return groups
-    }
-
-    private static func groupKey(terrain: Terrain, ring: Ring) -> String {
-        "\(terrain.rawValue)|\(ring.rawValue)"
-    }
-
-    /// UIImage sa solid fill — koristi se kao textura za SKTileDefinition.
-    private static func colorTexture(_ color: SKColor, size: CGSize) -> SKTexture {
-        let renderer = UIGraphicsImageRenderer(size: size)
-        let image = renderer.image { ctx in
-            color.setFill()
-            ctx.fill(CGRect(origin: .zero, size: size))
-        }
-        return SKTexture(image: image)
-    }
-
     // MARK: - Public API
 
     func loadTiles(_ newTiles: [MapTile], center: (cx: Int, cy: Int)) {
         lastFetchCenter = center
         tiles = newTiles
 
-        // 1. Background tile map: set group za svaki novi tile (O(n), no allocations)
-        for tile in newTiles {
-            guard let group = tileGroupCache[Self.groupKey(terrain: tile.terrain, ring: tile.ring)] else { continue }
-            let (col, row) = tileMapCoord(x: tile.x, y: tile.y)
-            guard col >= 0, col < Self.tileMapColumns, row >= 0, row < Self.tileMapRows else { continue }
-            backgroundTileMap.setTileGroup(group, forColumn: col, row: row)
-        }
+        let newKeys = Set(newTiles.map { "\($0.x),\($0.y)" })
 
-        // 2. Rarity border overlay: samo UNCOMMON/RARE
-        pruneNodes(&rarityNodes, keepingKeysFrom: newTiles)
-        for tile in newTiles where tile.rarity != .COMMON {
-            let key = tileKey(tile)
-            if rarityNodes[key] != nil { continue }
-            let node = makeRarityBorder(for: tile)
-            node.position = tilePosition(x: tile.x, y: tile.y)
-            rarityLayer.addChild(node)
-            rarityNodes[key] = node
-        }
-
-        // 3. Occupant overlay: samo tile-ovi sa city/outpost/mine/gate/ruins
-        pruneNodes(&occupantNodes, keepingKeysFrom: newTiles)
-        gatePositions.removeAll()
-        for tile in newTiles where tile.hasOccupant {
-            let key = tileKey(tile)
-            let pos = tilePosition(x: tile.x, y: tile.y)
-            if occupantNodes[key] == nil {
-                let node = makeOccupantNode(for: tile)
-                node.position = pos
-                occupantLayer.addChild(node)
-                occupantNodes[key] = node
-            }
-            if tile.warpGate != nil {
-                gatePositions.append(pos)
-            }
-        }
-
-        drawGateLines()
-    }
-
-    // MARK: - Overlay factories
-
-    private func makeRarityBorder(for tile: MapTile) -> SKNode {
-        let border = SKShapeNode(rectOf: CGSize(width: Self.tileSize, height: Self.tileSize), cornerRadius: 2)
-        switch tile.rarity {
-        case .UNCOMMON:
-            border.strokeColor = SKColor(red: 0.4, green: 0.6, blue: 1.0, alpha: 0.5)
-            border.lineWidth = 1
-        case .RARE:
-            border.strokeColor = SKColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 0.7)
-            border.lineWidth = 1.5
-        case .COMMON:
-            break
-        }
-        border.fillColor = .clear
-        border.name = tileKey(tile)
-        return border
-    }
-
-    private func makeOccupantNode(for tile: MapTile) -> SKNode {
-        let container = SKNode()
-        container.name = tileKey(tile)
-
-        let label = SKLabelNode(text: occupantIcon(tile))
-        label.fontSize = Self.tileSize * 0.45
-        label.verticalAlignmentMode = .center
-        label.horizontalAlignmentMode = .center
-        container.addChild(label)
-
-        if let city = tile.city {
-            let nameLabel = SKLabelNode(text: city.owner)
-            nameLabel.fontSize = 8
-            nameLabel.fontColor = .white
-            nameLabel.verticalAlignmentMode = .top
-            nameLabel.horizontalAlignmentMode = .center
-            nameLabel.position = CGPoint(x: 0, y: -(Self.tileSize * 0.35))
-            container.addChild(nameLabel)
-        }
-
-        return container
-    }
-
-    private func occupantIcon(_ tile: MapTile) -> String {
-        // TODO: zameniti emoji sprite asset-ima (.imageset) za consistent-n stil sa CityView
-        if tile.city != nil { return "🏠" }
-        if tile.outpost != nil { return "💀" }
-        if tile.mine != nil { return "💎" }
-        if tile.warpGate != nil { return "🌀" }
-        if tile.ruins != nil { return "🏚️" }
-        return "?"
-    }
-
-    /// Uklanja stare occupant/rarity nodes za tile-ove koji više nisu u viewport-u.
-    private func pruneNodes(_ nodes: inout [String: SKNode], keepingKeysFrom newTiles: [MapTile]) {
-        let keepSet = Set(newTiles.map { tileKey($0) })
-        for (key, node) in nodes where !keepSet.contains(key) {
+        // Remove tiles no longer in viewport
+        for (key, node) in tileNodes where !newKeys.contains(key) {
             node.removeFromParent()
-            nodes.removeValue(forKey: key)
+            tileNodes.removeValue(forKey: key)
+            occupantNodes[key]?.removeFromParent()
+            occupantNodes.removeValue(forKey: key)
+            labelNodes[key]?.removeFromParent()
+            labelNodes.removeValue(forKey: key)
         }
-    }
 
-    // MARK: - Warp Gate Lines
+        // Add new tiles + occupants
+        for tile in newTiles {
+            let key = "\(tile.x),\(tile.y)"
+            if tileNodes[key] != nil { continue }
 
-    private func drawGateLines() {
-        gateLineNode?.removeFromParent()
-        guard gatePositions.count >= 2 else { return }
+            let pos = tileToWorld(col: tile.x, row: tile.y)
+            let tileZ = CGFloat(tile.x + tile.y) * 0.1
 
-        let path = CGMutablePath()
-        for i in 0..<gatePositions.count {
-            for j in (i + 1)..<gatePositions.count {
-                path.move(to: gatePositions[i])
-                path.addLine(to: gatePositions[j])
+            // Tile node
+            let node = SKSpriteNode(imageNamed: "map_tile_iso_v1")
+            node.size = CGSize(width: Self.tileWidth, height: Self.tileHeight)
+            node.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+            node.position = pos
+            node.zPosition = tileZ
+            node.name = key
+            tileLayer.addChild(node)
+            tileNodes[key] = node
+
+            // Occupant sprite (priority: city > warpGate > mine > outpost > ruins)
+            let occupantAsset: String? = if tile.city != nil {
+                "map_city_v1"
+            } else if tile.warpGate != nil {
+                "map_warp_gate_v1"
+            } else if tile.mine != nil {
+                "map_mine_v1"
+            } else if tile.outpost != nil {
+                "map_outpost_v1"
+            } else if tile.ruins != nil {
+                "map_ruins_v1"
+            } else {
+                nil
+            }
+
+            if let asset = occupantAsset {
+                let occ = SKSpriteNode(imageNamed: asset)
+                occ.size = CGSize(width: Self.tileWidth * 1.4, height: Self.tileWidth * 1.4)
+                occ.anchorPoint = CGPoint(x: 0.5, y: 0.12)
+                occ.position = pos
+                occ.zPosition = tileZ + 1.0
+                tileLayer.addChild(occ)
+                occupantNodes[key] = occ
+            }
+
+            // City name label
+            if let cityName = tile.city?.name {
+                let label = SKLabelNode(text: cityName)
+                label.fontName = "AvenirNext-Medium"
+                label.fontSize = 10
+                label.fontColor = .white
+                label.horizontalAlignmentMode = .center
+                label.position = CGPoint(x: pos.x, y: pos.y + Self.tileHeight * 1.0)
+                label.zPosition = tileZ + 2.0
+                tileLayer.addChild(label)
+                labelNodes[key] = label
             }
         }
-
-        let lineNode = SKShapeNode(path: path)
-        lineNode.strokeColor = SKColor(red: 0.61, green: 0.19, blue: 1.0, alpha: 0.3)
-        lineNode.lineWidth = 1
-        lineNode.zPosition = -1
-        addChild(lineNode)
-        gateLineNode = lineNode
     }
 
     // MARK: - Gestures
@@ -267,7 +152,7 @@ final class MapScene: SKScene {
         guard let cam = camera else { return }
         if gesture.state == .changed {
             let newScale = cam.xScale / gesture.scale
-            cam.setScale(max(0.3, min(3.0, newScale)))
+            cam.setScale(max(0.3, min(8.0, newScale)))
             gesture.scale = 1.0
         }
         if gesture.state == .ended {
@@ -294,12 +179,10 @@ final class MapScene: SKScene {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
+        let location = touch.location(in: tileLayer)
+        let (col, row) = worldToTile(point: location)
 
-        let x = Int(round(location.x / Self.tileSize))
-        let y = Int(round(location.y / Self.tileSize))
-
-        if let tile = tiles.first(where: { $0.x == x && $0.y == y }) {
+        if let tile = tiles.first(where: { $0.x == col && $0.y == row }) {
             onTileTapped?(tile)
         }
     }
@@ -308,8 +191,7 @@ final class MapScene: SKScene {
 
     private func checkViewportRefetch() {
         guard let cam = camera else { return }
-        let cx = Int(round(cam.position.x / Self.tileSize))
-        let cy = Int(round(cam.position.y / Self.tileSize))
+        let (cx, cy) = worldToTile(point: cam.position)
 
         let dx = abs(cx - lastFetchCenter.cx)
         let dy = abs(cy - lastFetchCenter.cy)
@@ -317,37 +199,5 @@ final class MapScene: SKScene {
         if dx >= fetchThreshold || dy >= fetchThreshold {
             onViewportMoved?(cx, cy)
         }
-    }
-
-    // MARK: - Helpers
-
-    private func tilePosition(x: Int, y: Int) -> CGPoint {
-        CGPoint(x: CGFloat(x) * Self.tileSize, y: CGFloat(y) * Self.tileSize)
-    }
-
-    /// Pretvara world koordinate (x/y od -maxRadius..+maxRadius) u SKTileMapNode col/row (0..columns-1).
-    private func tileMapCoord(x: Int, y: Int) -> (col: Int, row: Int) {
-        let col = x + Self.maxRadius
-        let row = y + Self.maxRadius
-        return (col, row)
-    }
-
-    private func tileKey(_ tile: MapTile) -> String {
-        "\(tile.x),\(tile.y)"
-    }
-}
-
-private extension SKColor {
-    func blended(withFraction fraction: CGFloat, of color: SKColor) -> SKColor? {
-        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
-        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
-        getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
-        color.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
-        return SKColor(
-            red: r1 + (r2 - r1) * fraction,
-            green: g1 + (g2 - g1) * fraction,
-            blue: b1 + (b2 - b1) * fraction,
-            alpha: a1 + (a2 - a1) * fraction
-        )
     }
 }

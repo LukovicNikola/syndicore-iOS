@@ -41,13 +41,18 @@ struct CityView: View {
                         }
                     }
                 }
-                Spacer()
                 BottomHUD(
                     constructionQueue: city?.constructionQueue,
-                    trainingJobs: gameState.activeTrainingJobs
+                    trainingJobs: gameState.activeTrainingJobs,
+                    onSkipBuild: {
+                        Task { await skipBuild() }
+                    },
+                    onSkipTraining: { job in
+                        Task { await skipTraining(job) }
+                    }
                 )
+                Spacer()
             }
-            .ignoresSafeArea(edges: .bottom)
 
             // MARK: Train dugme — donji levi ugao, iznad safe area
             VStack {
@@ -103,6 +108,28 @@ struct CityView: View {
                 if Task.isCancelled { return }
                 await gameState.refreshCity()
             }
+        }
+    }
+
+    // MARK: - Skip Actions
+
+    private func skipBuild() async {
+        guard let cityId = city?.id else { return }
+        do {
+            try await gameState.api.skipBuild(cityId: cityId)
+            await gameState.refreshCity()
+        } catch {
+            gameState.cityRefreshError = "Skip failed: \(error)"
+        }
+    }
+
+    private func skipTraining(_ job: TrainingJob) async {
+        guard let cityId = city?.id else { return }
+        do {
+            try await gameState.api.skipTraining(cityId: cityId, jobId: job.id)
+            await gameState.refreshCity()
+        } catch {
+            gameState.cityRefreshError = "Skip failed: \(error)"
         }
     }
 

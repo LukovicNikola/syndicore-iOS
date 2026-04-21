@@ -35,9 +35,13 @@ struct HQInfoSheet: View {
                         LabeledContent("Name", value: city.name)
                         if let tile = city.tile {
                             LabeledContent("Location", value: "(\(tile.x), \(tile.y))")
-                            LabeledContent("Ring", value: tile.ring.rawValue.capitalized)
-                            LabeledContent("Terrain", value: tile.terrain.rawValue
-                                .replacingOccurrences(of: "_", with: " ").capitalized)
+                            if let ring = tile.ring {
+                                LabeledContent("Ring", value: ring.rawValue.capitalized)
+                            }
+                            if let terrain = tile.terrain {
+                                LabeledContent("Terrain", value: terrain.rawValue
+                                    .replacingOccurrences(of: "_", with: " ").capitalized)
+                            }
                         }
                     }
                 }

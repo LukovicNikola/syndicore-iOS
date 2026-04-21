@@ -63,10 +63,11 @@ struct FactionPickerView: View {
             switch error {
             case .conflict(let err): errorMessage = err.error
             case .badRequest(let err): errorMessage = err.error
-            default: errorMessage = error.localizedDescription
+            case .decodingError(let inner): errorMessage = "Decoding error: \(inner)"
+            default: errorMessage = "\(error)"
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "\(error)"
         }
         isJoining = false
     }

@@ -5,7 +5,8 @@ struct MapView: View {
     @Environment(GameState.self) private var gameState
 
     @State private var scene: MapScene = {
-        let s = MapScene(size: CGSize(width: 800, height: 800))
+        let s = MapScene()
+        s.size = CGSize(width: 800, height: 800)
         s.scaleMode = .resizeFill
         return s
     }()

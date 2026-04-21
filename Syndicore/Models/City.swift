@@ -20,9 +20,9 @@ struct Resources: Codable {
 struct TileInfo: Codable {
     let x: Int
     let y: Int
-    let ring: Ring
-    let terrain: Terrain
-    let rarity: Rarity
+    let ring: Ring?
+    let terrain: Terrain?
+    let rarity: Rarity?
 }
 
 struct BuildingInfo: Codable, Identifiable {
