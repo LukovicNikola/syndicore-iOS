@@ -40,3 +40,4 @@ Pods/
 Syndicore/Resources/Config.plist
 Config.plist
 !Syndicore/Resources/Config.example.plist
+fastlane/api_key.json

@@ -1,0 +1,32 @@
+default_platform(:ios)
+
+platform :ios do
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+
+    match(
+      type: "appstore",
+      readonly: true,
+      git_url: "https://github.com/LukovicNikola/syndicore-certificates.git",
+      app_identifier: "com.syndicore.ios"
+    )
+
+    increment_build_number(
+      build_number: ENV["BUILD_NUMBER"] || "1"
+    )
+
+    build_app(
+      scheme: "Syndicore",
+      configuration: "Release",
+      export_method: "app-store"
+    )
+
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      api_key_path: "fastlane/api_key.json"
+    )
+
+  end
+
+end
