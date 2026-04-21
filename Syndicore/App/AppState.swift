@@ -56,7 +56,17 @@ final class GameState {
     var activePlayerWorld: PlayerWorld?
     var activeCity: City?
     var activeTrainingJobs: [TrainingJob] = []
+
+    /// Paginated movements — accumulated preko vise stranica.
     var activeMovements: [TroopMovement] = []
+    /// Cursor za sledecu stranu movements-a. nil = nema vise stranica ili se jos nije fetch-ovalo.
+    var movementsNextCursor: String?
+    var movementsHasMore: Bool = false
+
+    /// Paginated reports — accumulated preko vise stranica.
+    var activeReports: [BattleReport] = []
+    var reportsNextCursor: String?
+    var reportsHasMore: Bool = false
 
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
@@ -169,12 +179,64 @@ final class GameState {
         }
     }
 
-    func refreshMovements() async {
+    // MARK: - Movements (paginated)
+
+    /// Fetch-uje PRVU stranu movements-a. Resetuje accumulated list + cursor.
+    /// Pozvati pri prvom load-u ili pull-to-refresh.
+    func refreshMovements(limit: Int = 50) async {
         guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
         do {
-            activeMovements = try await api.movements(worldId: worldId)
+            let page = try await api.movements(worldId: worldId, limit: limit, before: nil)
+            activeMovements = page.items
+            movementsNextCursor = page.nextCursor
+            movementsHasMore = page.hasMore
         } catch {
             Self.log.info("Movements refresh failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Fetch-uje SLEDECU stranu movements-a i appenduje na accumulated list.
+    /// Pozvati kad user scroll-uje na dno liste (infinite scroll) ili klikne "Load more".
+    /// No-op ako `movementsHasMore == false` ili nema cursor-a.
+    func loadMoreMovements(limit: Int = 50) async {
+        guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        guard movementsHasMore, let cursor = movementsNextCursor else { return }
+        do {
+            let page = try await api.movements(worldId: worldId, limit: limit, before: cursor)
+            activeMovements.append(contentsOf: page.items)
+            movementsNextCursor = page.nextCursor
+            movementsHasMore = page.hasMore
+        } catch {
+            Self.log.info("Movements pagination failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    // MARK: - Reports (paginated)
+
+    /// Fetch-uje PRVU stranu battle reports-a. Resetuje accumulated list + cursor.
+    func refreshReports(limit: Int = 50) async {
+        guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        do {
+            let page = try await api.reports(worldId: worldId, limit: limit, before: nil)
+            activeReports = page.items
+            reportsNextCursor = page.nextCursor
+            reportsHasMore = page.hasMore
+        } catch {
+            Self.log.info("Reports refresh failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Fetch-uje SLEDECU stranu reports-a i appenduje na accumulated list.
+    func loadMoreReports(limit: Int = 50) async {
+        guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        guard reportsHasMore, let cursor = reportsNextCursor else { return }
+        do {
+            let page = try await api.reports(worldId: worldId, limit: limit, before: cursor)
+            activeReports.append(contentsOf: page.items)
+            reportsNextCursor = page.nextCursor
+            reportsHasMore = page.hasMore
+        } catch {
+            Self.log.info("Reports pagination failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

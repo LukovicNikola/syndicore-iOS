@@ -194,9 +194,20 @@ extension APIClient {
         try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapViewport.self, timeout: 30)
     }
 
-    // Movements
-    func movements(worldId: String) async throws -> [TroopMovement] {
-        try await request(.movements(worldId: worldId), as: MovementsResponse.self).movements
+    // Movements (paginated)
+    /// Vraca jednu stranu movements-a. Za prvu stranu `before` = nil.
+    /// Za sledecu stranu, prosledi `nextCursor` iz prethodne odgovora.
+    func movements(worldId: String, limit: Int = 50, before: String? = nil) async throws -> PaginatedMovementsResponse {
+        try await request(
+            .movements(worldId: worldId, limit: limit, before: before),
+            as: PaginatedMovementsResponse.self
+        )
+    }
+
+    /// Convenience: vraca SAMO prvu stranu kao flat `[TroopMovement]` array.
+    /// Za full listu ili kasnije strane, koristi paginirani `movements(worldId:limit:before:)`.
+    func firstPageMovements(worldId: String, limit: Int = 50) async throws -> [TroopMovement] {
+        try await movements(worldId: worldId, limit: limit, before: nil).items
     }
 
     // City actions
@@ -234,9 +245,19 @@ extension APIClient {
         try await requestVoid(.skipMovement(worldId: worldId, movementId: movementId))
     }
 
-    // Reports
-    func reports(worldId: String) async throws -> [BattleReport] {
-        try await request(.reports(worldId: worldId), as: ReportsResponse.self).reports
+    // Reports (paginated)
+    /// Vraca jednu stranu battle reports-a. Za prvu stranu `before` = nil.
+    /// Za sledecu stranu, prosledi `nextCursor` iz prethodne odgovora.
+    func reports(worldId: String, limit: Int = 50, before: String? = nil) async throws -> PaginatedReportsResponse {
+        try await request(
+            .reports(worldId: worldId, limit: limit, before: before),
+            as: PaginatedReportsResponse.self
+        )
+    }
+
+    /// Convenience: vraca SAMO prvu stranu kao flat `[BattleReport]` array.
+    func firstPageReports(worldId: String, limit: Int = 50) async throws -> [BattleReport] {
+        try await reports(worldId: worldId, limit: limit, before: nil).items
     }
 
     // MARK: - Game constants (ETag cache)

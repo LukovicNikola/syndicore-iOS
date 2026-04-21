@@ -110,13 +110,18 @@ struct Coordinate: Codable {
 
 // MARK: - API Responses
 
-struct ReportsResponse: Codable {
-    let reports: [BattleReport]
+/// Paginated response envelope — unified za movements i reports.
+/// BE contract:
+///   GET /movements?limit=50 → { items: [...], nextCursor: "mv_abc" | null, hasMore: bool }
+///   GET /movements?limit=50&before=<cursor> → sledeca strana
+struct PaginatedResponse<Item: Codable>: Codable {
+    let items: [Item]
+    let nextCursor: String?
+    let hasMore: Bool
 }
 
-struct MovementsResponse: Codable {
-    let movements: [TroopMovement]
-}
+typealias PaginatedMovementsResponse = PaginatedResponse<TroopMovement>
+typealias PaginatedReportsResponse   = PaginatedResponse<BattleReport>
 
 struct SendTroopsResponse: Codable {
     let movement: TroopMovement

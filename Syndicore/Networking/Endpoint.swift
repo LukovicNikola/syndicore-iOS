@@ -130,16 +130,32 @@ extension Endpoint {
         Endpoint(path: "/api/v1/cities/\(cityId)/send", method: .post, requiresAuth: true, body: body)
     }
 
-    static func movements(worldId: String) -> Endpoint {
-        Endpoint(path: "/api/v1/worlds/\(worldId)/movements", requiresAuth: true)
+    /// Paginated movements. `before` = movement ID iz `nextCursor` prethodne strane
+    /// (null za prvu stranu). `limit` default 50, max 200.
+    static func movements(worldId: String, limit: Int = 50, before: String? = nil) -> Endpoint {
+        var items: [URLQueryItem] = [URLQueryItem(name: "limit", value: String(limit))]
+        if let before { items.append(URLQueryItem(name: "before", value: before)) }
+        return Endpoint(
+            path: "/api/v1/worlds/\(worldId)/movements",
+            requiresAuth: true,
+            queryItems: items
+        )
     }
 }
 
 // MARK: - Reports
 
 extension Endpoint {
-    static func reports(worldId: String) -> Endpoint {
-        Endpoint(path: "/api/v1/worlds/\(worldId)/reports", requiresAuth: true)
+    /// Paginated reports. `before` = report ID iz `nextCursor` prethodne strane
+    /// (null za prvu stranu). `limit` default 50, max 200.
+    static func reports(worldId: String, limit: Int = 50, before: String? = nil) -> Endpoint {
+        var items: [URLQueryItem] = [URLQueryItem(name: "limit", value: String(limit))]
+        if let before { items.append(URLQueryItem(name: "before", value: before)) }
+        return Endpoint(
+            path: "/api/v1/worlds/\(worldId)/reports",
+            requiresAuth: true,
+            queryItems: items
+        )
     }
 }
 
