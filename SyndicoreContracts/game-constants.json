@@ -202,6 +202,8 @@
   },
 
   "combat": {
+    "wall_hp_per_level": 300,
+    "loot_max_per_attack": 100000,
     "casualty_multiplier": 0.90,
     "rally_bonus_per_player": 0.03,
     "rally_max_players": 5,
