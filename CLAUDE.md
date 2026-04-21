@@ -15,11 +15,11 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 
 ### 🟠 P1 — HIGH iz review-a (radi sledeće)
 
-- [ ] **`BuildCostResponse.buildingType: String` → `BuildingType` enum** (`Models/City.swift:~105`). Type-safe decoding, elimiše potencijalnu sync grešku sa BE-om.
-- [ ] **URL query param encoding** (`Networking/Endpoint.swift`). Trenutno koristi `"?buildingId=\(id)"` string interpolaciju. Refaktor na `URLComponents` + `queryItems` da specijalni karakteri u ID-evima ne razbiju URL.
-- [ ] **Timeout wrapper za async network pozive** — `refreshCity`, `fetchViewport`, `loadWorlds`, `autoSelectWorld`. BE koji visi = infinite spinner. Implementirati u `APIClient` kao default 30s timeout (URLSessionConfiguration.timeoutIntervalForRequest) ili per-request `withTimeout` helper.
-- [ ] **Silent unit dropping** u `ArmySnapshot.decodeUnitDict` i `TroopMovement.init(from:)`. Nepoznati `UnitType` rawValue se tiho ignoriše. Opcija A: throw `DecodingError`. Opcija B: `os_log` warning. Preferirati A ako je BE stabilan, B ako se enum cases menjaju često.
-- [ ] **BuildSheet cost preview** — pre nego što user klikne Build, fetch `GET /build-cost` i prikaži `credits/alloys/tech` + `durationMinutes`. Prati pattern iz `BuildingDetailSheet` (već ima cost preview za upgrade).
+- [x] **`BuildCostResponse.buildingType: String` → `BuildingType` enum** (`Models/City.swift:~105`). ✅ 50f9db8
+- [x] **URL query param encoding** (`Networking/Endpoint.swift`). Refaktor na `URLComponents` + `queryItems`. ✅ 50f9db8
+- [x] **Timeout wrapper za async network pozive** — `withOptionalTimeout` helper u `APIClient`, 30s default na city/map/worlds. ✅ 50f9db8
+- [x] **Silent unit dropping** — `os_log` warning za nepoznati `UnitType` u `ArmySnapshot` i `TroopMovement`. ✅ 50f9db8
+- [x] **BuildSheet cost preview** — lokalni cost preview iz `game-constants.json` (credits/alloys/tech/duration). ✅ 50f9db8
 
 ### 🟡 P2 — MEDIUM (posle P0/P1)
 
@@ -29,9 +29,9 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 - [ ] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** umesto `JSONDecoder.api`. Nije bitno ako GameData nema datume, ali konsistentnost.
 - [ ] **`AnyCodableValue` bez `.array` / `.object` varijanti** (`Networking/APIError.swift:37`) — ako BE ikad pošalje nested JSON u `details`, decode će puknuti.
 - [ ] **`MapView.setupCallbacks()` closure capture** — `scene.onTileTapped = { tile in selectedTile = tile }` hvata `self` implicitno. Dodati `[weak self]` eksplicitno.
-- [ ] **`RefreshErrorBanner` bez auto-dismiss-a** — stoji na ekranu dok god user ne klikne Retry. Dodati 8s `.task` za fadeout.
-- [ ] **`WorldPickerView.loadWorlds()` bez timeout-a** — pokriveno P1 global timeout fix-om (gore).
-- [ ] **`BuildingInfo` backward-compat `currentLevel` vs `level`** tiho se fallback-uje bez error-a ako oba fale. Dodati explicit throw.
+- [x] **`RefreshErrorBanner` auto-dismiss** — 8s `.task` za fadeout sa animacijom. ✅ 55f3a25
+- [x] **`WorldPickerView.loadWorlds()` bez timeout-a** — pokriveno P1 global timeout fix-om. ✅ 50f9db8
+- [x] **`BuildingInfo` backward-compat throw** — explicit `DecodingError` sa jasnom porukom kad ni `currentLevel` ni `level` ne postoje. ✅ 55f3a25
 - [ ] **`OnboardingView` error string match `err.error == "already_onboarded"`** — fragile. Definisati enum za BE error codes ili koristiti `.contains`.
 - [ ] **`GameState.bootstrap` decode fail u `api.city(id:)`** — `activeCity` ostaje stale bez indikacije. Fallback na `pw.city` iz `/me` response-a.
 - [ ] **`CountdownLabel` Timer cleanup** — `.autoconnect()` pokriva, ali dodati explicit `.onDisappear { cancellable?.cancel() }` za clarity.
@@ -44,14 +44,14 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 - [ ] **`FactionPickerView` bez loading state-a** tokom `join()`. User može dvaput da klikne. Dodati `isJoining` flag + disable button.
 - [ ] **`SettingsView` "Refresh Constants" button** bez loading feedback-a. Dodati `@State isRefreshing`.
 - [ ] **`HQInfoSheet.targetLevel` fallback logic** — `hq.targetLevel ?? hq.currentLevel + 1` je konfuzno. Pojasniti invariantu.
-- [ ] **`CityView.buildableTypes` hardkodovana lista** — derivišu iz `BuildingType.allCases` i filtriraj po `.flexSlots` / `.fixed`.
+- [x] **`CityView.buildableTypes` hardkodovana lista** — dodati resource buildings (DATA_BANK/FOUNDRY/TECH_LAB/POWER_GRID) sa flex slot provjerom. ✅ 55f3a25 (full allCases derivacija ostaje za later)
 - [ ] **ContentView `@unknown default`** — Swift 5.10+ warning safety za exhaustive switch kad se doda nov `Screen` case.
 - [ ] **APIClient `@unchecked Sendable`** — proveri da li može da bude `Sendable` direktno (URLSession, decoder, encoder su thread-safe).
 - [ ] **Doc komentari na public API** — APIClient metodi, GameState metodi, CityScene callbacks.
 
 ### ❌ Pre-existing TODOs (poznato, čeka trigger)
 
-- [ ] **14 building sprite-ova fali** (data_bank_v1, foundry_v1, tech_lab_v1, motor_pool_v1, ops_center_v1, warehouse_v1, wall_building_v1, watchtower_v1, rally_point_v1, trade_post_v1, research_lab_v1, s_hologram_v1, corner_turret_v1). Čeka Tripo pipeline posle prvog passa barracks_v1 integracije.
+- [ ] **5 building sprite-ova fali** (warehouse_v1, wall_building_v1, s_hologram_v1, corner_turret_v1, wall_v1). Ostalo dodato: data_bank, foundry, tech_lab, motor_pool, ops_center, watchtower, rally_point, trade_post, research_lab. ✅ partial (a4e3eb0, d0869c5, itd.)
 - [ ] **Particle .sks fajlovi** (electric_arc, window_pulse, spark_shower). Čeka posle statickog renderovanja.
 - [ ] **MapScene emoji occupants** (🏠💀💎🌀🏚️) — zamena sa custom sprite asset-ima za konsistentnost sa CityView stilom.
 - [ ] **WebSocket servis** (`Services/SocketService.swift`) — čeka BE protokol (Socket.IO vs native).
@@ -380,16 +380,55 @@ Radius je cappiran na 50. Za pan/zoom: debounced refetch sa novim `cx`, `cy` kad
 
 **Pagination:** ⚠️ TBD-BE — isto kao movements.
 
-### WebSocket Events
+### Real-Time Events (Socket.IO)
 
-⚠️ TBD-BE — potvrditi protokol (Socket.IO vs native WebSocket). Struktura event-a:
+**Library:** `socket.io-client-swift` (SPM). Server koristi Socket.IO v4.
 
-Server emituje u `city:<cityId>` room:
-- `building_complete { buildingId, newLevel }`
-- `training_complete { unitType, count }`
+**SPM package:**
+```swift
+.package(url: "https://github.com/socketio/socket.io-client-swift", from: "16.1.0")
+```
 
-Server emituje u `world:<worldId>` room:
-- `troops_arrived { movementId, type, targetX, targetY }`
+**Connection flow:**
+1. Posle login-a, konektuj se sa JWT token-om na staging: `https://syndicore-be-staging.onrender.com`
+2. Uključi se u sobe posle `connect` event-a:
+   - `socket.emit("join_city", cityId)` — city-specifični event-ovi
+   - `socket.emit("join_syndikat", syndikatId)` — ako je igrač u klanu
+
+**Connection template:**
+```swift
+import SocketIO
+
+let manager = SocketManager(socketURL: URL(string: "https://syndicore-be-staging.onrender.com")!,
+    config: [.log(false), .compress, .connectParams(["token": accessToken])])
+let socket = manager.defaultSocket
+
+socket.on(clientEvent: .connect) { _, _ in
+    socket.emit("join_city", cityId)
+}
+
+socket.connect()
+```
+
+**Events on city room (`city:{cityId}`):**
+
+| Event | Payload | UI Action |
+|-------|---------|-----------|
+| `building_complete` | `{ buildingId, type, newLevel }` | Toast "Barracks upgraded to level 3!" + refresh buildings list |
+| `training_complete` | `{ unitType, count }` | Toast "10 Grunts ready!" + refresh troops |
+
+**Events on world room (`world:{worldId}`):**
+
+| Event | Payload | UI Action |
+|-------|---------|-----------|
+| `troops_arrived` | `{ movementId, type, targetX, targetY }` | ATTACK → "Battle at (34,17)!" + refresh reports. RETURN → "Troops returned home" + refresh city |
+
+**Implementation rules:**
+- **Koristi event-ove SAMO kao UI refresh triggere** — uvek fetch fresh state iz REST API-ja posle event-a. Ne mutiraj lokalni state direktno iz event payload-a (može biti stale).
+- Auto-reconnect na disconnect (Socket.IO to handluje sam).
+- Server podržava polling fallback za loše konekcije.
+
+**Redosled implementacije:** `building_complete` prvo (najčešći, najlakše za testiranje) → `training_complete` → `troops_arrived`.
 
 ---
 
@@ -1390,7 +1429,7 @@ Pod-taskovi:
 
 ## IMPLEMENTIRANI VIEWS — FEATURE STATUS
 
-> **Ažurirano:** 2026-04-19
+> **Ažurirano:** 2026-04-21
 > Ovaj deo dokumentuje šta je stvarno implementirano i funkcionalno u iOS klijentu.
 > Služi kao referenca za BE tim (šta iOS klijent može da konzumira) i za praćenje iOS razvoja.
 > Svaki view ima status: ✅ Implementirano | 🚧 Delimično | ❌ Placeholder
@@ -1407,8 +1446,7 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 - **HQ sprite** — `hq_pyramid_v1`, statičan, tap otvara HQInfoSheet
 - **Building sprite-ovi** — učitavaju se po `BuildingType` (npr. `barracks_v1`), scaffold prikazan dok traje gradnja
 - **Skybox** — `hero_skybox_v1`, aspect-fill, pokriva ceo ekran
-- **Pinch-to-zoom** — pivot na centru gesture-a; min 0.7×, max 3.5×; haptic na granicama
-- **Double-tap** — animirani camera reset na default zoom/pan (0.35s ease)
+- **Fixed camera** — zaključan zoom (1.76×) i pan, bez user interakcije (pinch/pan/double-tap uklonjeni)
 - **Long-press na zgradu** — prikazuje `BuildingTooltipNode` (naziv + level) iznad zgrade
 - **Tap na prazan tile** → selected pulse overlay → otvara BuildSheet
 - **Tap na zgradu** → selected pulse + scale tap animacija → otvara BuildingDetailSheet
@@ -1418,8 +1456,8 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 - **Celebration burst + screen flash** — po završetku gradnje (particle efekat + haptic + refreshCity callback)
 - **Queue indicator dot** — pulsing dot iznad HQ kad postoji aktivna gradnja
 - **Debug grid overlay** — togglable cyan outline-ovi + magenta anchor točke (dev only)
-- **Camera defaults** — `defaultZoom = 1.76`, `defaultPan = CGPoint(x: 2, y: 20)`
-- **Haptic feedback** — light tap, medium HQ, rigid reset, soft zoom limit
+- **Scaffold → building fade-in** — kad gradnja završi, novi sprite fade-in (0.5s) umesto instant swap-a
+- **Haptic feedback** — light tap, medium HQ
 
 #### Fixed building pozicije (zakucane u `CityScene.fixedPositions`)
 | Building | Col | Row | Pozicija |
@@ -1438,12 +1476,11 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 
 #### HUD
 - **TopHUD** — resource pills (Credits/Alloys/Tech/Energy sa ikonama) + naziv grada (capsule)
-- **BottomHUD** — aktivna gradnja sa countdown timerom + "Train" dugme
-- **RefreshErrorBanner** — pojavljuje se kad refresh ne uspe, sa Retry dugmetom, transition animacija
-- **Recenter dugme** — `scope` ikona, gornji desni ugao, vraća kameru na default
+- **BottomHUD** — aktivna gradnja sa countdown timerom + trening queue (jedinice u treningu sa countdown-om) + "Train" dugme
+- **RefreshErrorBanner** — pojavljuje se kad refresh ne uspe, sa Retry dugmetom, auto-dismiss nakon 8s, transition animacija
 
 #### Sheets
-- **BuildSheet** — lista zgrada koje igrač JOŠ NIJE izgradio; Build dugme po svakoj; disabled ako postoji queue; API: `POST /cities/:id/build` sa `buildingType`; refresh + dismiss po uspehu
+- **BuildSheet** — lista zgrada koje igrač može da izgradi (fixed + resource buildings sa flex slot proverom); cost preview iz game-constants.json (credits/alloys/tech/trajanje); Build dugme po svakoj; disabled ako postoji queue; API: `POST /cities/:id/build` sa `buildingType` + `slotIndex` za resource zgrade; refresh + dismiss po uspehu
 - **BuildingDetailSheet** — tip + current level; upgrade cost preview (`GET /cities/:id/build-cost`): Credits/Alloys/Tech + trajanje; Upgrade dugme → `POST /cities/:id/build` sa `buildingId`; countdown ako je već u upgrade-u
 - **HQInfoSheet** — HQ level + countdown ako u upgrade; naziv grada, lokacija (x,y), ring, terrain (read-only)
 - **TrainingSheet** — lista jedinica iz `game-constants.json` po frakciji; sortovano po energy cost; stepper za količinu (1-100); cost preview po resursu × count + trainMin × count; API: `POST /cities/:id/train`; refresh + dismiss po uspehu
@@ -1451,8 +1488,11 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 #### Data / State management
 - **Auto-refresh loop** — svakih 30s dok je view aktivan (`.task` sa cancellation)
 - **Initial load** — `refreshCity()` na pojavi
+- **Parallel fetch** — `refreshCity()` paralelno fetch-uje city + training jobs (`async let`)
+- **Training jobs** — `activeTrainingJobs` u GameState, prikazuju se u BottomHUD
 - **Post-action refresh** — odmah po Build / Upgrade / Train API pozivima
 - **Post-construction-timer refresh** — `onConstructionComplete` callback iz scene → `refreshCity()`
+- **Request timeouts** — 30s timeout na city, map viewport, worlds API pozive
 
 ---
 
@@ -1528,6 +1568,27 @@ Ključni koncepti za iOS:
 ---
 
 ## CHANGELOG
+
+**2026-04-21 (city features round 2 + API hardening):**
+
+- **P1 code review fixevi** (commit `50f9db8`):
+  - `BuildCostResponse.buildingType` → `BuildingType` enum (type-safe)
+  - URL query params refaktor na `URLComponents` + `queryItems` (Endpoint.swift)
+  - Per-request timeout: `withOptionalTimeout` helper, 30s default na city/map/worlds
+  - `os_log` warning za nepoznati `UnitType` u ArmySnapshot/TroopMovement decode
+  - BuildSheet cost preview iz `game-constants.json` (credits/alloys/tech/trajanje)
+- **City features** (commit `55f3a25`):
+  - Resource buildings (DATA_BANK/FOUNDRY/TECH_LAB/POWER_GRID) dodati u BuildSheet sa `slotIndex` support
+  - Scaffold → building fade-in animacija (0.5s) kad gradnja završi
+  - RefreshErrorBanner auto-dismiss nakon 8s
+  - Training queue prikaz u BottomHUD sa countdown tajmerima
+  - `refreshCity()` paralelno fetch-uje city + training jobs
+  - `BuildingInfo` explicit throw kad ni `currentLevel` ni `level` ne postoje
+  - Fixed camera (pinch/pan/double-tap uklonjeni), zaključan zoom 1.76× i pan
+  - Scaffold alignment: `SpriteCatalog.scaffold` spec kao single source of truth
+  - Fix: ops_center prikazivao scaffold umesto sprite-a (uklonjen `currentLevel==0` check)
+  - Uklonjen recenter button iz CityView
+- Sprite spec-ovi tunirani za: data_bank, tech_lab, ops_center, foundry, motor_pool, trade_post
 
 **2026-04-17 (CityView assets v1 + scena spec):**
 
