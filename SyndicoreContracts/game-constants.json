@@ -201,6 +201,13 @@
     "warp_gate_interception_enabled": false
   },
 
+  "watchtower_alerts": {
+    "attacker_name_min_level": 1,
+    "troop_estimate_min_level": 6,
+    "troop_exact_min_level": 11,
+    "origin_coords_min_level": 16
+  },
+
   "combat": {
     "wall_hp_per_level": 300,
     "loot_max_per_attack": 100000,
