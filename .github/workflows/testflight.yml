@@ -33,6 +33,23 @@ jobs:
           }
           EOF
 
+      - name: Create Config.plist
+        run: |
+          cat > Syndicore/Resources/Config.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>supabase_url</key>
+              <string>${{ secrets.SUPABASE_URL }}</string>
+              <key>SUPABASE_ANON_KEY</key>
+              <string>${{ secrets.SUPABASE_ANON_KEY }}</string>
+              <key>API_BASE_URL</key>
+              <string>${{ secrets.API_BASE_URL }}</string>
+          </dict>
+          </plist>
+          EOF
+
       - name: Run Fastlane beta
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
