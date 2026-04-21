@@ -12,6 +12,15 @@ platform :ios do
       app_identifier: "com.syndicore.ios"
     )
 
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Syndicore.xcodeproj",
+      team_id: "QM5HHVW582",
+      bundle_identifier: "com.syndicore.ios",
+      profile_name: "match AppStore com.syndicore.ios",
+      code_sign_identity: "Apple Distribution"
+    )
+
     increment_build_number(
       build_number: ENV["BUILD_NUMBER"] || "1"
     )
