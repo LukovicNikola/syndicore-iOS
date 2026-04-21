@@ -72,7 +72,8 @@ struct OnboardingView: View {
         } catch let error as APIError {
             switch error {
             case .conflict(let err):
-                if err.error == "already_onboarded" {
+                // Typed error code check — robust vs string match
+                if err.code == .alreadyOnboarded {
                     await gameState.bootstrap()
                     return
                 }

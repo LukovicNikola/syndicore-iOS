@@ -4,24 +4,36 @@ import Foundation
 /// BE šalje ISO8601 sa fractional seconds ("2026-05-01T00:00:00.000Z"),
 /// sa fallback-om na bez fractional seconds za robusnost.
 extension JSONDecoder {
+    /// Default API decoder — ISO8601 sa fractional seconds + fallback.
     static let api: JSONDecoder = {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoderCtx in
-            let container = try decoderCtx.singleValueContainer()
-            let string = try container.decode(String.self)
-            if let date = ISO8601DateCoder.dateWithFractionalSeconds(from: string) {
-                return date
-            }
-            if let date = ISO8601DateCoder.dateWithoutFractionalSeconds(from: string) {
-                return date
-            }
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Invalid ISO8601 date: \(string)"
-            )
-        }
+        decoder.dateDecodingStrategy = customDateStrategy
         return decoder
     }()
+
+    /// Alternativni decoder za game-constants.json — keyDecodingStrategy = snake_case
+    /// + isti date handling kao `api`.
+    static let apiSnakeCase: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = customDateStrategy
+        return decoder
+    }()
+
+    private static let customDateStrategy: JSONDecoder.DateDecodingStrategy = .custom { decoderCtx in
+        let container = try decoderCtx.singleValueContainer()
+        let string = try container.decode(String.self)
+        if let date = ISO8601DateCoder.dateWithFractionalSeconds(from: string) {
+            return date
+        }
+        if let date = ISO8601DateCoder.dateWithoutFractionalSeconds(from: string) {
+            return date
+        }
+        throw DecodingError.dataCorruptedError(
+            in: container,
+            debugDescription: "Invalid ISO8601 date: \(string)"
+        )
+    }
 }
 
 extension JSONEncoder {

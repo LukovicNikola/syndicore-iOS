@@ -62,16 +62,25 @@ struct MapView: View {
     }
 
     private func setupCallbacks() {
+        // Napomena: SwiftUI struct-ovi se kopiraju — nema pravog retain cycle-a.
+        // Ipak, eksplicitno označavamo closure kao @MainActor + koristimo
+        // Task sa { @MainActor in ... } wrapper-om radi Swift 6 concurrency
+        // strictness-a i da state mutation (selectedTile, viewportCenter) ne klizi
+        // u non-main actor izvršenje.
         scene.onTileTapped = { tile in
-            if selectedTile?.x == tile.x && selectedTile?.y == tile.y {
-                selectedTile = nil
-            } else {
-                selectedTile = tile
+            Task { @MainActor in
+                if selectedTile?.x == tile.x && selectedTile?.y == tile.y {
+                    selectedTile = nil
+                } else {
+                    selectedTile = tile
+                }
             }
         }
         scene.onViewportMoved = { cx, cy in
-            viewportCenter = (cx: cx, cy: cy)
-            Task { await fetchViewport() }
+            Task { @MainActor in
+                viewportCenter = (cx: cx, cy: cy)
+                await fetchViewport()
+            }
         }
     }
 

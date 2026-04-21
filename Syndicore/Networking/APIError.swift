@@ -3,6 +3,23 @@ import Foundation
 struct ErrorResponse: Codable {
     let error: String
     let details: [String: AnyCodableValue]?
+
+    /// Parsed version of `error` kao structured enum — null ako je BE vratio
+    /// code koji iOS klijent ne zna (nov feature, typo, itd).
+    var code: BEErrorCode? { BEErrorCode(rawValue: error) }
+}
+
+/// Strongly-typed katalog BE error code-ova.
+/// Dodaj nov case ovde kad BE uvede nov error code — lepše od string match-a.
+enum BEErrorCode: String {
+    case alreadyOnboarded   = "already_onboarded"
+    case usernameTaken      = "username_taken"
+    case onboardingRequired = "onboarding_required"
+    case insufficientResources = "insufficient_resources"
+    case queueFull          = "queue_full"
+    case buildingLocked     = "building_locked"
+    case notAuthenticated   = "not_authenticated"
+    case validationFailed   = "validation_failed"
 }
 
 enum APIError: LocalizedError {
@@ -36,12 +53,16 @@ enum APIError: LocalizedError {
 }
 
 /// Type-erased Codable value for dynamic JSON fields.
-enum AnyCodableValue: Codable {
+/// Supports scalars + nested arrays/objects da BE `details` field može da
+/// vrati bilo kakav JSON bez puknuća decode-a.
+indirect enum AnyCodableValue: Codable {
     case string(String)
     case int(Int)
     case double(Double)
     case bool(Bool)
     case null
+    case array([AnyCodableValue])
+    case object([String: AnyCodableValue])
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
@@ -49,6 +70,8 @@ enum AnyCodableValue: Codable {
         else if let v = try? container.decode(Int.self) { self = .int(v) }
         else if let v = try? container.decode(Double.self) { self = .double(v) }
         else if let v = try? container.decode(Bool.self) { self = .bool(v) }
+        else if let v = try? container.decode([AnyCodableValue].self) { self = .array(v) }
+        else if let v = try? container.decode([String: AnyCodableValue].self) { self = .object(v) }
         else if container.decodeNil() { self = .null }
         else { throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported value") }
     }
@@ -57,10 +80,12 @@ enum AnyCodableValue: Codable {
         var container = encoder.singleValueContainer()
         switch self {
         case .string(let v): try container.encode(v)
-        case .int(let v): try container.encode(v)
+        case .int(let v):    try container.encode(v)
         case .double(let v): try container.encode(v)
-        case .bool(let v): try container.encode(v)
-        case .null: try container.encodeNil()
+        case .bool(let v):   try container.encode(v)
+        case .null:          try container.encodeNil()
+        case .array(let v):  try container.encode(v)
+        case .object(let v): try container.encode(v)
         }
     }
 }

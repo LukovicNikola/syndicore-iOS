@@ -48,8 +48,8 @@ final class GameConstantsManager {
     }
 
     private static func decode(_ data: Data) -> GameData? {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try? decoder.decode(GameData.self, from: data)
+        // Koristi centralizovani decoder sa snake_case + ISO8601 date handling
+        // (isti date strategy kao ostatak API-ja).
+        try? JSONDecoder.apiSnakeCase.decode(GameData.self, from: data)
     }
 }

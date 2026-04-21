@@ -179,8 +179,8 @@ struct AuthView: View {
             let appleError = error as? ASAuthorizationError
             if appleError?.code == .canceled {
                 // Korisnik otkazao — ne prikazuj gresku
-            } else if appleError?.code == .unknown {
-                // Code 1000 = simulator ili drugi sistemski problem
+            } else if isRunningInSimulator {
+                // Simulator uvek vrati generic error za Apple Sign In — dajemo jasnu poruku
                 errorMessage = "Apple Sign In requires a real device. Use email/password instead."
             } else {
                 errorMessage = error.localizedDescription
@@ -188,5 +188,11 @@ struct AuthView: View {
         }
 
         isLoading = false
+    }
+
+    /// Reliable simulator check (env var) vs fragile `ASAuthorizationError.unknown` which
+    /// može da se pojavi i iz drugih razloga na pravom uređaju.
+    private var isRunningInSimulator: Bool {
+        ProcessInfo.processInfo.environment["SIMULATOR_UDID"] != nil
     }
 }

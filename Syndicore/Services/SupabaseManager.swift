@@ -170,7 +170,7 @@ final class SupabaseManager {
         if errorCode != errSecSuccess {
             throw SupabaseAuthError.nonceGenerationFailed(osStatus: errorCode)
         }
-        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz-._")
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
         return String(randomBytes.map { charset[Int($0) % charset.count] })
     }
 }
