@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UIKit
 import os
 
 /// Centralno stanje aplikacije.

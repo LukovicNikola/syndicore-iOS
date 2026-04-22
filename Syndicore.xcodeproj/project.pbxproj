@@ -83,6 +83,12 @@
 		9B4CFCB12F930000850457 /* WallCornerNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4CFCB02F930000850457 /* WallCornerNode.swift */; };
 		9BDE06A22F97C2720033330D /* ArmyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A12F97C2710033330D /* ArmyView.swift */; };
 		9BDE06A42F97E61C0033330D /* MapTileTestScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A32F97E61C0033330D /* MapTileTestScene.swift */; };
+		9BDE06A62F98C4910033330D /* SocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A52F98C4910033330D /* SocketService.swift */; };
+		9BDE06A82F98C4920033330D /* RealtimeEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A72F98C4920033330D /* RealtimeEvents.swift */; };
+		9BDE06AA2F98C4930033330D /* CompletionNoticeBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06A92F98C4930033330D /* CompletionNoticeBanner.swift */; };
+		9BDE06AC2F98C4940033330D /* IncomingAttackBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */; };
+		9BDE06AE2F98C4940033330D /* SendTroopsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */; };
+		9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AF2F98C4950033330D /* MovementLineNode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -175,6 +181,12 @@
 		9B4CFCB02F930000850457 /* WallCornerNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallCornerNode.swift; sourceTree = "<group>"; };
 		9BDE06A12F97C2710033330D /* ArmyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmyView.swift; sourceTree = "<group>"; };
 		9BDE06A32F97E61C0033330D /* MapTileTestScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTileTestScene.swift; sourceTree = "<group>"; };
+		9BDE06A52F98C4910033330D /* SocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketService.swift; sourceTree = "<group>"; };
+		9BDE06A72F98C4920033330D /* RealtimeEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeEvents.swift; sourceTree = "<group>"; };
+		9BDE06A92F98C4930033330D /* CompletionNoticeBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionNoticeBanner.swift; sourceTree = "<group>"; };
+		9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingAttackBanner.swift; sourceTree = "<group>"; };
+		9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTroopsSheet.swift; sourceTree = "<group>"; };
+		9BDE06AF2F98C4950033330D /* MovementLineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLineNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -248,6 +260,7 @@
 				9B2E27262F9126D100CA8E81 /* MapTile.swift */,
 				9B2E27282F9126D200CA8E81 /* BattleReport.swift */,
 				4B0000000000000000000101 /* GameData.swift */,
+				9BDE06A72F98C4920033330D /* RealtimeEvents.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -288,6 +301,9 @@
 				9B4CFC802F927D4000850457 /* City */,
 				9B4CFCA42F927F1200850457 /* CountdownLabel.swift */,
 				9BDE06A12F97C2710033330D /* ArmyView.swift */,
+				9BDE06A92F98C4930033330D /* CompletionNoticeBanner.swift */,
+				9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */,
+				9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -331,6 +347,7 @@
 				4B0000000000000000000112 /* MapScene.swift */,
 				4B0000000000000000000113 /* MapView.swift */,
 				9BDE06A32F97E61C0033330D /* MapTileTestScene.swift */,
+				9BDE06AF2F98C4950033330D /* MovementLineNode.swift */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -339,6 +356,7 @@
 			isa = PBXGroup;
 			children = (
 				9B2E27362F91276600CA8E81 /* SupabaseManager.swift */,
+				9BDE06A52F98C4910033330D /* SocketService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -514,7 +532,9 @@
 				4A0000000000000000000202 /* AppState.swift in Sources */,
 				9B4CFC9B2F927EC100850457 /* TopHUD.swift in Sources */,
 				9B2E27252F9126D000CA8E81 /* City.swift in Sources */,
+				9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */,
 				4A0000000000000000000203 /* Faction.swift in Sources */,
+				9BDE06A82F98C4920033330D /* RealtimeEvents.swift in Sources */,
 				4A0000000000000000000204 /* Ring.swift in Sources */,
 				9B4CFC912F927E8600850457 /* CornerPylonNode.swift in Sources */,
 				4A5847E82F95419900E4C30B /* TileGridEditorView.swift in Sources */,
@@ -531,6 +551,7 @@
 				4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */,
 				9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */,
 				9BDE06A22F97C2720033330D /* ArmyView.swift in Sources */,
+				9BDE06A62F98C4910033330D /* SocketService.swift in Sources */,
 				4A0000000000000000000210 /* APIError.swift in Sources */,
 				9B4CFCA32F927EDE00850457 /* BuildSheet.swift in Sources */,
 				9B4CFC8D2F927E8400850457 /* BuildingNode.swift in Sources */,
@@ -544,6 +565,7 @@
 				9B4CFC932F927E8700850457 /* ScaffoldNode.swift in Sources */,
 				4A0000000000000000000213 /* ContentView.swift in Sources */,
 				4A5847DA2F94C2AE00E4C30B /* ConstructionProgressNode.swift in Sources */,
+				9BDE06AA2F98C4930033330D /* CompletionNoticeBanner.swift in Sources */,
 				4A0000000000000000000214 /* WorldListView.swift in Sources */,
 				4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */,
 				4A6F52692F93DA0F00992D0B /* SpriteSpec.swift in Sources */,
@@ -565,10 +587,12 @@
 				4A5847E22F94C2E800E4C30B /* ParticleTextures.swift in Sources */,
 				9B4CFCA12F927EDD00850457 /* BuildingDetailSheet.swift in Sources */,
 				9B4CFCA52F927F1200850457 /* CountdownLabel.swift in Sources */,
+				9BDE06AC2F98C4940033330D /* IncomingAttackBanner.swift in Sources */,
 				4A5847DC2F94C2E800E4C30B /* ElectricArcNode.swift in Sources */,
 				4A5847DE2F94C2E800E4C30B /* BuildingTooltipNode.swift in Sources */,
 				9B4CFC952F927EAB00850457 /* CityScene.swift in Sources */,
 				4B0000000000000000000005 /* UnitDetailView.swift in Sources */,
+				9BDE06AE2F98C4940033330D /* SendTroopsSheet.swift in Sources */,
 				4B0000000000000000000006 /* BuildingsView.swift in Sources */,
 				9B4CFC972F927EB200850457 /* CitySceneView.swift in Sources */,
 				4B0000000000000000000007 /* TechTreeView.swift in Sources */,
