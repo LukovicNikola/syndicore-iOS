@@ -23,18 +23,18 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 
 ### 🟡 P2 — MEDIUM (posle P0/P1)
 
-- [ ] **`MapScene.swift:116` `group.name!`** — guaranteed safe u trenutnom loop-u, ali hygiene fix: `guard let name = group.name else { continue }` pre `tileGroupCache[name] = group`.
+- [x] **`MapScene.swift:116` `group.name!`** — force unwrap uklonjen u prethodnim commitima. ✅
 - [x] **`randomNonceString` charset** (`Services/SupabaseManager.swift`) — charset je ispravan: `"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"`. ✅ (potvrđeno 2026-04-22, W postoji)
 - [ ] **`MapView` hardkodovana 800×800 scene size** — koristiti `GeometryReader` da se prosledi actual size, ili garantovati `scaleMode = .resizeFill` pre `addChild`.
-- [ ] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** umesto `JSONDecoder.api`. Nije bitno ako GameData nema datume, ali konsistentnost.
-- [ ] **`AnyCodableValue` bez `.array` / `.object` varijanti** (`Networking/APIError.swift:37`) — ako BE ikad pošalje nested JSON u `details`, decode će puknuti.
+- [x] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** — koristi `JSONDecoder.apiSnakeCase`. ✅
+- [x] **`AnyCodableValue` bez `.array` / `.object` varijanti** — dodati `.array` i `.object` varijante. ✅
 - [ ] **`MapView.setupCallbacks()` closure capture** — `scene.onTileTapped = { tile in selectedTile = tile }` hvata `self` implicitno. Dodati `[weak self]` eksplicitno.
 - [x] **`RefreshErrorBanner` auto-dismiss** — 8s `.task` za fadeout sa animacijom. ✅ 55f3a25
 - [x] **`WorldPickerView.loadWorlds()` bez timeout-a** — pokriveno P1 global timeout fix-om. ✅ 50f9db8
 - [x] **`BuildingInfo` backward-compat throw** — explicit `DecodingError` sa jasnom porukom kad ni `currentLevel` ni `level` ne postoje. ✅ 55f3a25
-- [ ] **`OnboardingView` error string match `err.error == "already_onboarded"`** — fragile. Definisati enum za BE error codes ili koristiti `.contains`.
-- [ ] **`GameState.bootstrap` decode fail u `api.city(id:)`** — `activeCity` ostaje stale bez indikacije. Fallback na `pw.city` iz `/me` response-a.
-- [ ] **`CountdownLabel` Timer cleanup** — `.autoconnect()` pokriva, ali dodati explicit `.onDisappear { cancellable?.cancel() }` za clarity.
+- [x] **`OnboardingView` error string match** — koristi `BEErrorCode` typed enum (`err.code == .alreadyOnboarded`). ✅
+- [x] **`GameState.bootstrap` decode fail u `api.city(id:)`** — do/catch sa fallback na `pw.city` iz `/me` response-a. ✅
+- [x] **`CountdownLabel` Timer cleanup** — early-return guard kad countdown završi, uklonjeno nepotrebno stanje. ✅
 
 ### 🔵 P3 — LOW (kad bude vremena)
 

@@ -17,7 +17,11 @@ struct CountdownLabel: View {
             .font(.caption.bold().monospacedDigit())
             .foregroundStyle(remaining > 0 ? .orange : .green)
             .onAppear { updateRemaining() }
-            .onReceive(timer) { _ in updateRemaining() }
+            .onReceive(timer) { _ in
+                // Stop ticking once countdown is done
+                guard remaining > 0 || !didFireComplete else { return }
+                updateRemaining()
+            }
     }
 
     private var formatted: String {

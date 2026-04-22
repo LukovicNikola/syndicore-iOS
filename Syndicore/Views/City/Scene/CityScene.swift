@@ -1,6 +1,23 @@
 import SpriteKit
 import UIKit
 
+/// Represents what kind of empty slot the user tapped.
+/// Determines which buildings are available in BuildSheet and ensures
+/// the building goes to the exact tile the user selected.
+enum TappedSlot: Identifiable {
+    /// A position designated for a specific fixed building (e.g. BARRACKS at (1,2)).
+    case fixed(BuildingType)
+    /// A resource/flex slot position with specific BE slot index.
+    case resource(slotIndex: Int)
+
+    var id: String {
+        switch self {
+        case .fixed(let type): "fixed_\(type.rawValue)"
+        case .resource(let idx): "resource_\(idx)"
+        }
+    }
+}
+
 /// SKScene za isometrijsku vizualizaciju grada.
 ///
 /// **Layout v2:** 6×6 grid sa octagonal trim (12 corner cutouts) i HQ 2×2 centered.
@@ -17,7 +34,7 @@ final class CityScene: SKScene {
 
     var onTapHQ:          (() -> Void)?
     var onTapBuilding:    ((BuildingInfo) -> Void)?
-    var onTapEmptySlot:   ((Int) -> Void)?
+    var onTapEmptySlot:   ((TappedSlot) -> Void)?
 
     /// Pozvan kad neka zgrada zavrsi upgrade timer u UI-ju.
     /// SwiftUI sloj wire-uje na refreshCity() da povuče novi state sa BE-a.
@@ -108,6 +125,20 @@ final class CityScene: SKScene {
         (1, 4),                          // SW diagonal
         (0, 3), (0, 2),                  // left edge
     ]
+
+    /// Inverse map: (col, row) → fixed building type.
+    private static let fixedBuildingAtCoord: [GridCoord: BuildingType] = {
+        var map: [GridCoord: BuildingType] = [:]
+        for (type, pos) in fixedPositions {
+            map[GridCoord(pos.col, pos.row)] = type
+        }
+        return map
+    }()
+
+    /// Resource slot index for a given coord. Returns nil if not a resource slot.
+    private static func resourceSlotIndex(col: Int, row: Int) -> Int? {
+        resourceSlotPositions.firstIndex(where: { $0.col == col && $0.row == row })
+    }
 
     private func coord(for building: BuildingInfo) -> (col: Int, row: Int)? {
         // Resource buildings (have slotIndex) use resourceSlotPositions
@@ -458,10 +489,19 @@ final class CityScene: SKScene {
         guard let touch = touches.first, let tileMap = tileMapNode else { return }
         let locationInWorld = touch.location(in: worldNode)
 
-        // Reset prethodno selected tile + HQ selected stanje + pulse overlay
-        if let prev = selectedTileCoord,
-           let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
-            tileMap.setTileGroup(emptyGroup, forColumn: prev.col, row: tmRow(prev.row))
+        // Reset prethodno selected tile + HQ selected stanje + pulse overlay.
+        // Ako je na prethodnom tile-u zgrada, restore na nil (nevidljiv — sprite pokriva).
+        // Inace restore na empty group (prazan buildable tile).
+        if let prev = selectedTileCoord {
+            let hasBuildingAtPrev = buildings.contains { b in
+                guard b.type != .HQ, let c = coord(for: b) else { return false }
+                return c.col == prev.col && c.row == prev.row
+            }
+            if hasBuildingAtPrev {
+                tileMap.setTileGroup(nil, forColumn: prev.col, row: tmRow(prev.row))
+            } else if let emptyGroup = CityTileSet.emptyGroup(in: tileSet) {
+                tileMap.setTileGroup(emptyGroup, forColumn: prev.col, row: tmRow(prev.row))
+            }
         }
         selectedTileCoord = nil
         selectedTilePulse?.removeFromParent()
@@ -502,10 +542,14 @@ final class CityScene: SKScene {
             hapticTap.impactOccurred()
             onTapBuilding?(bldg)
         } else {
-            // Empty slot — pošalji slot index za BuildSheet (Isometric ga zna) + light haptic
+            // Empty slot — odredi tip slota (fixed ili resource) i prosledi BuildSheet-u.
+            // Tiles koji nisu ni fixed ni resource (npr. (1,1), (4,4)) — samo vizuelni feedback.
             hapticTap.impactOccurred(intensity: 0.5)
-            let slotIdx = Isometric.slot(forCoord: col, row: row) ?? 0
-            onTapEmptySlot?(slotIdx)
+            if let fixedType = Self.fixedBuildingAtCoord[GridCoord(col, row)] {
+                onTapEmptySlot?(.fixed(fixedType))
+            } else if let resIdx = Self.resourceSlotIndex(col: col, row: row) {
+                onTapEmptySlot?(.resource(slotIndex: resIdx))
+            }
         }
     }
 

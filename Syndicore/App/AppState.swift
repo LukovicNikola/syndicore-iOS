@@ -118,7 +118,12 @@ final class GameState {
                 activeWorld = allWorlds.first { $0.id == pw.worldId }
 
                 if let city = pw.city {
-                    activeCity = try await api.city(id: city.id)
+                    do {
+                        activeCity = try await api.city(id: city.id)
+                    } catch {
+                        Self.log.info("City fetch failed in bootstrap, using /me fallback: \(error.localizedDescription, privacy: .public)")
+                        activeCity = City(id: city.id, name: city.name, resources: city.resources, tile: city.tile, buildings: city.buildings, troops: city.troops, reinforcements: city.reinforcements, constructionQueue: city.constructionQueue)
+                    }
                 }
                 activeScreen = .mainGame
                 await connectRealtime()
