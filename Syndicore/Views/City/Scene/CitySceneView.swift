@@ -6,7 +6,7 @@ struct CitySceneView: UIViewRepresentable {
     let city: City?
     var onTapHQ:        () -> Void
     var onTapBuilding:  (BuildingInfo) -> Void
-    var onTapEmptySlot: (TappedSlot) -> Void
+    var onTapEmptySlot: (Int) -> Void
 
     /// Pozvan iz scene kad construction timer (countdown na zgradi) dođe na 0.
     /// Parent SwiftUI view treba da pozove refreshCity() da povuče novi state sa BE-a.

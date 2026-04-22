@@ -5,7 +5,7 @@ struct CityView: View {
 
     // Sheet state
     @State private var selectedBuilding: BuildingInfo?
-    @State private var tappedSlot: TappedSlot?
+    @State private var tappedSlotIndex: Int?
     @State private var showHQInfo    = false
     @State private var showTraining  = false
     @State private var showCrystals  = false
@@ -20,7 +20,7 @@ struct CityView: View {
                 city: city,
                 onTapHQ:        { showHQInfo = true },
                 onTapBuilding:  { selectedBuilding = $0 },
-                onTapEmptySlot: { tappedSlot = $0 },
+                onTapEmptySlot: { tappedSlotIndex = $0 },
                 onConstructionComplete: {
                     Task { await gameState.refreshCity() }
                 }
@@ -85,12 +85,15 @@ struct CityView: View {
                     .presentationDetents([.medium, .large])
             }
         }
-        .sheet(item: $tappedSlot) { slot in
-            if let city {
+        .sheet(isPresented: Binding(
+            get: { tappedSlotIndex != nil },
+            set: { if !$0 { tappedSlotIndex = nil } }
+        )) {
+            if let city, let slotIdx = tappedSlotIndex {
                 BuildSheet(
                     cityId: city.id,
                     hasQueue: city.constructionQueue != nil,
-                    tappedSlot: slot,
+                    slotIndex: slotIdx,
                     existingTypes: Set((city.buildings ?? []).map { $0.type })
                 )
                 .presentationDetents([.medium, .large])

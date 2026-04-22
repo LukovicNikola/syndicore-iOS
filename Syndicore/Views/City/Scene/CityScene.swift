@@ -1,40 +1,25 @@
 import SpriteKit
 import UIKit
 
-/// Represents what kind of empty slot the user tapped.
-/// Determines which buildings are available in BuildSheet and ensures
-/// the building goes to the exact tile the user selected.
-enum TappedSlot: Identifiable {
-    /// A position designated for a specific fixed building (e.g. BARRACKS at (1,2)).
-    case fixed(BuildingType)
-    /// A resource/flex slot position with specific BE slot index.
-    case resource(slotIndex: Int)
-
-    var id: String {
-        switch self {
-        case .fixed(let type): "fixed_\(type.rawValue)"
-        case .resource(let idx): "resource_\(idx)"
-        }
-    }
-}
-
 /// SKScene za isometrijsku vizualizaciju grada.
 ///
 /// **Layout v2:** 6×6 grid sa octagonal trim (12 corner cutouts) i HQ 2×2 centered.
 /// Total buildable slots: 20 (vidi `Isometric.buildableSlotCount`).
 ///
+/// **Free placement:** Sve zgrade (fixed i resource) mogu na bilo koji buildable tile.
+/// Slot index se dodeljuje po poziciji tile-a (`Isometric.slot(forCoord:)`).
+///
 /// Komunikacija prema SwiftUI-u je callback-ovima:
 ///   - `onTapHQ`          – korisnik tapnuo bilo koji HQ tile (2×2 region)
 ///   - `onTapBuilding`    – korisnik tapnuo zauzeti tile
 ///   - `onTapEmptySlot`   – korisnik tapnuo prazni buildable tile (slot index za BuildSheet)
-///   - `onToggleDebug`    – nije callback, ali debug overlay se kontroliše preko `setDebugOverlay(_:)`
 final class CityScene: SKScene {
 
     // MARK: - Callbacks
 
     var onTapHQ:          (() -> Void)?
     var onTapBuilding:    ((BuildingInfo) -> Void)?
-    var onTapEmptySlot:   ((TappedSlot) -> Void)?
+    var onTapEmptySlot:   ((Int) -> Void)?
 
     /// Pozvan kad neka zgrada zavrsi upgrade timer u UI-ju.
     /// SwiftUI sloj wire-uje na refreshCity() da povuče novi state sa BE-a.
@@ -102,51 +87,11 @@ final class CityScene: SKScene {
     //
     // Total: 12 inner + 8 outer + 4 HQ = 24 visible tiles (od 36 u 6×6).
 
-    /// Fixed buildings — pozicije zakucane po dizajnu, blizu HQ-a.
-    private static let fixedPositions: [BuildingType: (col: Int, row: Int)] = [
-        // Inner ring cardinal positions around HQ 2×2
-        .OPS_CENTER:    (col: 2, row: 1),   // N
-        .RALLY_POINT:   (col: 3, row: 1),   // N
-        .BARRACKS:      (col: 1, row: 2),   // W
-        .MOTOR_POOL:    (col: 4, row: 2),   // E
-        .WAREHOUSE:     (col: 1, row: 3),   // W
-        .TRADE_POST:    (col: 4, row: 3),   // E
-        .WATCHTOWER:    (col: 2, row: 4),   // S
-        .RESEARCH_LAB:  (col: 3, row: 4),   // S
-    ]
-
-    /// Flex/resource slot positions — outer ring (9 slotova).
-    /// BE slotIndex (0..N-1) mapira u ovaj array.
-    private static let resourceSlotPositions: [(col: Int, row: Int)] = [
-        (2, 0), (3, 0),                  // top edge
-        (4, 1),                          // NE diagonal
-        (5, 2), (5, 3),                  // right edge
-        (3, 5), (2, 5),                  // bottom edge
-        (1, 4),                          // SW diagonal
-        (0, 3), (0, 2),                  // left edge
-    ]
-
-    /// Inverse map: (col, row) → fixed building type.
-    private static let fixedBuildingAtCoord: [GridCoord: BuildingType] = {
-        var map: [GridCoord: BuildingType] = [:]
-        for (type, pos) in fixedPositions {
-            map[GridCoord(pos.col, pos.row)] = type
-        }
-        return map
-    }()
-
-    /// Resource slot index for a given coord. Returns nil if not a resource slot.
-    private static func resourceSlotIndex(col: Int, row: Int) -> Int? {
-        resourceSlotPositions.firstIndex(where: { $0.col == col && $0.row == row })
-    }
-
+    /// Unified slot → coord mapping. ALL buildings (fixed and resource) use slotIndex.
+    /// Delegates to `Isometric.coord(forSlot:)` which enumerates buildable tiles row-by-row.
     private func coord(for building: BuildingInfo) -> (col: Int, row: Int)? {
-        // Resource buildings (have slotIndex) use resourceSlotPositions
-        if let idx = building.slotIndex, idx >= 0, idx < Self.resourceSlotPositions.count {
-            return Self.resourceSlotPositions[idx]
-        }
-        // Fixed buildings look up by type
-        return Self.fixedPositions[building.type]
+        guard let idx = building.slotIndex else { return nil }
+        return Isometric.coord(forSlot: idx)
     }
 
     // MARK: - Lifecycle
@@ -542,13 +487,10 @@ final class CityScene: SKScene {
             hapticTap.impactOccurred()
             onTapBuilding?(bldg)
         } else {
-            // Empty slot — odredi tip slota (fixed ili resource) i prosledi BuildSheet-u.
-            // Tiles koji nisu ni fixed ni resource (npr. (1,1), (4,4)) — samo vizuelni feedback.
+            // Empty buildable tile — resolve slot index and open BuildSheet.
             hapticTap.impactOccurred(intensity: 0.5)
-            if let fixedType = Self.fixedBuildingAtCoord[GridCoord(col, row)] {
-                onTapEmptySlot?(.fixed(fixedType))
-            } else if let resIdx = Self.resourceSlotIndex(col: col, row: row) {
-                onTapEmptySlot?(.resource(slotIndex: resIdx))
+            if let slotIdx = Isometric.slot(forCoord: col, row: row) {
+                onTapEmptySlot?(slotIdx)
             }
         }
     }

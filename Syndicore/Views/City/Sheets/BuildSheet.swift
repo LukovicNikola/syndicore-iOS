@@ -1,39 +1,36 @@
 import SwiftUI
 
-/// Sheet za izgradnju nove zgrade na tačnom tile-u koji je korisnik tapnuo.
+/// Sheet za izgradnju nove zgrade na tile-u koji je korisnik tapnuo.
 ///
-/// `tappedSlot` određuje šta se može graditi:
-/// - `.fixed(type)` → samo taj specifični fixed building (ako nije već izgrađen)
-/// - `.resource(slotIndex)` → resource buildings (DATA_BANK/FOUNDRY/TECH_LAB/POWER_GRID)
-///    sa tačnim slot index-om koji odgovara tapnutom tile-u
+/// **Free placement:** Prikazuje SVE nezagrađene zgrade (fixed + resource) bez obzira
+/// na poziciju tile-a. `slotIndex` se uvek šalje BE-u — i za fixed i za resource zgrade.
 struct BuildSheet: View {
     let cityId: String
     let hasQueue: Bool
-    let tappedSlot: TappedSlot
-    /// Building types koji već postoje u gradu (za filtriranje fixed buildings).
+    let slotIndex: Int
+    /// Building types koji već postoje u gradu (za filtriranje — one-per-city constraint).
     let existingTypes: Set<BuildingType>
 
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
 
-    /// Zgrade koje se mogu izgraditi na ovom slotu.
+    /// Sve zgrade koje igrač može da izgradi (fixed koje još nema + resource tipovi).
     private var buildableTypes: [BuildingType] {
-        switch tappedSlot {
-        case .fixed(let type):
-            // Ovaj tile je namenjen za tačno jednu fixed zgradu
-            return existingTypes.contains(type) ? [] : [type]
-        case .resource:
-            // Resource slot — ponudi sve 4 resource tipa
-            return [.DATA_BANK, .FOUNDRY, .TECH_LAB, .POWER_GRID]
-        }
-    }
+        var types: [BuildingType] = []
 
-    /// Slot index za API poziv (samo za resource buildings).
-    private var slotIndex: Int? {
-        switch tappedSlot {
-        case .resource(let idx): idx
-        case .fixed: nil
+        // Fixed buildings — one per city, prikazuj samo ako još nije izgrađena
+        let fixedTypes: [BuildingType] = [
+            .BARRACKS, .MOTOR_POOL, .OPS_CENTER, .WAREHOUSE,
+            .WALL, .WATCHTOWER, .RALLY_POINT, .TRADE_POST, .RESEARCH_LAB
+        ]
+        for ft in fixedTypes where !existingTypes.contains(ft) {
+            types.append(ft)
         }
+
+        // Resource buildings — mogu se graditi više puta (flex slots)
+        types.append(contentsOf: [.DATA_BANK, .FOUNDRY, .TECH_LAB, .POWER_GRID])
+
+        return types
     }
 
     var body: some View {
@@ -41,9 +38,9 @@ struct BuildSheet: View {
             Group {
                 if buildableTypes.isEmpty {
                     ContentUnavailableView(
-                        "Already Built",
+                        "No Buildings Available",
                         systemImage: "checkmark.seal.fill",
-                        description: Text("This building has already been constructed.")
+                        description: Text("All buildings have been constructed.")
                     )
                 } else {
                     List(buildableTypes, id: \.self) { type in
@@ -67,12 +64,10 @@ struct BuildSheet: View {
         }
     }
 
-    /// Računa cost za level 1 nove zgrade iz game-constants.json
     private func costPreview(for type: BuildingType) -> BuildCostPreview? {
         guard let gd = gameState.gameConstants.gameData else { return nil }
         let key = type.rawValue.lowercased()
 
-        // Probaj resource buildings pa fixed buildings
         if let rb = gd.buildings.resource[key] {
             return BuildCostPreview(
                 credits: rb.baseCost["credits"] ?? 0,
@@ -107,7 +102,7 @@ private struct BuildableRow: View {
     let cityId: String
     let disabled: Bool
     let costPreview: BuildCostPreview?
-    let slotIndex: Int?
+    let slotIndex: Int
 
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
@@ -157,6 +152,7 @@ private struct BuildableRow: View {
         isBuilding   = true
         errorMessage = nil
         do {
+            // Always send slotIndex — BE stores position for all building types.
             _ = try await gameState.api.buildNew(cityId: cityId, buildingType: buildingType, slotIndex: slotIndex)
             await gameState.refreshCity()
             dismiss()
