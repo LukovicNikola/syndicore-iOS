@@ -8,7 +8,7 @@ enum Terrain: String, Codable, CaseIterable {
 
 // MARK: - Rarity
 
-enum Rarity: String, Codable {
+enum Rarity: String, Codable, CaseIterable {
     case COMMON, UNCOMMON, RARE
 }
 
@@ -30,13 +30,13 @@ enum UnitType: String, Codable, CaseIterable {
 
 // MARK: - Movement Type
 
-enum MovementType: String, Codable {
+enum MovementType: String, Codable, CaseIterable {
     case ATTACK, RAID, SCOUT, REINFORCE, TRANSPORT, SETTLE, RETURN
 }
 
 // MARK: - World Status
 
-enum WorldStatus: String, Codable {
+enum WorldStatus: String, Codable, CaseIterable {
     case OPEN, RUNNING, ENDED, ARCHIVED
 }
 

@@ -63,7 +63,9 @@ final class APIClient: @unchecked Sendable {
                 try await Task.sleep(for: .seconds(timeout))
                 throw APIError.timeout(timeout)
             }
-            let result = try await group.next()!
+            guard let result = try await group.next() else {
+                throw APIError.timeout(timeout)
+            }
             group.cancelAll()
             return result
         }

@@ -71,6 +71,10 @@ final class GameState {
     var reportsNextCursor: String?
     var reportsHasMore: Bool = false
 
+    /// Guards against double-fire on infinite scroll (rapid onAppear triggers).
+    private var isLoadingMoreMovements = false
+    private var isLoadingMoreReports = false
+
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
     // Views treba da resetuju ovo na nil nakon prikaza (ili na .task retry-u).
@@ -304,7 +308,9 @@ final class GameState {
     /// No-op ako `movementsHasMore == false` ili nema cursor-a.
     func loadMoreMovements(limit: Int = 50) async {
         guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
-        guard movementsHasMore, let cursor = movementsNextCursor else { return }
+        guard movementsHasMore, let cursor = movementsNextCursor, !isLoadingMoreMovements else { return }
+        isLoadingMoreMovements = true
+        defer { isLoadingMoreMovements = false }
         do {
             let page = try await api.movements(worldId: worldId, limit: limit, before: cursor)
             activeMovements.append(contentsOf: page.items)
@@ -333,7 +339,9 @@ final class GameState {
     /// Fetch-uje SLEDECU stranu reports-a i appenduje na accumulated list.
     func loadMoreReports(limit: Int = 50) async {
         guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
-        guard reportsHasMore, let cursor = reportsNextCursor else { return }
+        guard reportsHasMore, let cursor = reportsNextCursor, !isLoadingMoreReports else { return }
+        isLoadingMoreReports = true
+        defer { isLoadingMoreReports = false }
         do {
             let page = try await api.reports(worldId: worldId, limit: limit, before: cursor)
             activeReports.append(contentsOf: page.items)

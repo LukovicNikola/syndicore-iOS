@@ -104,6 +104,10 @@ final class SocketService {
         joinedCityRoom = nil
         joinedWorldRoom = nil
         isConnected = false
+        onIncomingAttack = nil
+        onBuildingComplete = nil
+        onTrainingComplete = nil
+        onTroopsArrived = nil
     }
 
     // MARK: - Room joining

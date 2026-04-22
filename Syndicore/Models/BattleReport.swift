@@ -103,7 +103,7 @@ struct TroopMovement: Codable, Identifiable {
     }
 }
 
-struct Coordinate: Codable {
+struct Coordinate: Codable, Hashable {
     let x: Int
     let y: Int
 }

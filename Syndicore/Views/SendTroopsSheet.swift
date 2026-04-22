@@ -31,7 +31,7 @@ struct SendTroopsSheet: View {
     }
 
     private var canSend: Bool {
-        totalSelected > 0 && !isSending && gameState.activeCity != nil
+        totalSelected > 0 && !isSending && gameState.activeCity != nil && !allowedMovementTypes.isEmpty
     }
 
     init(targetX: Int, targetY: Int, allowedMovementTypes: [MovementType]) {

@@ -23,6 +23,8 @@ final class MapScene: SKScene {
     private var movementLineNodes: [String: MovementLineNode] = [:]  // keyed by movement.id
     private var lastFetchCenter = (cx: 0, cy: 0)
     private let fetchThreshold = 10
+    private var pinchGesture: UIPinchGestureRecognizer?
+    private var panGesture: UIPanGestureRecognizer?
 
     var onTileTapped: ((MapTile) -> Void)?
     var onViewportMoved: ((Int, Int) -> Void)?
@@ -70,11 +72,20 @@ final class MapScene: SKScene {
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         view.addGestureRecognizer(pinch)
+        pinchGesture = pinch
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         pan.minimumNumberOfTouches = 1
         pan.maximumNumberOfTouches = 1
         view.addGestureRecognizer(pan)
+        panGesture = pan
+    }
+
+    override func willMove(from view: SKView) {
+        if let g = pinchGesture { view.removeGestureRecognizer(g) }
+        if let g = panGesture { view.removeGestureRecognizer(g) }
+        pinchGesture = nil
+        panGesture = nil
     }
 
     // MARK: - Public API
