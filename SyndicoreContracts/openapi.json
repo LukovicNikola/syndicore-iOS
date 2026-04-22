@@ -449,6 +449,229 @@
           "nextCursor",
           "hasMore"
         ]
+      },
+      "ImplodeResponse": {
+        "type": "object",
+        "properties": {
+          "crystal": {
+            "type": "string",
+            "enum": [
+              "FRINGE",
+              "GRID",
+              "CORE"
+            ],
+            "description": "Ring name of the crystal just obtained"
+          },
+          "newRing": {
+            "type": "string",
+            "enum": [
+              "GRID",
+              "CORE",
+              "NEXUS"
+            ],
+            "description": "Ring the player has advanced into"
+          },
+          "ruins": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "decaysAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "decaysAt"
+            ],
+            "description": "RuinsSite left on the old city tile"
+          },
+          "newCity": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "tile": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "integer"
+                  },
+                  "y": {
+                    "type": "integer"
+                  },
+                  "ring": {
+                    "type": "string",
+                    "example": "GRID"
+                  },
+                  "terrain": {
+                    "type": "string",
+                    "example": "FLATLAND"
+                  },
+                  "rarity": {
+                    "type": "string",
+                    "example": "COMMON"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "ring",
+                  "terrain",
+                  "rarity"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "tile"
+            ]
+          }
+        },
+        "required": [
+          "crystal",
+          "newRing",
+          "ruins",
+          "newCity"
+        ]
+      },
+      "RecallResponse": {
+        "type": "object",
+        "properties": {
+          "recalled": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "movement": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "RETURN"
+                ]
+              },
+              "from": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "integer"
+                  },
+                  "y": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y"
+                ]
+              },
+              "to": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "integer"
+                  },
+                  "y": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y"
+                ]
+              },
+              "units": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              },
+              "departedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "arrivesAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "isReturning": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "from",
+              "to",
+              "units",
+              "departedAt",
+              "arrivesAt",
+              "isReturning"
+            ]
+          }
+        },
+        "required": [
+          "recalled",
+          "movement"
+        ]
+      },
+      "DeviceTokenRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 10,
+            "description": "APNS device token (hex string, typically 64 chars)"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "DeviceTokenRegisterResponse": {
+        "type": "object",
+        "properties": {
+          "registered": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "registered"
+        ]
+      },
+      "DeviceTokenUnregisterResponse": {
+        "type": "object",
+        "properties": {
+          "unregistered": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "unregistered"
+        ]
       }
     },
     "parameters": {}
@@ -909,6 +1132,285 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cities/{cityId}/implode": {
+      "post": {
+        "tags": [
+          "city"
+        ],
+        "summary": "Implode a maxed city and instantly re-found in the next ring",
+        "description": "Body is empty — BE picks the target tile (ruins in the next ring with no incoming movements first, falling back to a random empty tile). Requires HQ 20, a trained Settler, no active construction, and zero troop movements originating from or targeting this city.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "cityId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Implosion successful — crystal minted, new city founded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImplodeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "hq_not_max_level",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_your_city",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "city_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "already_nexus / settler_required / active_construction / active_movements / concurrent_modification",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "no_available_tile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reinforcements/{reinforcementId}/recall": {
+      "post": {
+        "tags": [
+          "reinforcement"
+        ],
+        "summary": "Recall your reinforcements from another player's city",
+        "description": "Deletes the reinforcement record and creates a RETURN movement back to the caller's current city. Atomic.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "reinforcementId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recall scheduled — troops are on their way home",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecallResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_your_reinforcement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "reinforcement_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "no_troops_to_recall / no_home_city",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/device-token": {
+      "post": {
+        "tags": [
+          "player"
+        ],
+        "summary": "Register an APNS device token for push notifications",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTokenRegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "onboarding_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "player"
+        ],
+        "summary": "Unregister an APNS device token on logout",
+        "description": "Scoped to the caller — only their own token is deleted.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token unregistered (idempotent — no-op if missing)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTokenUnregisterResponse"
                 }
               }
             }
