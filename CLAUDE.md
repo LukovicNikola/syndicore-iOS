@@ -1,6 +1,6 @@
 # SYNDICORE iOS — Claude Instructions
 
-> **Verzija:** 2026-04-18 (code review round 2 TODOs)
+> **Verzija:** 2026-04-22 (Phase 4 Crystal Implosion done, feature status sync)
 > **Pending:** rešavanje TBD stavki nakon reconcile-a sa `syndicore-BE/CLAUDE.md`
 
 ---
@@ -11,7 +11,7 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 
 ### 🔴 P0 — Regresija iz 3f3148b (fix odmah)
 
-- [ ] **Bootstrap retry double-configure crash** — `SyndicoreApp.loadConfig()` zove `GameState(config:)` → `SupabaseManager.configure()`. Drugi klik na "Pokušaj ponovo" u `ConfigErrorView` baca `assert(_shared == nil)` u debug-u. Fix: učiniti `configure()` idempotent (early-return ako je već setovan) ili odvojiti "reload config" od "reconfigure singleton".
+- [x] **Bootstrap retry double-configure crash** — `SupabaseManager.configure()` je sada idempotent (`if _shared != nil { return }`). Retry u `ConfigErrorView` bezbedan. ✅ (fixovano pre 2026-04-22, potvrđeno)
 
 ### 🟠 P1 — HIGH iz review-a (radi sledeće)
 
@@ -24,7 +24,7 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 ### 🟡 P2 — MEDIUM (posle P0/P1)
 
 - [ ] **`MapScene.swift:116` `group.name!`** — guaranteed safe u trenutnom loop-u, ali hygiene fix: `guard let name = group.name else { continue }` pre `tileGroupCache[name] = group`.
-- [ ] **`randomNonceString` charset typo** (`Services/SupabaseManager.swift:~149`) — nedostaje `W` u `"UVXYZ"/"UVxyz"`. Pre-existing bug. Fix: `"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"`.
+- [x] **`randomNonceString` charset** (`Services/SupabaseManager.swift`) — charset je ispravan: `"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"`. ✅ (potvrđeno 2026-04-22, W postoji)
 - [ ] **`MapView` hardkodovana 800×800 scene size** — koristiti `GeometryReader` da se prosledi actual size, ili garantovati `scaleMode = .resizeFill` pre `addChild`.
 - [ ] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** umesto `JSONDecoder.api`. Nije bitno ako GameData nema datume, ali konsistentnost.
 - [ ] **`AnyCodableValue` bez `.array` / `.object` varijanti** (`Networking/APIError.swift:37`) — ako BE ikad pošalje nested JSON u `details`, decode će puknuti.
@@ -53,9 +53,12 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 
 - [ ] **5 building sprite-ova fali** (warehouse_v1, wall_building_v1, s_hologram_v1, corner_turret_v1, wall_v1). Ostalo dodato: data_bank, foundry, tech_lab, motor_pool, ops_center, watchtower, rally_point, trade_post, research_lab. ✅ partial (a4e3eb0, d0869c5, itd.)
 - [ ] **Particle .sks fajlovi** (electric_arc, window_pulse, spark_shower). Čeka posle statickog renderovanja.
-- [ ] **MapScene emoji occupants** (🏠💀💎🌀🏚️) — zamena sa custom sprite asset-ima za konsistentnost sa CityView stilom.
-- [ ] **WebSocket servis** (`Services/SocketService.swift`) — čeka BE protokol (Socket.IO vs native).
-- [ ] **SyndikatView, TechTreeView, ArmyView** — placeholder-i, čekaju BE API finalizaciju.
+- [ ] **MapScene emoji occupants** (🏠💀💎🌀🏚️) — zamena sa custom sprite asset-ima za konsistentnost sa CityView stilom (map_ruins_v1 dodat za ruins).
+- [x] **WebSocket servis** (`Services/SocketService.swift`) — Socket.IO implementiran. Events: `building_complete`, `training_complete`, `troops_arrived`. ✅ 498a0d9
+- [x] **ArmyView** — kompletno implementiran: Troops tab (garrison + reinforcements), Movements tab (paginated, countdown, DEV skip, infinite scroll), Reports tab (paginated, detail view). ✅
+- [ ] **SyndikatView** — placeholder, čeka implementaciju.
+- [x] **TechTreeView** — Codex prikaz grana postoji, ali API upgrade (POST /research) još nije vezan.
+- [x] **Crystal Implosion** — kompletno implementiran: HQInfoSheet implosion sekcija, CrystalSheet, TopHUD crystal badge, MapView ruins display, AppState.handleImplodeSuccess. ✅ 0936340
 
 ### ✅ Ne diraj (false positives iz review-a)
 
@@ -70,16 +73,16 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 
 Sve niže u dokumentu markirano je `⚠️ TBD-BE`. Spisak za konsolidaciju:
 
-1. **SETTLER / SETTLE movement** — doc kaže "jedan grad po igraču", a Settler jedinica + SETTLE movement type postoje. Razjasniti namenu (novi grad? overflow? expansion u drugi ring?).
-2. **War Factory** — TITAN se trenira tamo (linija u Units tabeli), ali building ne postoji ni u Fixed listi ni u `BuildingType` enum-u. Dodati ili pomeriti TITAN-a u postojeći building.
-3. **Ring granice (Chebyshev distance → Ring)** — trebaju tačni range-ovi za FRINGE/GRID/CORE/NEXUS. Bez njih SpriteKit ne može da oboji tile-ove po ringu.
-4. **`crystals: [String]`** na `PlayerWorld` — undokumentovano. Šta je element, kad se stiče, kako se troši? Povezano sa Crystal Implosion mehanikom.
-5. **Watchtower / Wall / Rally Point / Trade Post** — nedostaje gameplay efekat (za UI labele i tooltips).
-6. **HQ → flex slots curve** — samo 3 tačke (1=9, 10=14, 20=18). Treba puna tabela ili formula u `game-constants.json`.
+1. ~~**SETTLER / SETTLE movement**~~ — **REŠENO.** SETTLER je za Crystal Implosion (HQ 20 + SETTLER → POST /implode → novi grad u sledećem ringu). SETTLE movement type se NE koristi na klijentu — BE interno handluje relokaciju. ✅
+2. **War Factory** — TITAN se trenira tamo (linija u Units tabeli), ali building ne postoji ni u Fixed listi ni u `BuildingType` enum-u. War Factory je clan building u `game-constants.json`. Dodati ili pomeriti TITAN-a u postojeći building.
+3. **Ring granice (Chebyshev distance → Ring)** — trebaju tačni range-ovi za FRINGE/GRID/CORE/NEXUS. Bez njih SpriteKit ne može da oboji tile-ove po ringu. (Klijent koristi `ring` polje sa servera, ali za minimap preview treba lokalno mapiranje.)
+4. ~~**`crystals: [String]`** na `PlayerWorld`~~ — **REŠENO.** Niz ring naziva (npr. `["FRINGE", "GRID"]`), stiče se kroz Crystal Implosion mehaniku. Prikazano u CrystalSheet sa bonusima iz `game-constants.json`. ✅
+5. **Watchtower / Wall / Rally Point / Trade Post** — nedostaje gameplay efekat (za UI labele i tooltips). `watchtower_alerts` config sada postoji u `game-constants.json`.
+6. ~~**HQ → flex slots curve**~~ — **REŠENO.** Sada 5 tačaka u `game-constants.json`: `"1": 9, "5": 11, "10": 14, "15": 16, "20": 18`. ✅
 7. **Mine `resourceType`** — može li biti `ENERGY`? Ili samo `CREDITS`/`ALLOYS`/`TECH`?
 8. **Battle outcome** — postoji li inconclusive/retreat pored `attackerWon: Bool`?
-9. **Pagination** na `GET /movements` i `GET /reports` — BE da doda cursor/limit pre nego što dataset naraste.
-10. **Error response shape** — da li je uniform `{ error: "code", message?: "human readable" }` ili ad-hoc? Treba unified schema.
+9. ~~**Pagination**~~ — **REŠENO.** BE ima cursor-based pagination na `/movements` i `/reports`. iOS koristi `PaginatedResponse<T>` sa `items`, `nextCursor`, `hasMore`. Infinite scroll implementiran. ✅
+10. ~~**Error response shape**~~ — **REŠENO.** Uniform `{ error: "code", details?: {} }`. iOS mapira u `APIError` enum sa `BEErrorCode`. ✅
 
 ---
 
@@ -1347,72 +1350,30 @@ syndicore-iOS/
 
 ---
 
-## ŠTA DA SE IMPLEMENTIRA SADA
+## ŠTA DA SE IMPLEMENTIRA SLEDEĆE
 
-**Prioritet 0 — Temelji (pre flow-a):**
-- `APIClient` sa auth interceptor-om i 401 retry
-- Centralni `JSONDecoder.api`
-- `APIError` enum + error mapping iz HTTP response-ova
-- Fixture-based decoding testovi za Player, World, City, MapTile, BattleReport
-- `SupabaseManager` sa session refresh listener-om
+> **Ažurirano:** 2026-04-22. Prioriteti 0-4 i 7 su završeni. Preostaje P5, P6, i P2 hygiene.
 
-**Prioritet 1 — Auth + Onboarding flow (ekrani 1-6):**
-- SplashView → AuthView → OnboardingView → WorldPickerView → FactionPickerView → MainGameView
-- Svi sa pravim API pozivima ka staging URL-u
-- Pravi Supabase Auth (sign up + sign in)
+**✅ Prioritet 0 — Temelji:** APIClient, JSONDecoder.api, APIError, SupabaseManager, fixture testovi. DONE.
 
-**Prioritet 2 — CityView scena (iso 2D SpriteKit sa v1 asset-ima):**
+**✅ Prioritet 1 — Auth + Onboarding flow:** Splash → Auth → Onboarding → WorldPicker → FactionPicker → MainGame. DONE.
 
-Fokus je da scena **renderuje tačno** sa asset-ima koji postoje pre nego što dovezemo 14 zgrada. Cilj: igrač može da otvori grad, vidi HQ u centru, prazne tile-ove, walls, tapne tile i vidi "selected" state, pa otvoriti `BuildSheet` placeholder.
+**✅ Prioritet 2 — CityView scena:** SpriteKit iso grid, buildings, HUD, sheets, construction flow, scaffold animations. DONE.
 
-Pod-taskovi:
+**✅ Prioritet 3 — MapView:** SKTileMapNode, occupants, warp gates, pan/zoom, debounced refetch, tap info, send troops, movement lines. DONE.
 
-- **2a. Skeleton CityView** — `CityView.swift` sa `ZStack`, unutra `CitySceneView` + `VStack { TopHUD; Spacer(); BottomHUD }`. HUD komponente za sada stub sa hardcoded vrednostima.
-- **2b. Isometric.swift + test** — projection math + round-trip test (scenePosition ↔ tileCoord).
-- **2c. CityScene osnov** — `SKScene` podklasa, scene config (anchor, scale mode), node hijerarhija (backgroundLayer / worldLayer / cameraNode). Skybox renderuje.
-- **2d. Tile grid** — 5×5 `TileNode` instanci, svi koriste `tile_empty_v1`, HQ slot na (2,2) ima placeholder (to je HQ, ne tile). Pozicionirane preko `Isometric.scenePosition`, z-sort po `Isometric.zDepth`.
-- **2e. HQ sprite** — `HQNode` sa `hq_pyramid_v1` na (2, 2), u iso sort-u. S hologram skip za sada (nema asset).
-- **2f. Perimeter** — `WallLayout.wallPositions()` helper, spawn 12-16 `WallNode` + 4 `CornerPylonNode`. Proveriti tile-ability — da li se vidi šav između wall segmenata u renderu.
-- **2g. Tap detection** — `touchesBegan` u CityScene, inverse iso, swap `tile_empty_v1` → `tile_selected_v1`, emit closure do SwiftUI sheet (placeholder sheet samo ispisuje "(col, row)" za sada).
-- **2h. Scaffold mock** — dugme "Test build" u sheet-u koje stavi `construction_scaffold_v1` na selected tile, timer 5s, pa swap na solid boju (zgrada stvarno ide u Prioritet 2.5).
-- **2i. Performance baseline** — Instruments profiling na iPhone 13 mini, cilj 60 FPS, memory < 80MB.
+**✅ Prioritet 4 — ArmyView + Send troops:** Troops tab (garrison + reinforcements), Movements tab (paginated, countdown, DEV skip, infinite scroll), Reports tab (paginated, detail view), SendTroopsSheet. DONE.
 
-**Acceptance za Prioritet 2:** CityView se otvara, vidiš skybox + HQ + 24 prazna tile-a + walls + pylone. Klik na tile ga selektuje. Build flow placeholder radi. Bez pravih zgrada, bez HUD resources binding-a na GameState.
+**✅ Phase 4 — Crystal Implosion:** HQInfoSheet implosion, CrystalSheet, TopHUD crystal badge, MapView ruins, AppState.handleImplodeSuccess. DONE (0936340).
 
-**Prioritet 2.5 — Buildings (nakon što je scena spremna):**
+**✅ Prioritet 7 — Socket.IO real-time:** building_complete, training_complete, troops_arrived events, incoming attack banner. DONE (498a0d9).
 
-- Generisati `barracks_v1.png` (prvi pilot zgrade, validira Tripo pipeline sa `hero_reference_v1` + `tile_empty_v1` kao reference)
-- Napisati `BuildingNode.swift` koji učitava sprite po `BuildingType`
-- Vezati scenu za `GameState.city.buildings` (observable binding)
-- Test build flow: API call → scaffold → swap na barracks sprite
-- Tek kad ovo radi end-to-end, generisati preostalih 13 zgrada u istom pipeline-u
-
-**Prioritet 2.6 — HUD binding:**
-
-- `TopHUD`, `BottomHUD`, `SideHUD` vezani za `GameState.city.resources`, `GameState.player`, itd.
-- `ResourcePill` komponenta sa animiranim brojem (count-up kad resurs raste)
-- Settings / Reports / Army dugmici otvaraju odgovarajuće placeholder view-ove
-
-**Prioritet 3 — MapView (SpriteKit osnova):**
-- Fetch viewport tile-ova (`GET /api/v1/worlds/:id/map?cx=&cy=&r=`)
-- Renderuj grid preko `SKTileMapNode` (background sloj)
-- Occupant overlay: per-occupant `SKSpriteNode` (samo tile-ovi sa occupant-om)
-- Warp Gate linije kao jedan compound `SKShapeNode`
-- Camera pan/zoom sa `SKCameraNode`
-- Tap na tile → info popup
-- Debounced refetch kad se kamera pomeri >30% radius-a
-
-**Prioritet 4 — ArmyView + Send troops:**
-- Lista trupa u gradu
-- "Send" dugme → modal: target (x,y), trupe, tip (ATTACK/RAID/SCOUT/REINFORCE/TRANSPORT)
-- Active movements lista sa countdown tajmerima
-- Battle reports lista
-
-**Prioritet 5 — ResearchView (tech tree):**
+**Prioritet 5 — ResearchView (tech tree) — SLEDEĆE:**
 - GET research state → 6 grana (3 universal + 1 faction, 2 locked)
 - Svaka grana: level bar, upgrade dugme, cost preview (iz `game-constants.json`)
 - Respec dugme (reset all, 10% resource penalty)
 - Points budget indicator (total / spent / remaining)
+- API: `GET/POST /worlds/:id/research`, `POST /worlds/:id/research/respec`
 
 **Prioritet 6 — SyndikatView (clans):**
 - Lista syndikats-a u world-u
@@ -1421,15 +1382,21 @@ Pod-taskovi:
 - Promote / Kick (OVERLORD/WARDEN only)
 - Diplomacy panel (PACT/NEUTRAL/HOSTILE)
 
-**Prioritet 7 — Socket.IO / WebSocket real-time:**
-- Nakon potvrde protokola sa BE
-- Live update construction/training complete, troops_arrived
+**P2 — Code review hygiene (kad bude vremena):**
+- MapScene `group.name!` force unwrap
+- MapView hardcoded 800×800 scene size
+- GameConstantsManager plain decoder
+- AnyCodableValue bez .array/.object
+- MapView closure capture [weak self]
+- OnboardingView fragile error string match
+- GameState.bootstrap decode fail fallback
+- CountdownLabel Timer cleanup
 
 ---
 
 ## IMPLEMENTIRANI VIEWS — FEATURE STATUS
 
-> **Ažurirano:** 2026-04-21
+> **Ažurirano:** 2026-04-22
 > Ovaj deo dokumentuje šta je stvarno implementirano i funkcionalno u iOS klijentu.
 > Služi kao referenca za BE tim (šta iOS klijent može da konzumira) i za praćenje iOS razvoja.
 > Svaki view ima status: ✅ Implementirano | 🚧 Delimično | ❌ Placeholder
@@ -1459,6 +1426,13 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 - **Scaffold → building fade-in** — kad gradnja završi, novi sprite fade-in (0.5s) umesto instant swap-a
 - **Haptic feedback** — light tap, medium HQ
 
+#### Crystal Implosion (Phase 4)
+- **HQInfoSheet** — implosion sekcija vidljiva kad HQ == 20 i ring != NEXUS; 5 FE preconditions (HQ level, not NEXUS, no movements, no construction, has SETTLER); crystal bonus preview; destructive confirmation dialog; full BE error code handling
+- **CrystalSheet** — collected crystals grupisani po ringu sa counts; cumulative bonuses (production/ATK/DEF); ring progression stepper (FRINGE → GRID → CORE → NEXUS)
+- **TopHUD** — crystal badge (diamond icon + count), tap otvara CrystalSheet
+- **AppState.handleImplodeSuccess** — city switch, player refresh, socket reconnect, completion toast
+- **CompletionNoticeBanner** — `.implosion` kind (purple bolt icon)
+
 #### Fixed building pozicije (zakucane u `CityScene.fixedPositions`)
 | Building | Col | Row | Pozicija |
 |---|---|---|---|
@@ -1475,15 +1449,16 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 `(2,0)`, `(3,0)`, `(4,1)`, `(5,2)`, `(5,3)`, `(3,5)`, `(2,5)`, `(1,4)`, `(0,3)`, `(0,2)`
 
 #### HUD
-- **TopHUD** — resource pills (Credits/Alloys/Tech/Energy sa ikonama) + naziv grada (capsule)
+- **TopHUD** — resource pills (Credits/Alloys/Tech/Energy sa ikonama) + naziv grada (capsule) + crystal badge
 - **BottomHUD** — aktivna gradnja sa countdown timerom + trening queue (jedinice u treningu sa countdown-om) + "Train" dugme
 - **RefreshErrorBanner** — pojavljuje se kad refresh ne uspe, sa Retry dugmetom, auto-dismiss nakon 8s, transition animacija
 
 #### Sheets
 - **BuildSheet** — lista zgrada koje igrač može da izgradi (fixed + resource buildings sa flex slot proverom); cost preview iz game-constants.json (credits/alloys/tech/trajanje); Build dugme po svakoj; disabled ako postoji queue; API: `POST /cities/:id/build` sa `buildingType` + `slotIndex` za resource zgrade; refresh + dismiss po uspehu
 - **BuildingDetailSheet** — tip + current level; upgrade cost preview (`GET /cities/:id/build-cost`): Credits/Alloys/Tech + trajanje; Upgrade dugme → `POST /cities/:id/build` sa `buildingId`; countdown ako je već u upgrade-u
-- **HQInfoSheet** — HQ level + countdown ako u upgrade; naziv grada, lokacija (x,y), ring, terrain (read-only)
+- **HQInfoSheet** — HQ level + countdown ako u upgrade; naziv grada, lokacija (x,y), ring, terrain; Crystal Implosion sekcija (kad HQ 20 + not NEXUS)
 - **TrainingSheet** — lista jedinica iz `game-constants.json` po frakciji; sortovano po energy cost; stepper za količinu (1-100); cost preview po resursu × count + trainMin × count; API: `POST /cities/:id/train`; refresh + dismiss po uspehu
+- **CrystalSheet** — collected crystals, bonuses, ring progression
 
 #### Data / State management
 - **Auto-refresh loop** — svakih 30s dok je view aktivan (`.task` sa cancellation)
@@ -1501,24 +1476,54 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 | View | Status | Opis |
 |---|---|---|
 | `SplashView` | ✅ | Fetch `GET /api/v1/config`, ETag caching, error state sa retry |
-| `AuthView` | ✅ | Supabase email/password sign in + sign up, error display |
+| `AuthView` | ✅ | Supabase email/password sign in + sign up + Apple Sign In, error display |
 | `OnboardingView` | ✅ | `GET /me` → 404 → username input → `POST /me/onboarding` |
-| `WorldListView` | ✅ | `GET /worlds`, lista servera, join navigacija |
+| `WorldListView` | ✅ | `GET /worlds`, lista servera, join navigacija (auto-select prvi svet) |
 | `FactionPickerView` | ✅ | Izbor REAPERS/HEGEMONY/NETRUNNERS → `POST /worlds/:id/join` |
-| `MainGameView` | ✅ | `TabView` kontejner (City, Map, Army, Syndikat, Codex) |
+| `MainGameView` | ✅ | `TabView` kontejner (City, Map, Army, Syndikat, Codex, Settings) |
 
 ---
 
-### 🚧 MapView (`Map/MapView.swift` + `Map/MapScene.swift`)
+### ✅ ArmyView (`Views/ArmyView.swift`)
+
+Kompletno funkcionalan military screen sa 3 tab-a.
+
+- **TroopsTab** — garrison prikaz (unit icon + name + count), reinforcements grupisano po saveznicima (username + faction), total defense summary (own + allied)
+- **MovementsTab** — paginirani movements sa infinite scroll, countdown tajmer (CountdownLabel + onArrival callback), movement type icon/color, from→to coordinates, via gate indikator, DEV skip dugme (⚡), auto-refresh svakih 30s, pull-to-refresh
+- **ReportsTab** — paginirani battle reports sa infinite scroll, tap za detail sheet, outcome headline (Attack Successful/Failed, Defense Held/Lost), target coordinates + ratio, stolen resources badge, date/time
+- **BattleReportDetailView** — outcome (winner, target, ATK/DEF totals, ratio), attacker/defender army snapshot (before/after/lost tabela), resources stolen, buildings damaged
+- **SendTroopsSheet** — movement type picker (segmented), unit stepper (per-type, Max/0 shortcuts), summary, error/success display, haptic feedback, post-send refresh
+
+#### API integracija
+- `GET /worlds/:id/movements?limit=50&before=<cursor>` — paginirano
+- `GET /worlds/:id/reports?limit=50&before=<cursor>` — paginirano
+- `POST /cities/:id/send` — send troops
+- `POST /worlds/:id/movements/:id/skip` — DEV skip (instant complete)
+
+---
+
+### ✅ MapView (`Map/MapView.swift` + `Map/MapScene.swift`)
 
 - ✅ `SKTileMapNode` terrain grid sa ring bojama
-- ✅ Occupant overlay (`SKSpriteNode` za gradove, outposts, mines, warp gates)
+- ✅ Occupant overlay (`SKSpriteNode` za gradove, outposts, mines, warp gates, ruins)
+- ✅ Ruins display: original ring, decay countdown (CountdownLabel), loot multiplier badge
 - ✅ Warp Gate linije (`SKShapeNode` compound path)
 - ✅ Camera pan/zoom sa `SKCameraNode`
 - ✅ Tap na tile → `MapInfoView` popup (tip, ring, terrain, occupant info)
+- ✅ Send troops akcija iz tile info (Attack/Raid/Scout/Reinforce/Transport per tile type)
 - ✅ Debounced viewport refetch kad se kamera pomeri >30% radiusa
-- ❌ Troop movement linije (nema animiranih putanja)
-- ❌ "Send troops" akcija iz mape (samo info)
+- ✅ Movement lines na mapi (`MovementLineNode`) — animirane putanje aktivnih pokreta
+- ✅ Ruins: Raid action (primary), Scout action
+
+---
+
+### ✅ Real-time (`Services/SocketService.swift`)
+
+- ✅ Socket.IO v4 konekcija sa JWT token auth
+- ✅ Room join: `join_city` (city-specific), `join_syndikat` (ako je u klanu)
+- ✅ Events: `building_complete` → refresh city + toast, `training_complete` → refresh city + toast, `troops_arrived` → refresh movements/reports/city + toast
+- ✅ `IncomingAttackBanner` — prikazuje se kad neprijatelj šalje napad (iz movements)
+- ✅ `CompletionNoticeBanner` — toast za building/training/implosion complete
 
 ---
 
@@ -1527,20 +1532,21 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 - ✅ `UnitsView` — lista svih jedinica iz `game-constants.json` sa stats (ATK/DEF/SPD/CARRY)
 - ✅ `UnitDetailView` — detalji po jedinici
 - ✅ `BuildingsView` — lista svih zgrada sa opisima
-- 🚧 `TechTreeView` — prikazuje grane, ali upgrade još nije vezan za API
-- ❌ Research API nije vezan (`GET/POST /worlds/:id/research`)
-
----
-
-### ❌ ArmyView — placeholder
-
-- Nije implementirano. Čeka BE finalizaciju movement/combat API-ja.
+- 🚧 `TechTreeView` — prikazuje grane vizuelno, ali upgrade API nije vezan
+- ❌ Research API nije vezan (`GET/POST /worlds/:id/research`, `POST /worlds/:id/research/respec`)
 
 ---
 
 ### ❌ SyndikatView — placeholder
 
-- Nije implementirano. Čeka BE finalizaciju syndikat API-ja.
+- Nije implementirano. API endpointi postoje u Endpoint.swift ali UI čeka.
+
+---
+
+### ❌ ResearchView — čeka implementaciju (P5)
+
+- TechTreeView u Codex-u prikazuje grane read-only
+- Treba: upgrade dugme, cost preview, points budget, respec
 
 ---
 
@@ -1557,17 +1563,34 @@ Centralni ekran igre. SwiftUI `ZStack`: SpriteKit scena + HUD overlay.
 Kompletan GDD je u BE repo-u: `github.com/LukovicNikola/syndicore-BE/blob/main/CLAUDE.md`
 
 Ključni koncepti za iOS:
-- **Jedan grad po igraču** (⚠️ TBD-BE — pomiriti sa SETTLER jedinicom)
-- **4 ringa** (Fringe → Grid → Core → Nexus) — progresija kroz Crystal Implosion
+- **Jedan grad po igraču** — progresira kroz ringove via Crystal Implosion (SETTLER + HQ 20 → implode → relocate)
+- **4 ringa** (Fringe → Grid → Core → Nexus) — progresija kroz Crystal Implosion, svaki crystal daje permanentni bonus
 - **Univerzalne jedinice** — svi igrači imaju isti roster od 8 jedinica + Settler
 - **Frakcije** se razlikuju po tech tree branch-u, ne po jedinicama
 - **Warp Gates** — fast-travel mreža, server računa najkraću rutu
 - **Combat** je instant (3 faze), nema animacija borbe — samo izveštaj
 - **Resursi** se kalkulišu on-demand (lazy), ne periodic tick
+- **Ruins** — ostaju nakon Crystal Implosion, mogu se raidovati za 2× loot, decay nakon 14 dana
 
 ---
 
 ## CHANGELOG
+
+**2026-04-22 (Phase 4 Crystal Implosion + feature status sync):**
+
+- **Crystal Implosion** (commit `0936340`):
+  - `GameData.swift`: crystal bonuses, implosion config, watchtower alerts models
+  - `City.swift`: ImplodeResponse + related structs
+  - `Endpoint.swift` + `APIClient.swift`: POST /cities/:id/implode + 5 new BE error codes
+  - `HQInfoSheet.swift`: implosion section (HQ 20 + SETTLER required, movement/queue blockers, confirmation dialog)
+  - `AppState.swift`: handleImplodeSuccess (city switch, player refresh, socket reconnect, toast)
+  - `CrystalSheet.swift` (NEW): collected crystals by ring, cumulative bonuses, ring progression stepper
+  - `TopHUD.swift`: crystal badge (diamond icon + count, tap to open CrystalSheet)
+  - `MapView.swift`: ruins display with decay countdown + loot multiplier, RAID/SCOUT actions for ruins
+  - `CompletionNoticeBanner.swift`: .implosion kind (purple bolt icon)
+- **Contracts sync** (PR #22, merge `660cbf3`): openapi.json paginated movements/reports schemas, game-constants watchtower_alerts/crystals/implosion
+- **CLAUDE.md sync**: P0 marked done (idempotent configure), ArmyView/Socket.IO/Crystal Implosion marked done, 4/10 TBD pitanja rešena, feature status fully updated to match actual implementation
+- Closed stale PRs #18-21, merged #22
 
 **2026-04-21 (city features round 2 + API hardening):**
 
