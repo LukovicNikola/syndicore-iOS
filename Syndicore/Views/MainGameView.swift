@@ -6,30 +6,39 @@ struct MainGameView: View {
     @Environment(GameState.self) private var gameState
 
     var body: some View {
+        @Bindable var gameState = gameState
         tabView
             .overlay(alignment: .top) {
-                if let attack = gameState.socket.lastIncomingAttack {
-                    IncomingAttackBanner(
-                        event: attack,
-                        onDismiss: {
-                            withAnimation { gameState.socket.clearIncomingAttack() }
-                        },
-                        onTap: {
-                            // TODO: navigate to CityView / open defense overview
-                            // Trenutno samo dismiss — kad ArmyView/CityView imaju defense screen,
-                            // ovo može da ih otvori preko bindinga.
+                VStack(spacing: 4) {
+                    // Incoming attack — najvišeg prioriteta, crveno-narandžasto
+                    if let attack = gameState.socket.lastIncomingAttack {
+                        IncomingAttackBanner(
+                            event: attack,
+                            onDismiss: {
+                                withAnimation { gameState.socket.clearIncomingAttack() }
+                            },
+                            onTap: {
+                                // TODO: navigate to CityView / open defense overview
+                            }
+                        )
+                        .onAppear {
+                            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                            Task { await gameState.refreshCity() }
                         }
-                    )
-                    .padding(.top, 4)
-                    .onAppear {
-                        // Haptic warning kad se banner pojavi — iritira, ali igrač mora da vidi
-                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                        // Auto-refresh: napad dolazi — city state je možda već ažuriran
-                        Task { await gameState.refreshCity() }
+                    }
+                    // Completion notice — building/training/arrival success toast
+                    if let notice = gameState.lastCompletionNotice {
+                        CompletionNoticeBanner(
+                            notice: notice,
+                            onDismiss: {
+                                withAnimation { gameState.clearCompletionNotice() }
+                            }
+                        )
                     }
                 }
             }
             .animation(.spring(duration: 0.35), value: gameState.socket.lastIncomingAttack?.arrivesAt)
+            .animation(.spring(duration: 0.35), value: gameState.lastCompletionNotice?.id)
     }
 
     private var tabView: some View {

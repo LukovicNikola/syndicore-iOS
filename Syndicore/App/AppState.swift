@@ -80,6 +80,13 @@ final class GameState {
     /// Poslednja greska iz map viewport fetch-a koju MapView treba da prikaze.
     var mapFetchError: String?
 
+    // MARK: - Realtime completion notices (Socket.IO triggered)
+    // Transient poruke koje MainGameView prikazuje kao success toast banner.
+    // Auto-dismiss posle 3s ili kad user tapne "X".
+
+    /// "Barracks upgraded to L3" / "10 Grunts ready" — toast iznad TabView-a.
+    var lastCompletionNotice: CompletionNotice?
+
     // MARK: - Bootstrap
 
     /// Splash screen poziva ovo. Proverava sesiju i određuje početni ekran.
@@ -176,6 +183,7 @@ final class GameState {
         do {
             let token = try await auth.accessToken()
             socket.connect(baseURL: api.baseURL, token: token)
+            wireSocketEventHandlers()
             if let cityId = activeCity?.id {
                 socket.joinCityRoom(cityId: cityId)
             }
@@ -185,6 +193,77 @@ final class GameState {
         } catch {
             Self.log.info("Realtime connect skipped (no token): \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// Prikači event callback-ove na SocketService. Svaki event triggeruje
+    /// odgovarajući refresh + optional toast notice + haptic.
+    /// Idempotent — svaki reconnect ponovo setuje closure (nema akumulacije).
+    private func wireSocketEventHandlers() {
+        socket.onBuildingComplete = { [weak self] event in
+            Task { [weak self] in await self?.handleBuildingComplete(event) }
+        }
+        socket.onTrainingComplete = { [weak self] event in
+            Task { [weak self] in await self?.handleTrainingComplete(event) }
+        }
+        socket.onTroopsArrived = { [weak self] event in
+            Task { [weak self] in await self?.handleTroopsArrived(event) }
+        }
+    }
+
+    // MARK: - Socket event handlers
+
+    /// `building_complete` — gradnja/upgrade završen. Prikaz toast + refresh city.
+    /// Napomena: CityScene već ima lokalni countdown koji trigger-uje celebration
+    /// burst. Ovaj handler je backup + authoritative source-of-truth iz BE-a
+    /// (device clock drift je moguć).
+    private func handleBuildingComplete(_ event: BuildingCompleteEvent) async {
+        let displayName = event.type.rawValue
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized
+        lastCompletionNotice = CompletionNotice(
+            kind: .building,
+            title: "\(displayName) ready",
+            subtitle: "Level \(event.newLevel)"
+        )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        await refreshCity()
+    }
+
+    /// `training_complete` — training job završen. Prikaz toast + refresh city + training jobs.
+    private func handleTrainingComplete(_ event: TrainingCompleteEvent) async {
+        let unitName = event.unitType.rawValue.capitalized
+        let plural = event.count == 1 ? unitName : "\(unitName)s"
+        lastCompletionNotice = CompletionNotice(
+            kind: .training,
+            title: "\(event.count) \(plural) ready",
+            subtitle: "Garrisoned at home"
+        )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        await refreshCity()
+    }
+
+    /// `troops_arrived` — movement stigao na cilj (attack kompletiran ili return leg).
+    /// Silently refresh-uje movements + reports + city.
+    /// Ako je ATTACK/RAID stigao, BE je verovatno vec kreirao battle report — user
+    /// će ga videti u Reports tabu.
+    /// Ako je RETURN stigao, trupe su se vratile u garrison — city refresh ih pokazuje.
+    private func handleTroopsArrived(_ event: TroopsArrivedEvent) async {
+        // Tih toast — samo za "nešto se desilo" indikator, detalji u Reports
+        let typeName = event.type.rawValue.capitalized
+        lastCompletionNotice = CompletionNotice(
+            kind: .troopsArrived,
+            title: "\(typeName) completed",
+            subtitle: "at (\(event.targetX), \(event.targetY))"
+        )
+        // Nema haptic-a — inace bi spam-ovao igrača koji ima više movements-a
+        await refreshMovements()
+        await refreshReports()
+        await refreshCity()
+    }
+
+    /// Briše trenutni notice — pozvano iz banner dismiss dugmeta ili auto-timeout-a.
+    func clearCompletionNotice() {
+        lastCompletionNotice = nil
     }
 
     func refreshCity() async {
