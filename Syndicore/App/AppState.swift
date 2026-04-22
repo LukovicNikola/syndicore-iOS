@@ -40,6 +40,7 @@ final class GameState {
     let api: APIClient
     let auth: SupabaseManager
     let gameConstants: GameConstantsManager
+    let socket: SocketService
 
     init(config: AppConfig) {
         SupabaseManager.configure(config: config)
@@ -47,6 +48,7 @@ final class GameState {
         self.api = api
         self.auth = SupabaseManager.shared
         self.gameConstants = GameConstantsManager(api: api)
+        self.socket = SocketService.shared
     }
 
     // MARK: - Player Data
@@ -107,6 +109,7 @@ final class GameState {
                     activeCity = try await api.city(id: city.id)
                 }
                 activeScreen = .mainGame
+                await connectRealtime()
             } else {
                 await autoSelectWorld()
             }
@@ -161,6 +164,27 @@ final class GameState {
         activePlayerWorld = response.playerWorld
         activeCity = response.city ?? response.playerWorld.city
         activeScreen = .mainGame
+        Task { await connectRealtime() }
+    }
+
+    // MARK: - Realtime (Socket.IO)
+
+    /// Uspostavlja Socket.IO konekciju + pretplata na city i world rooms.
+    /// Zove se posle uspešnog bootstrap-a (postoji aktivna sesija + join-ovan svet).
+    /// Idempotent — ako je socket već konektovan, samo re-join-uje rooms.
+    private func connectRealtime() async {
+        do {
+            let token = try await auth.accessToken()
+            socket.connect(baseURL: api.baseURL, token: token)
+            if let cityId = activeCity?.id {
+                socket.joinCityRoom(cityId: cityId)
+            }
+            if let worldId = activePlayerWorld?.worldId ?? activeWorld?.id {
+                socket.joinWorldRoom(worldId: worldId)
+            }
+        } catch {
+            Self.log.info("Realtime connect skipped (no token): \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     func refreshCity() async {
@@ -246,10 +270,14 @@ final class GameState {
         } catch {
             // Ignore sign out errors
         }
+        socket.disconnect()
         currentPlayer = nil
         activeWorld = nil
         activePlayerWorld = nil
         activeCity = nil
+        activeTrainingJobs = []
+        activeMovements = []
+        activeReports = []
         activeScreen = .auth
     }
 }

@@ -12,19 +12,23 @@ struct ErrorResponse: Codable {
 /// Strongly-typed katalog BE error code-ova.
 /// Dodaj nov case ovde kad BE uvede nov error code — lepše od string match-a.
 enum BEErrorCode: String {
-    case alreadyOnboarded   = "already_onboarded"
-    case usernameTaken      = "username_taken"
-    case onboardingRequired = "onboarding_required"
+    case alreadyOnboarded      = "already_onboarded"
+    case usernameTaken         = "username_taken"
+    case onboardingRequired    = "onboarding_required"
     case insufficientResources = "insufficient_resources"
-    case queueFull          = "queue_full"
-    case buildingLocked     = "building_locked"
-    case notAuthenticated   = "not_authenticated"
-    case validationFailed   = "validation_failed"
+    case queueFull             = "queue_full"
+    case buildingLocked        = "building_locked"
+    case notAuthenticated      = "not_authenticated"
+    case validationFailed      = "validation_failed"
+    /// Returned kad REINFORCE/TRANSPORT cilja grad koji nije u istom syndikat-u
+    /// niti ima PACT diplomatiju sa attacker-om.
+    case notAllied             = "not_allied"
 }
 
 enum APIError: LocalizedError {
     case invalidURL
     case unauthorized
+    case forbidden(ErrorResponse)
     case onboardingRequired(OnboardingRequiredResponse)
     case notFound
     case conflict(ErrorResponse)
@@ -39,6 +43,7 @@ enum APIError: LocalizedError {
         switch self {
         case .invalidURL: "Invalid URL"
         case .unauthorized: "Unauthorized — please sign in again"
+        case .forbidden(let err): err.error
         case .onboardingRequired: "Onboarding required"
         case .notFound: "Not found"
         case .conflict(let err): err.error

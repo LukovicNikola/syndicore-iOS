@@ -145,6 +145,9 @@ final class APIClient: @unchecked Sendable {
         case 400:
             let err = (try? decoder.decode(ErrorResponse.self, from: data)) ?? ErrorResponse(error: "bad_request", details: nil)
             throw APIError.badRequest(err)
+        case 403:
+            let err = (try? decoder.decode(ErrorResponse.self, from: data)) ?? ErrorResponse(error: "forbidden", details: nil)
+            throw APIError.forbidden(err)
         case 409:
             let err = (try? decoder.decode(ErrorResponse.self, from: data)) ?? ErrorResponse(error: "conflict", details: nil)
             throw APIError.conflict(err)

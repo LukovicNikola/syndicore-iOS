@@ -163,8 +163,16 @@ struct SendTroopsSheet: View {
             dismiss()
         } catch let error as APIError {
             switch error {
+            case .forbidden(let e):
+                // 403 — najčešće `not_allied` na REINFORCE/TRANSPORT ka ne-savezničkoj meti
+                if e.code == .notAllied {
+                    errorMessage = "You can only reinforce cities of syndikat members or PACT allies."
+                } else {
+                    errorMessage = e.error
+                }
             case .badRequest(let e):   errorMessage = e.error
             case .conflict(let e):     errorMessage = e.error
+            case .server(let e):       errorMessage = e.error
             default:                   errorMessage = error.localizedDescription
             }
             UINotificationFeedbackGenerator().notificationOccurred(.error)

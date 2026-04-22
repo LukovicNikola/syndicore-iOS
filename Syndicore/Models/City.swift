@@ -7,7 +7,22 @@ struct City: Codable, Identifiable {
     let tile: TileInfo?
     let buildings: [BuildingInfo]?
     let troops: [TroopInfo]?
+    /// Trupe koje su saveznici (iz istog sindikata ili sa PACT diplomatijom)
+    /// REINFORCE-ovali u ovaj grad. Defender-only view.
+    let reinforcements: [ReinforcementInfo]?
     let constructionQueue: ConstructionQueue?
+}
+
+/// Savezničke trupe trenutno garrison-ovane u gradu.
+/// Prikazuju se kao sekundarna sekcija u ArmyView Troops tab-u, grupisano po vlasniku.
+struct ReinforcementInfo: Codable, Identifiable {
+    let ownerPlayerId: String
+    let ownerUsername: String
+    let unitType: UnitType
+    let count: Int
+
+    /// Composite id za SwiftUI List — jedan owner može imati više unit type-ova.
+    var id: String { "\(ownerPlayerId)_\(unitType.rawValue)" }
 }
 
 struct Resources: Codable {

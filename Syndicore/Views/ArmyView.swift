@@ -50,13 +50,26 @@ private struct TroopsTab: View {
         gameState.activeCity?.troops ?? []
     }
 
-    private var totalCount: Int {
-        troops.reduce(0) { $0 + $1.count }
+    private var reinforcements: [ReinforcementInfo] {
+        gameState.activeCity?.reinforcements ?? []
+    }
+
+    private var totalOwn: Int { troops.reduce(0) { $0 + $1.count } }
+    private var totalAllied: Int { reinforcements.reduce(0) { $0 + $1.count } }
+
+    /// Reinforcements grupisano po owner username — svaki saveznik kao vlastita sekcija.
+    private var reinforcementsGrouped: [(username: String, playerId: String, units: [ReinforcementInfo])] {
+        let grouped = Dictionary(grouping: reinforcements, by: { $0.ownerPlayerId })
+        return grouped.map { (playerId, units) in
+            let username = units.first?.ownerUsername ?? "Unknown"
+            return (username: username, playerId: playerId, units: units)
+        }
+        .sorted { $0.username.lowercased() < $1.username.lowercased() }
     }
 
     var body: some View {
         Group {
-            if troops.isEmpty {
+            if troops.isEmpty && reinforcements.isEmpty {
                 ContentUnavailableView(
                     "No Troops",
                     systemImage: "person.slash",
@@ -64,22 +77,98 @@ private struct TroopsTab: View {
                 )
             } else {
                 List {
-                    Section {
-                        ForEach(troops, id: \.unitType) { troop in
+                    // Own garrison
+                    if !troops.isEmpty {
+                        Section {
+                            ForEach(troops, id: \.unitType) { troop in
+                                HStack {
+                                    Image(systemName: unitIcon(troop.unitType))
+                                        .foregroundStyle(unitColor(troop.unitType))
+                                        .frame(width: 24)
+                                    Text(troop.unitType.rawValue.capitalized)
+                                        .font(.subheadline)
+                                    Spacer()
+                                    Text("\(troop.count)")
+                                        .font(.subheadline.bold().monospacedDigit())
+                                        .foregroundStyle(.cyan)
+                                }
+                            }
+                        } header: {
                             HStack {
-                                Image(systemName: unitIcon(troop.unitType))
-                                    .foregroundStyle(unitColor(troop.unitType))
-                                    .frame(width: 24)
-                                Text(troop.unitType.rawValue.capitalized)
-                                    .font(.subheadline)
+                                Text("Your Garrison")
                                 Spacer()
-                                Text("\(troop.count)")
+                                Text("\(totalOwn)")
+                                    .font(.caption.monospacedDigit())
+                            }
+                        }
+                    }
+
+                    // Allied reinforcements — grupisano po saveznika
+                    if !reinforcements.isEmpty {
+                        ForEach(reinforcementsGrouped, id: \.playerId) { group in
+                            Section {
+                                ForEach(group.units) { r in
+                                    HStack {
+                                        Image(systemName: unitIcon(r.unitType))
+                                            .foregroundStyle(unitColor(r.unitType))
+                                            .frame(width: 24)
+                                        Text(r.unitType.rawValue.capitalized)
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(r.count)")
+                                            .font(.subheadline.bold().monospacedDigit())
+                                            .foregroundStyle(.green)
+                                    }
+                                }
+                            } header: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "shield.lefthalf.filled")
+                                        .foregroundStyle(.green)
+                                    Text(group.username)
+                                        .font(.caption.bold())
+                                    Text("· reinforcement")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Text("\(group.units.reduce(0) { $0 + $1.count })")
+                                        .font(.caption.monospacedDigit())
+                                }
+                            }
+                        }
+                    }
+
+                    // Total summary
+                    if totalOwn + totalAllied > 0 {
+                        Section {
+                            HStack {
+                                Text("Total defense")
+                                    .font(.subheadline.bold())
+                                Spacer()
+                                Text("\(totalOwn + totalAllied) units")
                                     .font(.subheadline.bold().monospacedDigit())
                                     .foregroundStyle(.cyan)
                             }
+                            if totalAllied > 0 {
+                                HStack {
+                                    Text("— own")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Text("\(totalOwn)")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.cyan)
+                                }
+                                HStack {
+                                    Text("— allied")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Text("\(totalAllied)")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.green)
+                                }
+                            }
                         }
-                    } header: {
-                        Text("Garrison · \(totalCount) units")
                     }
                 }
             }
