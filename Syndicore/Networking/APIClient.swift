@@ -237,6 +237,11 @@ extension APIClient {
         try await request(.training(cityId: cityId), as: TrainingListResponse.self).training
     }
 
+    // Crystal Implosion
+    func implode(cityId: String) async throws -> ImplodeResponse {
+        try await request(.implode(cityId: cityId), as: ImplodeResponse.self)
+    }
+
     // Skip (instant complete — test/premium feature)
     func skipBuild(cityId: String) async throws {
         try await requestVoid(.skipBuild(cityId: cityId))

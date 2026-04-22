@@ -15,6 +15,9 @@ struct GameData: Codable {
     let clanBuildings: [String: ClanBuildingData]
     let reinforcement: [String: ReinforcementData]
     let respec: RespecData
+    let watchtowerAlerts: WatchtowerAlertsData?
+    let crystals: [String: CrystalBonusData]?
+    let implosion: ImplosionConfigData?
 }
 
 // MARK: - Factions
@@ -206,4 +209,31 @@ struct ReinforcementData: Codable {
 struct RespecData: Codable {
     let resourceLossPct: Double
     let cooldownHours: Int
+}
+
+// MARK: - Watchtower Alerts
+
+struct WatchtowerAlertsData: Codable {
+    let attackerNameMinLevel: Int
+    let troopEstimateMinLevel: Int
+    let troopExactMinLevel: Int
+    let originCoordsMinLevel: Int
+}
+
+// MARK: - Crystals
+
+struct CrystalBonusData: Codable {
+    let productionBonus: Double
+    let atkBonus: Double
+    let defBonus: Double
+}
+
+// MARK: - Implosion
+
+struct ImplosionConfigData: Codable {
+    let requiredHqLevel: Int
+    let settlerSpawnCount: Int
+    let ruinsDecayDays: Int
+    let ruinsLootMultiplier: Double
+    let nextRing: [String: String]
 }

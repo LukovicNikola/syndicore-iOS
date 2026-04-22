@@ -138,3 +138,24 @@ struct TrainResponse: Codable {
 struct TrainingListResponse: Codable {
     let training: [TrainingJob]
 }
+
+// MARK: - Implosion
+
+struct ImplodeResponse: Codable {
+    let crystal: String
+    let newRing: String
+    let ruins: ImplodeRuinsInfo
+    let newCity: ImplodeCityInfo
+}
+
+struct ImplodeRuinsInfo: Codable {
+    let x: Int
+    let y: Int
+    let decaysAt: Date
+}
+
+struct ImplodeCityInfo: Codable {
+    let id: String
+    let name: String
+    let tile: TileInfo
+}

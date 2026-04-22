@@ -57,7 +57,8 @@ struct MapView: View {
                             allowedMovementTypes: movementTypes
                         )
                     },
-                    homeTile: gameState.activeCity?.tile
+                    homeTile: gameState.activeCity?.tile,
+                    implosionConfig: gameState.gameConstants.gameData?.implosion
                 )
                 .transition(.move(edge: .bottom))
                 .padding()
@@ -156,6 +157,8 @@ private struct TileInfoCard: View {
     let onAction: ([MovementType]) -> Void
     /// Igracev home city tile — da znamo da li user taphe svoju ili stranu lokaciju.
     let homeTile: TileInfo?
+    /// Implosion config za ruins loot multiplier prikaz.
+    var implosionConfig: ImplosionConfigData?
 
     /// Da li je ovaj tile igračev home city? Onda nema Send dugme.
     private var isOwnCity: Bool {
@@ -180,8 +183,10 @@ private struct TileInfoCard: View {
         if tile.outpost != nil { return [.ATTACK, .SCOUT] }
         if tile.mine != nil    { return [.ATTACK, .SCOUT] }
         if tile.warpGate != nil { return [.SCOUT] }
-        if tile.ruins != nil    { return [.SCOUT] }
-        return [.SETTLE]
+        if tile.ruins != nil    { return [.RAID, .SCOUT] }
+        // Empty tile — nema korisne akcije za sada.
+        // SETTLE se ne triggeruje sa mape; Crystal Implosion automatski bira lokaciju.
+        return []
     }
 
     var body: some View {
@@ -231,10 +236,27 @@ private struct TileInfoCard: View {
                     .font(.caption)
                     .foregroundStyle(.purple)
             }
-            if tile.ruins != nil {
-                Label("Ruins", systemImage: "building.columns")
-                    .font(.caption)
-                    .foregroundStyle(.gray)
+            if let ruins = tile.ruins {
+                VStack(alignment: .leading, spacing: 2) {
+                    Label("Ruins (\(ruins.originalRing.rawValue.capitalized))", systemImage: "building.columns")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    HStack(spacing: 8) {
+                        Label {
+                            CountdownLabel(endsAt: ruins.decaysAt)
+                                .font(.caption2)
+                        } icon: {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(.secondary)
+                        if let multiplier = implosionConfig?.ruinsLootMultiplier, multiplier > 1 {
+                            Text("×\(String(format: "%.0f", multiplier)) loot")
+                                .font(.caption2.bold())
+                                .foregroundStyle(.yellow)
+                        }
+                    }
+                }
             }
 
             // Action dugme — vidljivo samo ako nije home city i ima validnih movement type-ova
@@ -265,6 +287,7 @@ private struct TileInfoCard: View {
     /// Primary action label — pokazuje najagresivniju dozvoljenu akciju.
     private var primaryActionLabel: String {
         if allowedActions.contains(.ATTACK) { return "Send Troops" }
+        if allowedActions.contains(.RAID) && tile.ruins != nil { return "Raid Ruins" }
         if allowedActions.contains(.SCOUT) { return "Scout" }
         if allowedActions.contains(.SETTLE) { return "Settle" }
         return "Send"
@@ -272,6 +295,7 @@ private struct TileInfoCard: View {
 
     private var primaryActionIcon: String {
         if allowedActions.contains(.ATTACK) { return "shield.lefthalf.filled.badge.checkmark" }
+        if allowedActions.contains(.RAID) && tile.ruins != nil { return "flame.fill" }
         if allowedActions.contains(.SCOUT) { return "eye" }
         if allowedActions.contains(.SETTLE) { return "flag.fill" }
         return "arrow.forward.circle"
@@ -279,6 +303,7 @@ private struct TileInfoCard: View {
 
     private var actionTint: Color {
         if allowedActions.contains(.ATTACK) { return .red }
+        if allowedActions.contains(.RAID) && tile.ruins != nil { return .orange }
         if allowedActions.contains(.SCOUT) { return .cyan }
         return .blue
     }

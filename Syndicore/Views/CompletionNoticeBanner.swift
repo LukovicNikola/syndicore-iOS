@@ -12,6 +12,7 @@ struct CompletionNotice: Identifiable, Equatable {
         case building
         case training
         case troopsArrived
+        case implosion
     }
 }
 
@@ -68,6 +69,7 @@ struct CompletionNoticeBanner: View {
         case .building:      "hammer.circle.fill"
         case .training:      "person.2.circle.fill"
         case .troopsArrived: "arrow.triangle.swap"
+        case .implosion:     "bolt.circle.fill"
         }
     }
 
@@ -76,6 +78,7 @@ struct CompletionNoticeBanner: View {
         case .building:      .green
         case .training:      .cyan
         case .troopsArrived: .blue
+        case .implosion:     .purple
         }
     }
 

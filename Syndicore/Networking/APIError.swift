@@ -23,6 +23,16 @@ enum BEErrorCode: String {
     /// Returned kad REINFORCE/TRANSPORT cilja grad koji nije u istom syndikat-u
     /// niti ima PACT diplomatiju sa attacker-om.
     case notAllied             = "not_allied"
+    /// Crystal Implosion: HQ nije na max level-u (20)
+    case hqNotMaxLevel         = "hq_not_max_level"
+    /// Crystal Implosion: igrač je već u NEXUS ringu, ne može dalje
+    case alreadyNexus          = "already_nexus"
+    /// Crystal Implosion: postoje aktivni troop movements (incoming ili outgoing)
+    case activeMovements       = "active_movements"
+    /// Crystal Implosion: postoji aktivna construction queue
+    case activeConstruction    = "active_construction"
+    /// Crystal Implosion: nema SETTLER jedinice u gradu
+    case noSettler             = "no_settler"
 }
 
 enum APIError: LocalizedError {

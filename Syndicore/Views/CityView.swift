@@ -5,9 +5,10 @@ struct CityView: View {
 
     // Sheet state
     @State private var selectedBuilding: BuildingInfo?
-    @State private var buildSlot: SlotSelection?
+    @State private var tappedSlot: TappedSlot?
     @State private var showHQInfo    = false
     @State private var showTraining  = false
+    @State private var showCrystals  = false
 
     private var city: City? { gameState.activeCity }
 
@@ -19,7 +20,7 @@ struct CityView: View {
                 city: city,
                 onTapHQ:        { showHQInfo = true },
                 onTapBuilding:  { selectedBuilding = $0 },
-                onTapEmptySlot: { buildSlot = SlotSelection(id: $0) },
+                onTapEmptySlot: { tappedSlot = $0 },
                 onConstructionComplete: {
                     Task { await gameState.refreshCity() }
                 }
@@ -28,7 +29,11 @@ struct CityView: View {
 
             // MARK: HUD overlay
             VStack {
-                TopHUD(city: city)
+                TopHUD(
+                    city: city,
+                    crystalCount: gameState.activePlayerWorld?.crystals?.count ?? 0,
+                    onTapCrystals: { showCrystals = true }
+                )
                 if let err = gameState.cityRefreshError {
                     RefreshErrorBanner(message: err) {
                         gameState.cityRefreshError = nil
@@ -80,13 +85,13 @@ struct CityView: View {
                     .presentationDetents([.medium, .large])
             }
         }
-        .sheet(item: $buildSlot) { slot in
+        .sheet(item: $tappedSlot) { slot in
             if let city {
                 BuildSheet(
                     cityId: city.id,
                     hasQueue: city.constructionQueue != nil,
-                    usedResourceSlots: Set((city.buildings ?? []).compactMap { $0.slotIndex }),
-                    buildableTypes: buildableTypes(city: city)
+                    tappedSlot: slot,
+                    existingTypes: Set((city.buildings ?? []).map { $0.type })
                 )
                 .presentationDetents([.medium, .large])
             }
@@ -98,6 +103,10 @@ struct CityView: View {
         .sheet(isPresented: $showTraining) {
             TrainingSheet()
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showCrystals) {
+            CrystalSheet()
+                .presentationDetents([.medium])
         }
         .task {
             // Initial load + auto-refresh loop dok je view aktivan.
@@ -133,35 +142,6 @@ struct CityView: View {
         }
     }
 
-    // MARK: - Helpers
-
-    /// Zgrade koje igrač može da izgradi (prikazuje se u BuildSheet).
-    private func buildableTypes(city: City) -> [BuildingType] {
-        let buildings = city.buildings ?? []
-        let existingTypes = Set(buildings.map { $0.type })
-
-        // Fixed buildings: svaka se može izgraditi samo jednom
-        var result: [BuildingType] = [
-            .BARRACKS, .MOTOR_POOL, .OPS_CENTER, .WAREHOUSE,
-            .WALL, .WATCHTOWER, .RALLY_POINT, .TRADE_POST, .RESEARCH_LAB
-        ].filter { !existingTypes.contains($0) }
-
-        // Resource buildings: mogu se graditi u flex slotovima dok ima slobodnih
-        let usedResourceSlots = buildings.compactMap { $0.slotIndex }.count
-        let totalResourceSlots = 10  // CityScene.resourceSlotPositions.count
-        if usedResourceSlots < totalResourceSlots {
-            result.append(contentsOf: [.DATA_BANK, .FOUNDRY, .TECH_LAB, .POWER_GRID])
-        }
-
-        return result
-    }
-}
-
-// MARK: - Helpers
-
-/// Wrapper da Int bude Identifiable za .sheet(item:).
-private struct SlotSelection: Identifiable {
-    let id: Int
 }
 
 /// Non-blocking error banner za refresh failure. Korisnik moze da retry-uje ili dismiss-uje.

@@ -90,6 +90,10 @@ extension Endpoint {
         Endpoint(path: "/api/v1/cities/\(cityId)/training", requiresAuth: true)
     }
 
+    static func implode(cityId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/cities/\(cityId)/implode", method: .post, requiresAuth: true)
+    }
+
     static func skipBuild(cityId: String) -> Endpoint {
         Endpoint(path: "/api/v1/cities/\(cityId)/build/skip", method: .post, requiresAuth: true)
     }

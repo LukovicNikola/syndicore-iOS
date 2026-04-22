@@ -352,6 +352,49 @@ final class GameState {
         }
     }
 
+    // MARK: - Crystal Implosion
+
+    /// Pozvan nakon uspešnog `POST /cities/:id/implode`.
+    /// Switchuje na novi grad (novi ID, novi ring), refreshuje sve, prikazuje toast.
+    func handleImplodeSuccess(_ response: ImplodeResponse) async {
+        // Fetch novi grad sa BE-a koristeći newCity.id
+        do {
+            activeCity = try await api.city(id: response.newCity.id)
+        } catch {
+            Self.log.error("Failed to fetch new city after implode: \(error.localizedDescription, privacy: .public)")
+        }
+
+        // Refresh player data (crystals array se menja posle implosion-a)
+        do {
+            let meResponse = try await api.me()
+            currentPlayer = meResponse.player
+            if let pw = meResponse.player.worlds?.first(where: { $0.worldId == activeWorld?.id }) {
+                activePlayerWorld = pw
+            }
+        } catch {
+            Self.log.error("Failed to refresh player after implode: \(error.localizedDescription, privacy: .public)")
+        }
+
+        // Reconnect socket na novi city room
+        if let cityId = activeCity?.id {
+            socket.joinCityRoom(cityId: cityId)
+        }
+
+        // Refresh movements (stari movements su nestali sa starim gradom)
+        activeMovements = []
+        movementsNextCursor = nil
+        movementsHasMore = false
+
+        // Toast
+        let ringName = response.newRing.capitalized
+        lastCompletionNotice = CompletionNotice(
+            kind: .implosion,
+            title: "Crystal Implosion!",
+            subtitle: "Relocated to \(ringName) ring"
+        )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
     func signOut() async {
         do {
             try await auth.signOut()

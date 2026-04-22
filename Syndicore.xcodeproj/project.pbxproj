@@ -89,6 +89,7 @@
 		9BDE06AC2F98C4940033330D /* IncomingAttackBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */; };
 		9BDE06AE2F98C4940033330D /* SendTroopsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */; };
 		9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AF2F98C4950033330D /* MovementLineNode.swift */; };
+		9BDE06B22F9912780033330D /* CrystalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06B12F9912780033330D /* CrystalSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -187,6 +188,7 @@
 		9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingAttackBanner.swift; sourceTree = "<group>"; };
 		9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTroopsSheet.swift; sourceTree = "<group>"; };
 		9BDE06AF2F98C4950033330D /* MovementLineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLineNode.swift; sourceTree = "<group>"; };
+		9BDE06B12F9912780033330D /* CrystalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrystalSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -412,6 +414,7 @@
 				9B4CFC9E2F927EDC00850457 /* HQInfoSheet.swift */,
 				9B4CFCA02F927EDD00850457 /* BuildingDetailSheet.swift */,
 				9B4CFCA22F927EDE00850457 /* BuildSheet.swift */,
+				9BDE06B12F9912780033330D /* CrystalSheet.swift */,
 			);
 			path = Sheets;
 			sourceTree = "<group>";
@@ -567,6 +570,7 @@
 				4A5847DA2F94C2AE00E4C30B /* ConstructionProgressNode.swift in Sources */,
 				9BDE06AA2F98C4930033330D /* CompletionNoticeBanner.swift in Sources */,
 				4A0000000000000000000214 /* WorldListView.swift in Sources */,
+				9BDE06B22F9912780033330D /* CrystalSheet.swift in Sources */,
 				4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */,
 				4A6F52692F93DA0F00992D0B /* SpriteSpec.swift in Sources */,
 				4A6F526A2F93DA0F00992D0B /* DebugGridOverlayNode.swift in Sources */,
