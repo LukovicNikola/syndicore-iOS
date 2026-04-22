@@ -246,6 +246,209 @@
         "type": "object",
         "additionalProperties": {},
         "description": "Full contents of shared/game-constants.json. Clients cache by ETag. Authoritative shape is the JSON file itself."
+      },
+      "PaginationParams": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50,
+            "example": 50
+          },
+          "before": {
+            "type": "string",
+            "description": "Cursor — ID of the last item on the previous page"
+          }
+        }
+      },
+      "MovementItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "example": "ATTACK"
+          },
+          "from": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ]
+          },
+          "to": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ]
+          },
+          "units": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "viaGates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "departedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "arrivesAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isReturning": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "from",
+          "to",
+          "units",
+          "viaGates",
+          "departedAt",
+          "arrivesAt",
+          "isReturning"
+        ]
+      },
+      "PaginatedMovementsResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovementItem"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pass as `before` for next page, null if no more"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "hasMore"
+        ]
+      },
+      "ReportItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "attackerWon": {
+            "type": "boolean"
+          },
+          "targetX": {
+            "type": "integer"
+          },
+          "targetY": {
+            "type": "integer"
+          },
+          "ratio": {
+            "type": "number"
+          },
+          "totalAtk": {
+            "type": "number"
+          },
+          "totalDef": {
+            "type": "number"
+          },
+          "attackerUnits": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "defenderUnits": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "resourcesStolen": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "buildingsDamaged": {},
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isAttacker": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "attackerWon",
+          "targetX",
+          "targetY",
+          "ratio",
+          "totalAtk",
+          "totalDef",
+          "attackerUnits",
+          "defenderUnits",
+          "resourcesStolen",
+          "occurredAt",
+          "isAttacker"
+        ]
+      },
+      "PaginatedReportsResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "hasMore"
+        ]
       }
     },
     "parameters": {}
@@ -567,6 +770,158 @@
           },
           "304": {
             "description": "Client copy matches server (If-None-Match hit)"
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/movements": {
+      "get": {
+        "tags": [
+          "movement"
+        ],
+        "summary": "Paginated list of player troop movements (newest first)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "example": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Cursor — ID of the last item on the previous page"
+            },
+            "required": false,
+            "name": "before",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of movements with cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMovementsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid cursor ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/reports": {
+      "get": {
+        "tags": [
+          "report"
+        ],
+        "summary": "Paginated battle reports for the current player (newest first)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "example": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Cursor — ID of the last item on the previous page"
+            },
+            "required": false,
+            "name": "before",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of battle reports with cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedReportsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid cursor ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }

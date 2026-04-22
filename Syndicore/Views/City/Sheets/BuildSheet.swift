@@ -1,29 +1,49 @@
 import SwiftUI
 
-/// Resource building types koji idu u flex slotove (mogu se graditi višestruko).
-private let resourceBuildingTypes: Set<BuildingType> = [.DATA_BANK, .FOUNDRY, .TECH_LAB, .POWER_GRID]
-
-/// Sheet za izgradnju nove zgrade u praznom slotu (tapom na prazan tile).
+/// Sheet za izgradnju nove zgrade na tačnom tile-u koji je korisnik tapnuo.
+///
+/// `tappedSlot` određuje šta se može graditi:
+/// - `.fixed(type)` → samo taj specifični fixed building (ako nije već izgrađen)
+/// - `.resource(slotIndex)` → resource buildings (DATA_BANK/FOUNDRY/TECH_LAB/POWER_GRID)
+///    sa tačnim slot index-om koji odgovara tapnutom tile-u
 struct BuildSheet: View {
     let cityId: String
     let hasQueue: Bool
-    /// Occupied resource slot indices (from city buildings with slotIndex).
-    let usedResourceSlots: Set<Int>
+    let tappedSlot: TappedSlot
+    /// Building types koji već postoje u gradu (za filtriranje fixed buildings).
+    let existingTypes: Set<BuildingType>
 
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
 
-    // Sve zgrade koje igrač JOŠ NIJE izgradio
-    var buildableTypes: [BuildingType]
+    /// Zgrade koje se mogu izgraditi na ovom slotu.
+    private var buildableTypes: [BuildingType] {
+        switch tappedSlot {
+        case .fixed(let type):
+            // Ovaj tile je namenjen za tačno jednu fixed zgradu
+            return existingTypes.contains(type) ? [] : [type]
+        case .resource:
+            // Resource slot — ponudi sve 4 resource tipa
+            return [.DATA_BANK, .FOUNDRY, .TECH_LAB, .POWER_GRID]
+        }
+    }
+
+    /// Slot index za API poziv (samo za resource buildings).
+    private var slotIndex: Int? {
+        switch tappedSlot {
+        case .resource(let idx): idx
+        case .fixed: nil
+        }
+    }
 
     var body: some View {
         NavigationStack {
             Group {
                 if buildableTypes.isEmpty {
                     ContentUnavailableView(
-                        "Nothing to Build",
+                        "Already Built",
                         systemImage: "checkmark.seal.fill",
-                        description: Text("You've built all available buildings.")
+                        description: Text("This building has already been constructed.")
                     )
                 } else {
                     List(buildableTypes, id: \.self) { type in
@@ -32,7 +52,7 @@ struct BuildSheet: View {
                             cityId: cityId,
                             disabled: hasQueue,
                             costPreview: costPreview(for: type),
-                            slotIndex: nextResourceSlot(for: type)
+                            slotIndex: slotIndex
                         )
                     }
                 }
@@ -68,15 +88,6 @@ struct BuildSheet: View {
                 tech: fb.baseCost["tech"] ?? 0,
                 durationMinutes: fb.baseTimeMinutes
             )
-        }
-        return nil
-    }
-
-    /// Za resource building, nađi prvi slobodan flex slot index.
-    private func nextResourceSlot(for type: BuildingType) -> Int? {
-        guard resourceBuildingTypes.contains(type) else { return nil }
-        for i in 0..<10 {
-            if !usedResourceSlots.contains(i) { return i }
         }
         return nil
     }

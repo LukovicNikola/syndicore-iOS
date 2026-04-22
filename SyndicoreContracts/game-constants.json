@@ -201,6 +201,13 @@
     "warp_gate_interception_enabled": false
   },
 
+  "watchtower_alerts": {
+    "attacker_name_min_level": 1,
+    "troop_estimate_min_level": 6,
+    "troop_exact_min_level": 11,
+    "origin_coords_min_level": 16
+  },
+
   "combat": {
     "wall_hp_per_level": 300,
     "loot_max_per_attack": 100000,
@@ -250,5 +257,23 @@
   "respec": {
     "resource_loss_pct": 0.10,
     "cooldown_hours": 24
+  },
+
+  "crystals": {
+    "FRINGE": { "production_bonus": 0.15, "atk_bonus": 0, "def_bonus": 0 },
+    "GRID":   { "production_bonus": 0.15, "atk_bonus": 0.05, "def_bonus": 0.05 },
+    "CORE":   { "production_bonus": 0, "atk_bonus": 0.10, "def_bonus": 0.10 }
+  },
+
+  "implosion": {
+    "required_hq_level": 20,
+    "settler_spawn_count": 1,
+    "ruins_decay_days": 14,
+    "ruins_loot_multiplier": 2.0,
+    "next_ring": {
+      "FRINGE": "GRID",
+      "GRID": "CORE",
+      "CORE": "NEXUS"
+    }
   }
 }
