@@ -53,7 +53,7 @@
       "power_grid": { "produces": "energy",  "base_rate": 80, "max_rate": 1200, "max_level": 20, "base_cost": { "credits": 100, "alloys": 80 }, "base_time_minutes": 5 }
     },
     "fixed": {
-      "hq":           { "max_level": 20, "slots": { "1": 9, "5": 11, "10": 14, "15": 16, "20": 18 }, "settler_unlock": { "10": 2, "15": 3, "20": 4 }, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
+      "hq":           { "max_level": 20, "settler_unlock": { "10": 2, "15": 3, "20": 4 }, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
       "barracks":     { "max_level": 20, "unlocks": { "1": "fodder", "5": "core", "10": "specialist" },                "base_cost": { "credits": 150, "alloys": 100 },             "base_time_minutes": 8 },
       "motor_pool":   { "max_level": 20, "unlocks": { "1": "vehicle", "5": "transport" },                              "base_cost": { "credits": 200, "alloys": 150 },             "base_time_minutes": 8 },
       "ops_center":   { "max_level": 20, "unlocks": { "5": "scout", "10": "siege" },                                   "base_cost": { "credits": 150, "alloys": 100, "tech": 80 }, "base_time_minutes": 8 },
