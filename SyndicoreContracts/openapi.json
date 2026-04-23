@@ -672,6 +672,305 @@
         "required": [
           "unregistered"
         ]
+      },
+      "SessionClaimRequest": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 128,
+            "description": "iOS identifierForVendor (UUID) — stable per app install on a device"
+          }
+        },
+        "required": [
+          "deviceId"
+        ]
+      },
+      "SessionClaimResponse": {
+        "type": "object",
+        "properties": {
+          "claimed": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "session": {
+            "type": "object",
+            "properties": {
+              "deviceId": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastSeenAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "deviceId",
+              "createdAt",
+              "lastSeenAt"
+            ]
+          }
+        },
+        "required": [
+          "claimed",
+          "session"
+        ]
+      },
+      "SessionClearResponse": {
+        "type": "object",
+        "properties": {
+          "cleared": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "cleared"
+        ]
+      },
+      "RallyStatus": {
+        "type": "string",
+        "enum": [
+          "FORMING",
+          "LAUNCHED",
+          "RESOLVED",
+          "CANCELLED"
+        ]
+      },
+      "CreateRallyRequest": {
+        "type": "object",
+        "properties": {
+          "targetX": {
+            "type": "integer"
+          },
+          "targetY": {
+            "type": "integer"
+          },
+          "launchAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 — when the rally window closes and troops depart"
+          },
+          "units": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "{ GRUNT: 50, STRIKER: 10 } — creator's committed army"
+          }
+        },
+        "required": [
+          "targetX",
+          "targetY",
+          "launchAt",
+          "units"
+        ]
+      },
+      "JoinRallyRequest": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "required": [
+          "units"
+        ]
+      },
+      "RallyParticipantItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playerWorldId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "units": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "playerWorldId",
+          "username",
+          "units",
+          "joinedAt"
+        ]
+      },
+      "RallyItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RallyStatus"
+          },
+          "creator": {
+            "type": "object",
+            "properties": {
+              "playerWorldId": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "playerWorldId",
+              "username"
+            ]
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ]
+          },
+          "launchAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "arrivesAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "silentMarch": {
+            "type": "boolean"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RallyParticipantItem"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "creator",
+          "target",
+          "launchAt",
+          "arrivesAt",
+          "silentMarch",
+          "participants"
+        ]
+      },
+      "RalliesResponse": {
+        "type": "object",
+        "properties": {
+          "rallies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RallyItem"
+            }
+          }
+        },
+        "required": [
+          "rallies"
+        ]
+      },
+      "CreateRallyResponse": {
+        "type": "object",
+        "properties": {
+          "rally": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/RallyStatus"
+              },
+              "worldId": {
+                "type": "string"
+              },
+              "syndikatId": {
+                "type": "string"
+              },
+              "creatorPlayerWorldId": {
+                "type": "string"
+              },
+              "targetX": {
+                "type": "integer"
+              },
+              "targetY": {
+                "type": "integer"
+              },
+              "launchAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "arrivesAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "silentMarch": {
+                "type": "boolean"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "worldId",
+              "syndikatId",
+              "creatorPlayerWorldId",
+              "targetX",
+              "targetY",
+              "launchAt",
+              "arrivesAt",
+              "silentMarch",
+              "createdAt"
+            ]
+          }
+        },
+        "required": [
+          "rally"
+        ]
       }
     },
     "parameters": {}
@@ -1411,6 +1710,519 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DeviceTokenUnregisterResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/rally": {
+      "post": {
+        "tags": [
+          "rally"
+        ],
+        "summary": "Create a syndikat group-attack rally (Officer+)",
+        "description": "Caller becomes the rally creator and participant #1; their committed troops are deducted from their city immediately. Same-syndikat members can join via /:id/join until launchAt. Requires a built Rally Point (level unlocks max concurrent rallies per game-constants).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRallyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rally created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRallyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_input / invalid_launch_at / launch_at_in_past / invalid_target_tile / invalid_units / unknown_unit / no_units_selected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "insufficient_rank (Officer+ required)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_in_world / creator_not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "not_in_syndikat / no_city / rally_point_required / rally_point_level_too_low / max_active_rallies_reached / insufficient_troops",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "rally"
+        ],
+        "summary": "Active rallies (FORMING + LAUNCHED) for the caller's syndikat",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rally list (empty array if caller has no syndikat)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RalliesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_in_world",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/rally/{id}/join": {
+      "post": {
+        "tags": [
+          "rally"
+        ],
+        "summary": "Join an active rally (same-syndikat members only)",
+        "description": "Commits the caller's troops to the rally. Their troops are deducted from their city right away. Calling again merges into the existing row.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinRallyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Joined",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "joined": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "joined"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_input / invalid_units / unknown_unit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_same_syndikat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "rally_not_found / joiner_not_found / not_in_world",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "rally_not_forming / rally_launch_window_closed / no_city / insufficient_troops",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/rally/{id}/leave": {
+      "post": {
+        "tags": [
+          "rally"
+        ],
+        "summary": "Participant pulls out of a rally before launch",
+        "description": "Troops are refunded to the participant's city. The creator cannot leave — they must cancel.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Left",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "left": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "left"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "rally_not_found / not_participant / not_in_world",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "rally_not_forming / creator_must_cancel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/rally/{id}": {
+      "delete": {
+        "tags": [
+          "rally"
+        ],
+        "summary": "Creator cancels the whole rally before launch",
+        "description": "All participants get their troops refunded.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cancelled": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "cancelled"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_creator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "rally_not_found / not_in_world",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "rally_not_forming",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/session/claim": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Claim this device as the active session — hard-kicks any other device",
+        "description": "Single-active-session enforcement. After login, iOS sends its identifierForVendor UUID. If a different device was the active one, it receives a Socket.IO `session_kicked` event and its subsequent API calls fail with 401 `session_invalidated`. Same-device re-claim (app relaunch with the same IDFV) is silent. Requires an existing Player row — run /me/onboarding first.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionClaimRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session claimed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionClaimResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_device_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "onboarding_required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/session": {
+      "delete": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Clear the active session (logout)",
+        "description": "Idempotent. After this, the device must re-claim to make any authenticated API call.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionClearResponse"
                 }
               }
             }
