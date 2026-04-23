@@ -3,6 +3,7 @@ import Foundation
 enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
+    case delete = "DELETE"
 }
 
 struct Endpoint {
@@ -41,6 +42,21 @@ extension Endpoint {
             body: OnboardingRequest(username: username)
         )
     }
+
+    static func sessionClaim(deviceId: String) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/me/session/claim",
+            method: .post,
+            requiresAuth: true,
+            body: SessionClaimRequest(deviceId: deviceId)
+        )
+    }
+
+    static let sessionClear = Endpoint(
+        path: "/api/v1/me/session",
+        method: .delete,
+        requiresAuth: true
+    )
 }
 
 // MARK: - Worlds
@@ -179,4 +195,23 @@ struct SendTroopsRequest: Codable, Sendable {
     let targetY: Int
     let units: [String: Int]
     let movementType: String
+}
+
+struct SessionClaimRequest: Codable, Sendable {
+    let deviceId: String
+}
+
+struct SessionClaimResponse: Codable {
+    let claimed: Bool
+    let session: SessionInfo
+}
+
+struct SessionInfo: Codable {
+    let deviceId: String
+    let createdAt: Date
+    let lastSeenAt: Date
+}
+
+struct SessionClearResponse: Codable {
+    let cleared: Bool
 }

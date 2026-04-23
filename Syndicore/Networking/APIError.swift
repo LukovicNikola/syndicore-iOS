@@ -33,6 +33,11 @@ enum BEErrorCode: String {
     case activeConstruction    = "active_construction"
     /// Crystal Implosion: nema SETTLER jedinice u gradu
     case noSettler             = "no_settler"
+    // Session enforcement
+    case missingDeviceId       = "missing_device_id"
+    case noActiveSession       = "no_active_session"
+    case sessionInvalidated    = "session_invalidated"
+    case invalidDeviceId       = "invalid_device_id"
 }
 
 enum APIError: LocalizedError {
@@ -48,11 +53,17 @@ enum APIError: LocalizedError {
     case decodingError(Error)
     case unexpectedStatus(Int, Data)
     case timeout(TimeInterval)
+    /// Session kicked — another device claimed this account
+    case sessionKicked
+    /// No active session — need to call POST /me/session/claim
+    case noActiveSession
 
     var errorDescription: String? {
         switch self {
         case .invalidURL: "Invalid URL"
         case .unauthorized: "Unauthorized — please sign in again"
+        case .sessionKicked: "Signed out — account opened on another device"
+        case .noActiveSession: "Session not claimed"
         case .forbidden(let err): err.error
         case .onboardingRequired: "Onboarding required"
         case .notFound: "Not found"

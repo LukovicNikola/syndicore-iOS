@@ -43,6 +43,7 @@ final class SocketService {
     var onBuildingComplete: ((BuildingCompleteEvent) -> Void)?
     var onTrainingComplete: ((TrainingCompleteEvent) -> Void)?
     var onTroopsArrived:    ((TroopsArrivedEvent)    -> Void)?
+    var onSessionKicked:    ((SessionKickedEvent)    -> Void)?
 
     // MARK: - Internal state
 
@@ -53,6 +54,7 @@ final class SocketService {
 
     private var joinedCityRoom: String?
     private var joinedWorldRoom: String?
+    private var joinedPlayerRoom: String?
 
     private let decoder: JSONDecoder = .api
 
@@ -103,11 +105,13 @@ final class SocketService {
         #endif
         joinedCityRoom = nil
         joinedWorldRoom = nil
+        joinedPlayerRoom = nil
         isConnected = false
         onIncomingAttack = nil
         onBuildingComplete = nil
         onTrainingComplete = nil
         onTroopsArrived = nil
+        onSessionKicked = nil
     }
 
     // MARK: - Room joining
@@ -134,6 +138,20 @@ final class SocketService {
         lastIncomingAttack = nil
     }
 
+    /// Pretplata na player-level events (session_kicked). Zove se posle connect.
+    func joinPlayerRoom(playerId: String) {
+        #if canImport(SocketIO)
+        guard let socket else { return }
+        if joinedPlayerRoom == playerId { return }
+        if let prev = joinedPlayerRoom {
+            socket.emit("leave_player", prev)
+        }
+        socket.emit("join_player", playerId)
+        joinedPlayerRoom = playerId
+        Self.log.info("Joined player room: \(playerId, privacy: .public)")
+        #endif
+    }
+
     /// Pretplata na world-wide events (troops_arrived). Zove se posle connect + kad se world promeni.
     func joinWorldRoom(worldId: String) {
         #if canImport(SocketIO)
@@ -157,6 +175,7 @@ final class SocketService {
                 self?.isConnected = true
                 Self.log.info("Socket connected")
                 // Re-join rooms ako smo imali prethodne (reconnect scenario)
+                if let player = self?.joinedPlayerRoom { socket.emit("join_player", player) }
                 if let city = self?.joinedCityRoom { socket.emit("join_city", city) }
                 if let world = self?.joinedWorldRoom { socket.emit("join_world", world) }
             }
@@ -202,6 +221,13 @@ final class SocketService {
             self?.handleEvent(TroopsArrivedEvent.self, from: data) { event in
                 self?.lastTroopsArrived = event
                 self?.onTroopsArrived?(event)
+            }
+        }
+
+        // Session kicked (player room) — another device claimed this account
+        socket.on("session_kicked") { [weak self] data, _ in
+            self?.handleEvent(SessionKickedEvent.self, from: data) { event in
+                self?.onSessionKicked?(event)
             }
         }
     }

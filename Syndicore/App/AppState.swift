@@ -109,7 +109,10 @@ final class GameState {
             let response = try await api.me()
             currentPlayer = response.player
 
-            // 3. Ako ima worlds, proveri da li je već join-ovao
+            // 3. Claim session (safe no-op if same device)
+            await claimSession()
+
+            // 4. Ako ima worlds, proveri da li je već join-ovao
             if let worlds = response.player.worlds, !worlds.isEmpty {
                 let pw = worlds[0]
                 activePlayerWorld = pw
@@ -134,7 +137,7 @@ final class GameState {
             switch error {
             case .onboardingRequired:
                 activeScreen = .onboarding
-            case .unauthorized:
+            case .unauthorized, .sessionKicked:
                 activeScreen = .auth
             default:
                 Self.log.error("Bootstrap APIError: \(error.localizedDescription, privacy: .public)")
@@ -146,6 +149,31 @@ final class GameState {
         }
     }
 
+    // MARK: - Session
+
+    /// Claims this device as the active session. Safe to call multiple times
+    /// (same device = no-op on BE side, no kick emitted).
+    private func claimSession() async {
+        do {
+            let _ = try await api.claimSession()
+            Self.log.info("Session claimed for device \(Device.id, privacy: .public)")
+        } catch {
+            Self.log.error("Session claim failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Called when BE sends `session_kicked` via Socket.IO or when a REST call
+    /// returns 401 `session_invalidated`. Force-logout the user.
+    func handleSessionKicked(reason: String? = nil) async {
+        Self.log.info("Session kicked: \(reason ?? "unknown", privacy: .public)")
+        lastCompletionNotice = CompletionNotice(
+            kind: .sessionKicked,
+            title: "Signed Out",
+            subtitle: "Your account was opened on another device"
+        )
+        await signOut()
+    }
+
     // MARK: - Navigation Actions
 
     func didSignIn() async {
@@ -154,6 +182,7 @@ final class GameState {
 
     func didOnboard(player: Player) async {
         currentPlayer = player
+        await claimSession()
         await autoSelectWorld()
     }
 
@@ -194,6 +223,9 @@ final class GameState {
             let token = try await auth.accessToken()
             socket.connect(baseURL: api.baseURL, token: token)
             wireSocketEventHandlers()
+            if let playerId = currentPlayer?.id {
+                socket.joinPlayerRoom(playerId: playerId)
+            }
             if let cityId = activeCity?.id {
                 socket.joinCityRoom(cityId: cityId)
             }
@@ -217,6 +249,9 @@ final class GameState {
         }
         socket.onTroopsArrived = { [weak self] event in
             Task { [weak self] in await self?.handleTroopsArrived(event) }
+        }
+        socket.onSessionKicked = { [weak self] event in
+            Task { [weak self] in await self?.handleSessionKicked(reason: event.reason) }
         }
     }
 
@@ -401,12 +436,15 @@ final class GameState {
     }
 
     func signOut() async {
-        do {
-            try await auth.signOut()
-        } catch {
-            // Ignore sign out errors
+        // 1. Clear session on BE (best-effort)
+        do { let _ = try await api.clearSession() } catch {
+            Self.log.info("Session clear failed (continuing signOut): \(error.localizedDescription, privacy: .public)")
         }
+        // 2. Disconnect Socket.IO
         socket.disconnect()
+        // 3. Sign out from Supabase
+        do { try await auth.signOut() } catch { }
+        // 4. Clear local state
         currentPlayer = nil
         activeWorld = nil
         activePlayerWorld = nil

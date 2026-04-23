@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4A0000000000000000000201 /* SyndicoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000101 /* SyndicoreApp.swift */; };
 		4A0000000000000000000202 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000102 /* AppState.swift */; };
+		4A0000000000000000000250 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000150 /* Device.swift */; };
 		4A0000000000000000000203 /* Faction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000103 /* Faction.swift */; };
 		4A0000000000000000000204 /* Ring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000104 /* Ring.swift */; };
 		4A0000000000000000000205 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000105 /* Player.swift */; };
@@ -106,6 +107,7 @@
 		4A0000000000000000000021 /* Syndicore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syndicore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A0000000000000000000101 /* SyndicoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyndicoreApp.swift; sourceTree = "<group>"; };
 		4A0000000000000000000102 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		4A0000000000000000000150 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
 		4A0000000000000000000103 /* Faction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faction.swift; sourceTree = "<group>"; };
 		4A0000000000000000000104 /* Ring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ring.swift; sourceTree = "<group>"; };
 		4A0000000000000000000105 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
@@ -244,6 +246,7 @@
 				4A57FDF22F92D372004559C8 /* AppConfig.swift */,
 				4A0000000000000000000101 /* SyndicoreApp.swift */,
 				4A0000000000000000000102 /* AppState.swift */,
+				4A0000000000000000000150 /* Device.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -533,6 +536,7 @@
 				4A0000000000000000000201 /* SyndicoreApp.swift in Sources */,
 				4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */,
 				4A0000000000000000000202 /* AppState.swift in Sources */,
+				4A0000000000000000000250 /* Device.swift in Sources */,
 				9B4CFC9B2F927EC100850457 /* TopHUD.swift in Sources */,
 				9B2E27252F9126D000CA8E81 /* City.swift in Sources */,
 				9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */,

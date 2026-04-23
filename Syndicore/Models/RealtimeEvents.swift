@@ -97,3 +97,11 @@ struct TroopsArrivedEvent: Decodable {
     let targetX: Int
     let targetY: Int
 }
+
+// MARK: - Session Kicked
+
+/// `session_kicked` event — emituje na player room-u kad drugi uređaj claim-uje sesiju.
+struct SessionKickedEvent: Decodable {
+    let reason: String?
+    let at: Date?
+}

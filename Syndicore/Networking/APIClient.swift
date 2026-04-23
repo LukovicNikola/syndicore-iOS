@@ -95,12 +95,12 @@ final class APIClient: @unchecked Sendable {
         if endpoint.requiresAuth {
             let token: String
             if retryingAfter401 {
-                // Drugi prolaz: koristi svez token iz refresh-a
                 token = try await tokenProvider.refreshToken()
             } else {
                 token = try await tokenProvider.accessToken()
             }
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue(Device.id, forHTTPHeaderField: "X-Device-ID")
         }
 
         if let body = endpoint.body {
@@ -128,7 +128,23 @@ final class APIClient: @unchecked Sendable {
         case 200...299:
             return (data, http)
         case 401:
-            // Pokusaj jedan refresh + replay, ali samo ako endpoint zahteva auth i jos nismo retry-ovali
+            // Parse error body to distinguish session errors from token errors
+            if let errResp = try? decoder.decode(ErrorResponse.self, from: data) {
+                switch errResp.code {
+                case .sessionInvalidated:
+                    // Another device claimed the session — force logout, no retry
+                    throw APIError.sessionKicked
+                case .noActiveSession:
+                    // Session not claimed yet — caller should claim then retry
+                    throw APIError.noActiveSession
+                case .missingDeviceId:
+                    Self.log.error("BUG: X-Device-ID header missing on \(endpoint.path, privacy: .public)")
+                    throw APIError.unauthorized
+                default:
+                    break
+                }
+            }
+            // Token expired — try one refresh + replay
             if endpoint.requiresAuth && !retryingAfter401 {
                 Self.log.info("401 on \(endpoint.path, privacy: .public) — attempting token refresh + replay")
                 do {
@@ -178,6 +194,15 @@ extension APIClient {
 
     func onboard(username: String) async throws -> MeResponse {
         try await request(.onboarding(username: username), as: MeResponse.self)
+    }
+
+    // Session
+    func claimSession() async throws -> SessionClaimResponse {
+        try await request(.sessionClaim(deviceId: Device.id), as: SessionClaimResponse.self)
+    }
+
+    func clearSession() async throws -> SessionClearResponse {
+        try await request(.sessionClear, as: SessionClearResponse.self)
     }
 
     // Worlds
