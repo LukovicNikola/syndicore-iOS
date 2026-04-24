@@ -36,7 +36,6 @@ final class CityScene: SKScene {
     private var selectedTileCoord: (col: Int, row: Int)?
     private var selectedTilePulse: SelectedTilePulseNode?
     private var hqNode: HQNode?
-    private var queueIndicator: QueueIndicatorNode?
 
     private var buildings: [BuildingInfo] = []
     /// Aktivan construction queue — koristi se da forsira scaffold prikaz čak i kad
@@ -204,25 +203,6 @@ final class CityScene: SKScene {
         activeQueue = city.constructionQueue
         rebuildBuildingLayer()
         spawnResourceTicksIfNeeded(newResources: city.resources)
-        updateQueueIndicator(hasQueue: city.constructionQueue != nil)
-    }
-
-    /// Show/hide pulsing dot iznad HQ-a — visible kad postoji aktivna gradnja.
-    private func updateQueueIndicator(hasQueue: Bool) {
-        if hasQueue, queueIndicator == nil {
-            let q = QueueIndicatorNode()
-            // Iznad gornjeg vrha HQ-a (vrh pyramid + S hologram)
-            q.position = CGPoint(
-                x: Isometric.hqCenterPosition.x + Isometric.tileWidth * 0.55,
-                y: Isometric.hqCenterPosition.y + Isometric.tileWidth * 1.4
-            )
-            q.zPosition = 950
-            worldNode.addChild(q)
-            queueIndicator = q
-        } else if !hasQueue, let q = queueIndicator {
-            q.removeFromParent()
-            queueIndicator = nil
-        }
     }
 
     /// Diff vs prethodne resources — prikazuje "+X" tick iznad HQ-a za svaki pozitivan delta.
