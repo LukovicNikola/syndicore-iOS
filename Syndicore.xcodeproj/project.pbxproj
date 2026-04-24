@@ -99,6 +99,7 @@
 		9BDE06D12F9BA1650033330D /* CreateRallySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CB2F9BA1650033330D /* CreateRallySheet.swift */; };
 		9BDE06D32F9BBBC40033330D /* Research.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D22F9BBBC40033330D /* Research.swift */; };
 		9BDE06D52F9BBC010033330D /* ResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D42F9BBC010033330D /* ResearchView.swift */; };
+		9BDE06D72F9BC9640033330D /* Syndikat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D62F9BC9640033330D /* Syndikat.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -207,6 +208,7 @@
 		9BDE06CD2F9BA1650033330D /* RallyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RallyListView.swift; sourceTree = "<group>"; };
 		9BDE06D22F9BBBC40033330D /* Research.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Research.swift; sourceTree = "<group>"; };
 		9BDE06D42F9BBC010033330D /* ResearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchView.swift; sourceTree = "<group>"; };
+		9BDE06D62F9BC9640033330D /* Syndikat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Syndikat.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -285,6 +287,7 @@
 				4B0000000000000000000101 /* GameData.swift */,
 				9BDE06A72F98C4920033330D /* RealtimeEvents.swift */,
 				9BDE06D22F9BBBC40033330D /* Research.swift */,
+				9BDE06D62F9BC9640033330D /* Syndikat.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -623,6 +626,7 @@
 				4A0000000000000000000216 /* FactionPickerView.swift in Sources */,
 				9B2E272F2F91271900CA8E81 /* AuthView.swift in Sources */,
 				9B4CFC872F927D6600850457 /* WallLayout.swift in Sources */,
+				9BDE06D72F9BC9640033330D /* Syndikat.swift in Sources */,
 				9B2E272D2F91271900CA8E81 /* SplashView.swift in Sources */,
 				4B0000000000000000000001 /* GameData.swift in Sources */,
 				4B0000000000000000000002 /* GameConstantsManager.swift in Sources */,

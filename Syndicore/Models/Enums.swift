@@ -55,6 +55,37 @@ enum ResourceType: String, Codable, CaseIterable {
     case CREDITS, ALLOYS, TECH, ENERGY
 }
 
+// MARK: - Syndikat Role
+
+enum SyndikatRole: String, Codable, CaseIterable, Comparable {
+    case OVERLORD, WARDEN, OFFICER, MEMBER
+
+    /// Numeric rank for comparison (lower = higher authority).
+    private var rank: Int {
+        switch self {
+        case .OVERLORD: 0
+        case .WARDEN: 1
+        case .OFFICER: 2
+        case .MEMBER: 3
+        }
+    }
+
+    static func < (lhs: SyndikatRole, rhs: SyndikatRole) -> Bool {
+        lhs.rank < rhs.rank
+    }
+
+    /// Whether this role can manage (promote/demote/kick) the target role.
+    func canManage(_ target: SyndikatRole) -> Bool {
+        self < target
+    }
+}
+
+// MARK: - Diplomacy Status
+
+enum DiplomacyStatus: String, Codable, CaseIterable {
+    case PACT, NEUTRAL, HOSTILE
+}
+
 // MARK: - Research Branch
 
 enum ResearchBranch: String, Codable, CaseIterable {

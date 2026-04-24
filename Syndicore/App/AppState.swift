@@ -434,6 +434,18 @@ final class GameState {
         }
     }
 
+    // MARK: - Player refresh
+
+    /// Re-fetch GET /me and update currentPlayer + activePlayerWorld.
+    /// Useful after syndikat join/leave/role changes.
+    func refreshMe() async throws {
+        let meResponse = try await api.me()
+        currentPlayer = meResponse.player
+        if let pw = meResponse.player.worlds?.first(where: { $0.worldId == activeWorld?.id }) {
+            activePlayerWorld = pw
+        }
+    }
+
     // MARK: - Movements (paginated)
 
     /// Fetch-uje PRVU stranu movements-a. Resetuje accumulated list + cursor.

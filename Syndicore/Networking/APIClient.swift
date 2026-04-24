@@ -368,6 +368,39 @@ extension APIClient {
         try await reports(worldId: worldId, limit: limit, before: nil).items
     }
 
+    // Syndikats
+    func syndikats(worldId: String) async throws -> [Syndikat] {
+        try await request(.syndikats(worldId: worldId), as: SyndikatsListResponse.self).syndikats
+    }
+
+    func syndikatDetail(worldId: String, syndikatId: String) async throws -> Syndikat {
+        try await request(.syndikatDetail(worldId: worldId, syndikatId: syndikatId), as: SyndikatDetailResponse.self).syndikat
+    }
+
+    func createSyndikat(worldId: String, name: String, tag: String) async throws -> Syndikat {
+        try await request(.createSyndikat(worldId: worldId, name: name, tag: tag), as: CreateSyndikatResponse.self).syndikat
+    }
+
+    func joinSyndikat(worldId: String, syndikatId: String) async throws {
+        let _ = try await request(.joinSyndikat(worldId: worldId, syndikatId: syndikatId), as: JoinSyndikatResponse.self)
+    }
+
+    func leaveSyndikat(worldId: String) async throws {
+        let _ = try await request(.leaveSyndikat(worldId: worldId), as: LeaveSyndikatResponse.self)
+    }
+
+    func updateRole(worldId: String, syndikatId: String, targetPlayerWorldId: String, role: SyndikatRole) async throws {
+        let _ = try await request(.updateRole(worldId: worldId, syndikatId: syndikatId, targetPlayerWorldId: targetPlayerWorldId, role: role), as: UpdateRoleResponse.self)
+    }
+
+    func kickMember(worldId: String, syndikatId: String, targetPlayerWorldId: String) async throws {
+        let _ = try await request(.kickMember(worldId: worldId, syndikatId: syndikatId, targetPlayerWorldId: targetPlayerWorldId), as: KickMemberResponse.self)
+    }
+
+    func diplomacy(worldId: String, syndikatId: String, targetSyndikatId: String, status: DiplomacyStatus) async throws -> DiplomacyResponse {
+        try await request(.diplomacy(worldId: worldId, syndikatId: syndikatId, targetSyndikatId: targetSyndikatId, status: status), as: DiplomacyResponse.self)
+    }
+
     // Research
     func research(worldId: String) async throws -> ResearchResponse {
         try await request(.research(worldId: worldId), as: ResearchResponse.self)

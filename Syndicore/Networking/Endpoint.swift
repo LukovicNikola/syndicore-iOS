@@ -226,6 +226,62 @@ extension Endpoint {
     }
 }
 
+// MARK: - Syndikats
+
+extension Endpoint {
+    static func syndikats(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/syndikats", requiresAuth: true)
+    }
+
+    static func syndikatDetail(worldId: String, syndikatId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/syndikats/\(syndikatId)", requiresAuth: true)
+    }
+
+    static func createSyndikat(worldId: String, name: String, tag: String) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/worlds/\(worldId)/syndikats",
+            method: .post,
+            requiresAuth: true,
+            body: CreateSyndikatRequest(name: name, tag: tag)
+        )
+    }
+
+    static func joinSyndikat(worldId: String, syndikatId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/syndikats/\(syndikatId)/join", method: .post, requiresAuth: true)
+    }
+
+    static func leaveSyndikat(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/syndikats/leave", method: .post, requiresAuth: true)
+    }
+
+    static func updateRole(worldId: String, syndikatId: String, targetPlayerWorldId: String, role: SyndikatRole) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/worlds/\(worldId)/syndikats/\(syndikatId)/role",
+            method: .post,
+            requiresAuth: true,
+            body: UpdateRoleRequest(targetPlayerWorldId: targetPlayerWorldId, role: role.rawValue)
+        )
+    }
+
+    static func kickMember(worldId: String, syndikatId: String, targetPlayerWorldId: String) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/worlds/\(worldId)/syndikats/\(syndikatId)/kick",
+            method: .post,
+            requiresAuth: true,
+            body: KickMemberRequest(targetPlayerWorldId: targetPlayerWorldId)
+        )
+    }
+
+    static func diplomacy(worldId: String, syndikatId: String, targetSyndikatId: String, status: DiplomacyStatus) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/worlds/\(worldId)/syndikats/\(syndikatId)/diplomacy",
+            method: .post,
+            requiresAuth: true,
+            body: DiplomacyRequest(targetSyndikatId: targetSyndikatId, status: status.rawValue)
+        )
+    }
+}
+
 // MARK: - Research
 
 extension Endpoint {

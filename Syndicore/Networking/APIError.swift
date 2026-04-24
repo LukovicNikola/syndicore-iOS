@@ -63,6 +63,16 @@ enum BEErrorCode: String {
     case branchAtMaxLevel       = "branch_at_max_level"
     case factionBranchMismatch  = "faction_branch_mismatch"
     case researchLabRequired    = "research_lab_required"
+    // Syndikat
+    case alreadyInSyndikat      = "already_in_syndikat"
+    case notInSyndikat          = "not_in_syndikat"
+    case syndikatFull           = "syndikat_full"
+    case notOverlord            = "not_overlord"
+    case cannotLeaveAsOverlord  = "cannot_leave_as_overlord"
+    case nameTaken              = "name_taken"
+    case tagTaken               = "tag_taken"
+    case cannotKickSelf         = "cannot_kick_self"
+    case targetNotInSyndikat    = "target_not_in_syndikat"
 }
 
 enum APIError: LocalizedError {
