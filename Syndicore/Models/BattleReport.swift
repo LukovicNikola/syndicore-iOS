@@ -17,6 +17,7 @@ struct BattleReport: Codable, Identifiable {
     let isAttacker: Bool
     let attackerName: String?
     let defenderName: String?
+    let modifiers: BattleModifiers?
 
     /// True if the opponent in this report is a Scavenger AI (ghost player).
     var isScavengerBattle: Bool {
@@ -30,6 +31,27 @@ struct BattleReport: Codable, Identifiable {
         if name?.hasPrefix("Scavenger-") == true { return "Scavenger" }
         return name
     }
+
+    /// True if this battle was a rally group-attack.
+    var isRallyBattle: Bool {
+        modifiers?.rallyId != nil
+    }
+}
+
+/// Optional modifiers on a battle report — present for rally battles, etc.
+struct BattleModifiers: Codable {
+    let rallyId: String?
+    let rallyParticipants: [RallyBattleParticipant]?
+}
+
+/// Per-participant contribution and return in a rally battle.
+struct RallyBattleParticipant: Codable, Identifiable {
+    var id: String { playerWorldId }
+    let playerWorldId: String
+    let username: String
+    let unitsBefore: [String: Int]?
+    let unitsAfter: [String: Int]?
+    let lootShare: Resources?
 }
 
 // ArmySnapshot uses [UnitType: Int] but JSON has [String: Int] keys — custom Codable required.

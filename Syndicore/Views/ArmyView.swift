@@ -413,6 +413,14 @@ private struct ReportRow: View {
                     Text(headline)
                         .font(.subheadline.bold())
                         .foregroundStyle(youWon ? .green : .red)
+                    if report.isRallyBattle {
+                        Text("RALLY")
+                            .font(.system(size: 9, weight: .heavy))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(.orange, in: Capsule())
+                    }
                     if report.isScavengerBattle {
                         Text("AI")
                             .font(.system(size: 9, weight: .heavy))
@@ -514,6 +522,35 @@ struct BattleReportDetailView: View {
                     Section("Buildings Damaged") {
                         ForEach(damaged, id: \.self) { b in
                             Text(b.replacingOccurrences(of: "_", with: " ").capitalized)
+                        }
+                    }
+                }
+
+                // Rally participant roster
+                if let participants = report.modifiers?.rallyParticipants, !participants.isEmpty {
+                    Section("Rally Participants") {
+                        ForEach(participants) { p in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(p.username)
+                                    .font(.subheadline.bold())
+                                if let before = p.unitsBefore {
+                                    let units = before.compactMap { kv -> String? in
+                                        guard let unit = UnitType(rawValue: kv.key) else { return nil }
+                                        let after = p.unitsAfter?[kv.key] ?? 0
+                                        return "\(unit.rawValue.capitalized): \(kv.value) → \(after)"
+                                    }
+                                    Text(units.joined(separator: ", "))
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                                if let loot = p.lootShare,
+                                   (loot.credits + loot.alloys + loot.tech) > 0 {
+                                    Text("Loot: \(Int(loot.credits))c / \(Int(loot.alloys))a / \(Int(loot.tech))t")
+                                        .font(.caption2)
+                                        .foregroundStyle(.yellow)
+                                }
+                            }
+                            .padding(.vertical, 2)
                         }
                     }
                 }
