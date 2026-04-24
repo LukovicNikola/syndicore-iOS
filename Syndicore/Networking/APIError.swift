@@ -58,6 +58,11 @@ enum BEErrorCode: String {
     case noResourcesToTransport = "no_resources_to_transport"
     case exceedsCarryCapacity   = "exceeds_carry_capacity"
     case noCityAtTarget         = "no_city_at_target"
+    // Research
+    case insufficientPoints     = "insufficient_points"
+    case branchAtMaxLevel       = "branch_at_max_level"
+    case factionBranchMismatch  = "faction_branch_mismatch"
+    case researchLabRequired    = "research_lab_required"
 }
 
 enum APIError: LocalizedError {

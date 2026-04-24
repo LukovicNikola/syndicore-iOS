@@ -97,6 +97,8 @@
 		9BDE06CF2F9BA1650033330D /* RallyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CD2F9BA1650033330D /* RallyListView.swift */; };
 		9BDE06D02F9BA1650033330D /* RallyDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CC2F9BA1650033330D /* RallyDetailView.swift */; };
 		9BDE06D12F9BA1650033330D /* CreateRallySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CB2F9BA1650033330D /* CreateRallySheet.swift */; };
+		9BDE06D32F9BBBC40033330D /* Research.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D22F9BBBC40033330D /* Research.swift */; };
+		9BDE06D52F9BBC010033330D /* ResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D42F9BBC010033330D /* ResearchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -203,6 +205,8 @@
 		9BDE06CB2F9BA1650033330D /* CreateRallySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateRallySheet.swift; sourceTree = "<group>"; };
 		9BDE06CC2F9BA1650033330D /* RallyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RallyDetailView.swift; sourceTree = "<group>"; };
 		9BDE06CD2F9BA1650033330D /* RallyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RallyListView.swift; sourceTree = "<group>"; };
+		9BDE06D22F9BBBC40033330D /* Research.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Research.swift; sourceTree = "<group>"; };
+		9BDE06D42F9BBC010033330D /* ResearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -280,6 +284,7 @@
 				9B2E27282F9126D200CA8E81 /* BattleReport.swift */,
 				4B0000000000000000000101 /* GameData.swift */,
 				9BDE06A72F98C4920033330D /* RealtimeEvents.swift */,
+				9BDE06D22F9BBBC40033330D /* Research.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -325,6 +330,7 @@
 				9BDE06A92F98C4930033330D /* CompletionNoticeBanner.swift */,
 				9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */,
 				9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */,
+				9BDE06D42F9BBC010033330D /* ResearchView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -565,6 +571,7 @@
 				9BDE06CA2F9BA14E0033330D /* SyndikatView.swift in Sources */,
 				4A0000000000000000000250 /* Device.swift in Sources */,
 				9BDE06C62F9B9B410033330D /* AppDelegate.swift in Sources */,
+				9BDE06D32F9BBBC40033330D /* Research.swift in Sources */,
 				9B4CFC9B2F927EC100850457 /* TopHUD.swift in Sources */,
 				9B2E27252F9126D000CA8E81 /* City.swift in Sources */,
 				9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */,
@@ -602,6 +609,7 @@
 				9B4CFC9F2F927EDC00850457 /* HQInfoSheet.swift in Sources */,
 				4A0000000000000000000212 /* TokenProvider.swift in Sources */,
 				9B4CFC932F927E8700850457 /* ScaffoldNode.swift in Sources */,
+				9BDE06D52F9BBC010033330D /* ResearchView.swift in Sources */,
 				4A0000000000000000000213 /* ContentView.swift in Sources */,
 				4A5847DA2F94C2AE00E4C30B /* ConstructionProgressNode.swift in Sources */,
 				9BDE06AA2F98C4930033330D /* CompletionNoticeBanner.swift in Sources */,

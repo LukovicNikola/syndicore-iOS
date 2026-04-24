@@ -54,3 +54,31 @@ enum WorldStatus: String, Codable, CaseIterable {
 enum ResourceType: String, Codable, CaseIterable {
     case CREDITS, ALLOYS, TECH, ENERGY
 }
+
+// MARK: - Research Branch
+
+enum ResearchBranch: String, Codable, CaseIterable {
+    // Universal
+    case LOGISTICS, SIEGE_ENGINEERING, MOBILIZATION
+    // Faction-specific
+    case AGGRESSION_PROTOCOL   // Reapers
+    case BASTION_PROTOCOL      // Hegemony
+    case OVERRIDE_PROTOCOL     // Netrunners
+
+    var isUniversal: Bool {
+        switch self {
+        case .LOGISTICS, .SIEGE_ENGINEERING, .MOBILIZATION: true
+        case .AGGRESSION_PROTOCOL, .BASTION_PROTOCOL, .OVERRIDE_PROTOCOL: false
+        }
+    }
+
+    /// Which faction this branch belongs to (nil for universal).
+    var faction: Faction? {
+        switch self {
+        case .AGGRESSION_PROTOCOL: .reapers
+        case .BASTION_PROTOCOL: .hegemony
+        case .OVERRIDE_PROTOCOL: .netrunners
+        default: nil
+        }
+    }
+}

@@ -226,6 +226,27 @@ extension Endpoint {
     }
 }
 
+// MARK: - Research
+
+extension Endpoint {
+    static func research(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/research", requiresAuth: true)
+    }
+
+    static func upgradeResearch(worldId: String, branch: String) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/worlds/\(worldId)/research",
+            method: .post,
+            requiresAuth: true,
+            body: ResearchUpgradeRequest(branch: branch)
+        )
+    }
+
+    static func respecResearch(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/research/respec", method: .post, requiresAuth: true)
+    }
+}
+
 // MARK: - Request Bodies
 
 struct TrainRequest: Codable, Sendable {

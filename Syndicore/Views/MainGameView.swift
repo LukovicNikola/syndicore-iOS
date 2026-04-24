@@ -64,7 +64,7 @@ struct MainGameView: View {
                     Label("Syndikat", systemImage: "person.3")
                 }
 
-            ResearchPlaceholderView()
+            ResearchView()
                 .tabItem {
                     Label("Research", systemImage: "flask")
                 }
@@ -86,14 +86,3 @@ struct MainGameView: View {
     }
 }
 
-// MARK: - Placeholder Views
-
-private struct ResearchPlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            Text("Research -- coming soon")
-                .foregroundStyle(.secondary)
-                .navigationTitle("Research")
-        }
-    }
-}

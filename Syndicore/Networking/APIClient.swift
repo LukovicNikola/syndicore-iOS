@@ -368,6 +368,19 @@ extension APIClient {
         try await reports(worldId: worldId, limit: limit, before: nil).items
     }
 
+    // Research
+    func research(worldId: String) async throws -> ResearchResponse {
+        try await request(.research(worldId: worldId), as: ResearchResponse.self)
+    }
+
+    func upgradeResearch(worldId: String, branch: ResearchBranch) async throws -> ResearchUpgradeResponse {
+        try await request(.upgradeResearch(worldId: worldId, branch: branch.rawValue), as: ResearchUpgradeResponse.self)
+    }
+
+    func respecResearch(worldId: String) async throws -> ResearchRespecResponse {
+        try await request(.respecResearch(worldId: worldId), as: ResearchRespecResponse.self)
+    }
+
     // MARK: - Game constants (ETag cache)
 
     enum ConfigResult {
