@@ -289,6 +289,36 @@ extension APIClient {
         try await requestVoid(.skipMovement(worldId: worldId, movementId: movementId))
     }
 
+    // Rally
+    func rallies(worldId: String) async throws -> [RallyItem] {
+        try await request(.rallyList(worldId: worldId), as: RallyListResponse.self).rallies
+    }
+
+    func createRally(worldId: String, targetX: Int, targetY: Int, launchAt: Date, units: [UnitType: Int]) async throws -> RallyItem {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let body = CreateRallyRequest(
+            targetX: targetX,
+            targetY: targetY,
+            launchAt: formatter.string(from: launchAt),
+            units: units.reduce(into: [:]) { $0[$1.key.rawValue] = $1.value }
+        )
+        return try await request(.createRally(worldId: worldId, body: body), as: CreateRallyResponse.self).rally
+    }
+
+    func joinRally(worldId: String, rallyId: String, units: [UnitType: Int]) async throws {
+        let body = JoinRallyRequest(units: units.reduce(into: [:]) { $0[$1.key.rawValue] = $1.value })
+        let _ = try await request(.joinRally(worldId: worldId, rallyId: rallyId, body: body), as: JoinRallyResponse.self)
+    }
+
+    func leaveRally(worldId: String, rallyId: String) async throws {
+        let _ = try await request(.leaveRally(worldId: worldId, rallyId: rallyId), as: LeaveRallyResponse.self)
+    }
+
+    func cancelRally(worldId: String, rallyId: String) async throws {
+        let _ = try await request(.cancelRally(worldId: worldId, rallyId: rallyId), as: CancelRallyResponse.self)
+    }
+
     // Send Troops
     /// Šalje vojsku iz grada `cityId` na tile `(targetX, targetY)` sa tipom pokreta
     /// `movementType` (ATTACK / RAID / SCOUT / REINFORCE / TRANSPORT / SETTLE).

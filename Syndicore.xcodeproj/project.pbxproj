@@ -92,6 +92,11 @@
 		9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AF2F98C4950033330D /* MovementLineNode.swift */; };
 		9BDE06B22F9912780033330D /* CrystalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06B12F9912780033330D /* CrystalSheet.swift */; };
 		9BDE06C62F9B9B410033330D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06C52F9B9B410033330D /* AppDelegate.swift */; };
+		9BDE06C82F9BA13D0033330D /* Rally.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06C72F9BA13D0033330D /* Rally.swift */; };
+		9BDE06CA2F9BA14E0033330D /* SyndikatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06C92F9BA14E0033330D /* SyndikatView.swift */; };
+		9BDE06CF2F9BA1650033330D /* RallyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CD2F9BA1650033330D /* RallyListView.swift */; };
+		9BDE06D02F9BA1650033330D /* RallyDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CC2F9BA1650033330D /* RallyDetailView.swift */; };
+		9BDE06D12F9BA1650033330D /* CreateRallySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06CB2F9BA1650033330D /* CreateRallySheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -193,6 +198,11 @@
 		9BDE06AF2F98C4950033330D /* MovementLineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLineNode.swift; sourceTree = "<group>"; };
 		9BDE06B12F9912780033330D /* CrystalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrystalSheet.swift; sourceTree = "<group>"; };
 		9BDE06C52F9B9B410033330D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9BDE06C72F9BA13D0033330D /* Rally.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rally.swift; sourceTree = "<group>"; };
+		9BDE06C92F9BA14E0033330D /* SyndikatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyndikatView.swift; sourceTree = "<group>"; };
+		9BDE06CB2F9BA1650033330D /* CreateRallySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateRallySheet.swift; sourceTree = "<group>"; };
+		9BDE06CC2F9BA1650033330D /* RallyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RallyDetailView.swift; sourceTree = "<group>"; };
+		9BDE06CD2F9BA1650033330D /* RallyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RallyListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -257,6 +267,7 @@
 		4A0000000000000000000013 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9BDE06C72F9BA13D0033330D /* Rally.swift */,
 				4A0000000000000000000103 /* Faction.swift */,
 				4A0000000000000000000104 /* Ring.swift */,
 				4A0000000000000000000105 /* Player.swift */,
@@ -289,6 +300,8 @@
 		4A0000000000000000000015 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9BDE06CE2F9BA1650033330D /* Rally */,
+				9BDE06C92F9BA14E0033330D /* SyndikatView.swift */,
 				4A6F526C2F93DA2000992D0B /* SpriteAlignmentTestView.swift */,
 				4A0000000000000000000113 /* ContentView.swift */,
 				4A0000000000000000000114 /* WorldListView.swift */,
@@ -425,6 +438,16 @@
 			path = Sheets;
 			sourceTree = "<group>";
 		};
+		9BDE06CE2F9BA1650033330D /* Rally */ = {
+			isa = PBXGroup;
+			children = (
+				9BDE06CB2F9BA1650033330D /* CreateRallySheet.swift */,
+				9BDE06CC2F9BA1650033330D /* RallyDetailView.swift */,
+				9BDE06CD2F9BA1650033330D /* RallyListView.swift */,
+			);
+			path = Rally;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -539,6 +562,7 @@
 				4A0000000000000000000201 /* SyndicoreApp.swift in Sources */,
 				4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */,
 				4A0000000000000000000202 /* AppState.swift in Sources */,
+				9BDE06CA2F9BA14E0033330D /* SyndikatView.swift in Sources */,
 				4A0000000000000000000250 /* Device.swift in Sources */,
 				9BDE06C62F9B9B410033330D /* AppDelegate.swift in Sources */,
 				9B4CFC9B2F927EC100850457 /* TopHUD.swift in Sources */,
@@ -565,12 +589,16 @@
 				9BDE06A62F98C4910033330D /* SocketService.swift in Sources */,
 				4A0000000000000000000210 /* APIError.swift in Sources */,
 				9B4CFCA32F927EDE00850457 /* BuildSheet.swift in Sources */,
+				9BDE06CF2F9BA1650033330D /* RallyListView.swift in Sources */,
+				9BDE06D02F9BA1650033330D /* RallyDetailView.swift in Sources */,
+				9BDE06D12F9BA1650033330D /* CreateRallySheet.swift in Sources */,
 				9B4CFC8D2F927E8400850457 /* BuildingNode.swift in Sources */,
 				9B2E27272F9126D100CA8E81 /* MapTile.swift in Sources */,
 				9B2E27292F9126D200CA8E81 /* BattleReport.swift in Sources */,
 				9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */,
 				4A0000000000000000000211 /* Endpoint.swift in Sources */,
 				4A6F526D2F93DA2000992D0B /* SpriteAlignmentTestView.swift in Sources */,
+				9BDE06C82F9BA13D0033330D /* Rally.swift in Sources */,
 				9B4CFC9F2F927EDC00850457 /* HQInfoSheet.swift in Sources */,
 				4A0000000000000000000212 /* TokenProvider.swift in Sources */,
 				9B4CFC932F927E8700850457 /* ScaffoldNode.swift in Sources */,

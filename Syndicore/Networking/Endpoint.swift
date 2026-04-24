@@ -142,6 +142,30 @@ extension Endpoint {
     }
 }
 
+// MARK: - Rally
+
+extension Endpoint {
+    static func rallyList(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/rally", requiresAuth: true)
+    }
+
+    static func createRally(worldId: String, body: CreateRallyRequest) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/rally", method: .post, requiresAuth: true, body: body)
+    }
+
+    static func joinRally(worldId: String, rallyId: String, body: JoinRallyRequest) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/rally/\(rallyId)/join", method: .post, requiresAuth: true, body: body)
+    }
+
+    static func leaveRally(worldId: String, rallyId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/rally/\(rallyId)/leave", method: .post, requiresAuth: true)
+    }
+
+    static func cancelRally(worldId: String, rallyId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/rally/\(rallyId)", method: .delete, requiresAuth: true)
+    }
+}
+
 // MARK: - Map
 
 extension Endpoint {

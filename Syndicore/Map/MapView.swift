@@ -17,6 +17,8 @@ struct MapView: View {
 
     /// Kad user klikne Attack/Scout/etc u info card-u, ovo se setuje i otvara SendTroopsSheet.
     @State private var sendTroopsTarget: SendTroopsTarget?
+    /// Kad user klikne "Rally Attack" na tile-u, otvara CreateRallySheet sa pre-populated coords.
+    @State private var rallyTarget: RallyTarget?
 
     private var worldId: String? {
         gameState.activePlayerWorld?.worldId
@@ -57,6 +59,9 @@ struct MapView: View {
                             allowedMovementTypes: movementTypes
                         )
                     },
+                    onRallyAttack: {
+                        rallyTarget = RallyTarget(x: tile.x, y: tile.y)
+                    },
                     homeTile: gameState.activeCity?.tile,
                     implosionConfig: gameState.gameConstants.gameData?.implosion
                 )
@@ -71,6 +76,10 @@ struct MapView: View {
                 allowedMovementTypes: target.allowedMovementTypes
             )
             .presentationDetents([.medium, .large])
+        }
+        .sheet(item: $rallyTarget) { target in
+            CreateRallySheet(prefillTargetX: target.x, prefillTargetY: target.y)
+                .presentationDetents([.large])
         }
         .animation(.easeInOut(duration: 0.2), value: selectedTile?.x)
         .onChange(of: gameState.activeMovements.map(\.id)) { _, _ in
@@ -149,12 +158,20 @@ struct SendTroopsTarget: Identifiable {
     let allowedMovementTypes: [MovementType]
 }
 
+/// Wrapper za .sheet(item:) — rally attack from map tile.
+struct RallyTarget: Identifiable {
+    var id: String { "\(x),\(y)" }
+    let x: Int
+    let y: Int
+}
+
 // MARK: - Tile Info Card
 
 private struct TileInfoCard: View {
     let tile: MapTile
     let onDismiss: () -> Void
     let onAction: ([MovementType]) -> Void
+    let onRallyAttack: () -> Void
     /// Igracev home city tile — da znamo da li user taphe svoju ili stranu lokaciju.
     let homeTile: TileInfo?
     /// Implosion config za ruins loot multiplier prikaz.
@@ -286,15 +303,29 @@ private struct TileInfoCard: View {
             if !isOwnCity, !allowedActions.isEmpty {
                 Divider()
                     .padding(.vertical, 2)
-                Button {
-                    onAction(allowedActions)
-                } label: {
-                    Label(primaryActionLabel, systemImage: primaryActionIcon)
-                        .font(.footnote.bold())
-                        .frame(maxWidth: .infinity)
+                HStack(spacing: 8) {
+                    Button {
+                        onAction(allowedActions)
+                    } label: {
+                        Label(primaryActionLabel, systemImage: primaryActionIcon)
+                            .font(.footnote.bold())
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(actionTint)
+
+                    // Rally Attack shortcut — only for attackable tiles
+                    if allowedActions.contains(.ATTACK) {
+                        Button {
+                            onRallyAttack()
+                        } label: {
+                            Label("Rally", systemImage: "flag.fill")
+                                .font(.footnote.bold())
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.orange)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(actionTint)
             } else if isOwnCity {
                 Text("Your home base")
                     .font(.caption2)

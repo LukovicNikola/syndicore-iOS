@@ -38,6 +38,17 @@ enum BEErrorCode: String {
     case noActiveSession       = "no_active_session"
     case sessionInvalidated    = "session_invalidated"
     case invalidDeviceId       = "invalid_device_id"
+    // Rally
+    case insufficientRank      = "insufficient_rank"
+    case rallyPointRequired    = "rally_point_required"
+    case rallyPointLevelTooLow = "rally_point_level_too_low"
+    case maxActiveRalliesReached = "max_active_rallies_reached"
+    case insufficientTroops    = "insufficient_troops"
+    case launchAtInPast        = "launch_at_in_past"
+    case invalidTargetTile     = "invalid_target_tile"
+    case notSameSyndikat       = "not_same_syndikat"
+    case rallyNotForming       = "rally_not_forming"
+    case rallyLaunchWindowClosed = "rally_launch_window_closed"
 }
 
 enum APIError: LocalizedError {

@@ -14,6 +14,8 @@ struct CompletionNotice: Identifiable, Equatable {
         case troopsArrived
         case implosion
         case sessionKicked
+        case rallyLaunched
+        case rallyResolved
     }
 }
 
@@ -72,6 +74,8 @@ struct CompletionNoticeBanner: View {
         case .troopsArrived: "arrow.triangle.swap"
         case .implosion:     "bolt.circle.fill"
         case .sessionKicked: "person.crop.circle.badge.xmark"
+        case .rallyLaunched: "flag.checkered"
+        case .rallyResolved: "flag.checkered.2.crossed"
         }
     }
 
@@ -82,6 +86,8 @@ struct CompletionNoticeBanner: View {
         case .troopsArrived: .blue
         case .implosion:     .purple
         case .sessionKicked: .red
+        case .rallyLaunched: .orange
+        case .rallyResolved: .orange
         }
     }
 

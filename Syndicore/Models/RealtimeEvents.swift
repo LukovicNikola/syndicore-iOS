@@ -98,6 +98,18 @@ struct TroopsArrivedEvent: Decodable {
     let targetY: Int
 }
 
+// MARK: - Rally Events
+
+/// `rally_launched` event — rally status changed to LAUNCHED, movements created.
+struct RallyLaunchedEvent: Decodable {
+    let rallyId: String
+}
+
+/// `rally_resolved` event — rally combat finished, check reports.
+struct RallyResolvedEvent: Decodable {
+    let rallyId: String
+}
+
 // MARK: - Session Kicked
 
 /// `session_kicked` event — emituje na player room-u kad drugi uređaj claim-uje sesiju.

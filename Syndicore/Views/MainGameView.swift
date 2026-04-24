@@ -59,7 +59,7 @@ struct MainGameView: View {
                 }
                 .badge(gameState.activeMovements.count)
 
-            SyndikatPlaceholderView()
+            SyndikatView()
                 .tabItem {
                     Label("Syndikat", systemImage: "person.3")
                 }
@@ -87,16 +87,6 @@ struct MainGameView: View {
 }
 
 // MARK: - Placeholder Views
-
-private struct SyndikatPlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            Text("Syndikat -- coming soon")
-                .foregroundStyle(.secondary)
-                .navigationTitle("Syndikat")
-        }
-    }
-}
 
 private struct ResearchPlaceholderView: View {
     var body: some View {

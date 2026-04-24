@@ -44,6 +44,8 @@ final class SocketService {
     var onTrainingComplete: ((TrainingCompleteEvent) -> Void)?
     var onTroopsArrived:    ((TroopsArrivedEvent)    -> Void)?
     var onSessionKicked:    ((SessionKickedEvent)    -> Void)?
+    var onRallyLaunched:    ((RallyLaunchedEvent)    -> Void)?
+    var onRallyResolved:    ((RallyResolvedEvent)    -> Void)?
 
     // MARK: - Internal state
 
@@ -112,6 +114,8 @@ final class SocketService {
         onTrainingComplete = nil
         onTroopsArrived = nil
         onSessionKicked = nil
+        onRallyLaunched = nil
+        onRallyResolved = nil
     }
 
     // MARK: - Room joining
@@ -228,6 +232,20 @@ final class SocketService {
         socket.on("session_kicked") { [weak self] data, _ in
             self?.handleEvent(SessionKickedEvent.self, from: data) { event in
                 self?.onSessionKicked?(event)
+            }
+        }
+
+        // Rally launched (world room)
+        socket.on("rally_launched") { [weak self] data, _ in
+            self?.handleEvent(RallyLaunchedEvent.self, from: data) { event in
+                self?.onRallyLaunched?(event)
+            }
+        }
+
+        // Rally resolved (world room)
+        socket.on("rally_resolved") { [weak self] data, _ in
+            self?.handleEvent(RallyResolvedEvent.self, from: data) { event in
+                self?.onRallyResolved?(event)
             }
         }
     }

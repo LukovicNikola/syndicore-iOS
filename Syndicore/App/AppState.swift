@@ -72,6 +72,9 @@ final class GameState {
     var reportsNextCursor: String?
     var reportsHasMore: Bool = false
 
+    /// Rally list — fetched from GET /rally, auto-refresh on socket events.
+    var activeRallies: [RallyItem] = []
+
     /// Guards against double-fire on infinite scroll (rapid onAppear triggers).
     private var isLoadingMoreMovements = false
     private var isLoadingMoreReports = false
@@ -330,6 +333,12 @@ final class GameState {
         socket.onSessionKicked = { [weak self] event in
             Task { [weak self] in await self?.handleSessionKicked(reason: event.reason) }
         }
+        socket.onRallyLaunched = { [weak self] event in
+            Task { [weak self] in await self?.handleRallyLaunched(event) }
+        }
+        socket.onRallyResolved = { [weak self] event in
+            Task { [weak self] in await self?.handleRallyResolved(event) }
+        }
     }
 
     // MARK: - Socket event handlers
@@ -379,6 +388,27 @@ final class GameState {
         )
         // Nema haptic-a — inace bi spam-ovao igrača koji ima više movements-a
         await refreshMovements()
+        await refreshReports()
+        await refreshCity()
+    }
+
+    private func handleRallyLaunched(_ event: RallyLaunchedEvent) async {
+        lastCompletionNotice = CompletionNotice(
+            kind: .rallyLaunched,
+            title: "Rally launched!",
+            subtitle: "Troops are on the move"
+        )
+        await refreshRallies()
+        await refreshMovements()
+    }
+
+    private func handleRallyResolved(_ event: RallyResolvedEvent) async {
+        lastCompletionNotice = CompletionNotice(
+            kind: .rallyResolved,
+            title: "Rally combat finished",
+            subtitle: "Check Reports for details"
+        )
+        await refreshRallies()
         await refreshReports()
         await refreshCity()
     }
@@ -466,6 +496,17 @@ final class GameState {
             reportsHasMore = page.hasMore
         } catch {
             Self.log.info("Reports pagination failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    // MARK: - Rallies
+
+    func refreshRallies() async {
+        guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        do {
+            activeRallies = try await api.rallies(worldId: worldId)
+        } catch {
+            Self.log.info("Rallies refresh failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
