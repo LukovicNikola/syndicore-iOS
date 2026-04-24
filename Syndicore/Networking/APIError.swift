@@ -49,6 +49,11 @@ enum BEErrorCode: String {
     case notSameSyndikat       = "not_same_syndikat"
     case rallyNotForming       = "rally_not_forming"
     case rallyLaunchWindowClosed = "rally_launch_window_closed"
+    // Reinforcement recall
+    case notYourReinforcement   = "not_your_reinforcement"
+    case reinforcementNotFound  = "reinforcement_not_found"
+    case noHomeCityRecall       = "no_home_city"
+    case noTroopsToRecall       = "no_troops_to_recall"
 }
 
 enum APIError: LocalizedError {

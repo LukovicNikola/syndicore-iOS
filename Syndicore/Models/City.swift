@@ -16,13 +16,17 @@ struct City: Codable, Identifiable {
 /// Savezničke trupe trenutno garrison-ovane u gradu.
 /// Prikazuju se kao sekundarna sekcija u ArmyView Troops tab-u, grupisano po vlasniku.
 struct ReinforcementInfo: Codable, Identifiable {
+    let id: String
     let ownerPlayerId: String
     let ownerUsername: String
     let unitType: UnitType
     let count: Int
+}
 
-    /// Composite id za SwiftUI List — jedan owner može imati više unit type-ova.
-    var id: String { "\(ownerPlayerId)_\(unitType.rawValue)" }
+/// Response za POST /reinforcements/:id/recall
+struct RecallReinforcementResponse: Codable {
+    let recalled: Bool
+    let movement: TroopMovement
 }
 
 struct Resources: Codable {

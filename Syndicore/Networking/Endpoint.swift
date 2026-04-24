@@ -134,6 +134,14 @@ extension Endpoint {
     }
 }
 
+// MARK: - Reinforcements
+
+extension Endpoint {
+    static func recallReinforcement(reinforcementId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/reinforcements/\(reinforcementId)/recall", method: .post, requiresAuth: true)
+    }
+}
+
 // MARK: - Movements
 
 extension Endpoint {

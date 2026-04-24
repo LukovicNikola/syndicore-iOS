@@ -319,6 +319,11 @@ extension APIClient {
         let _ = try await request(.cancelRally(worldId: worldId, rallyId: rallyId), as: CancelRallyResponse.self)
     }
 
+    // Reinforcement recall
+    func recallReinforcement(reinforcementId: String) async throws -> RecallReinforcementResponse {
+        try await request(.recallReinforcement(reinforcementId: reinforcementId), as: RecallReinforcementResponse.self)
+    }
+
     // Send Troops
     /// Šalje vojsku iz grada `cityId` na tile `(targetX, targetY)` sa tipom pokreta
     /// `movementType` (ATTACK / RAID / SCOUT / REINFORCE / TRANSPORT / SETTLE).

@@ -45,6 +45,9 @@ struct ArmyView: View {
 
 private struct TroopsTab: View {
     @Environment(GameState.self) private var gameState
+    @State private var recallingId: String?
+    @State private var recallConfirm: ReinforcementInfo?
+    @State private var errorMessage: String?
 
     private var troops: [TroopInfo] {
         gameState.activeCity?.troops ?? []
@@ -56,6 +59,10 @@ private struct TroopsTab: View {
 
     private var totalOwn: Int { troops.reduce(0) { $0 + $1.count } }
     private var totalAllied: Int { reinforcements.reduce(0) { $0 + $1.count } }
+
+    private var currentPlayerId: String? {
+        gameState.currentPlayer?.id
+    }
 
     /// Reinforcements grupisano po owner username — svaki saveznik kao vlastita sekcija.
     private var reinforcementsGrouped: [(username: String, playerId: String, units: [ReinforcementInfo])] {
@@ -118,6 +125,23 @@ private struct TroopsTab: View {
                                         Text("\(r.count)")
                                             .font(.subheadline.bold().monospacedDigit())
                                             .foregroundStyle(.green)
+                                        // Recall button — only for your own reinforcements in someone else's city
+                                        if r.ownerPlayerId == currentPlayerId {
+                                            Button {
+                                                recallConfirm = r
+                                            } label: {
+                                                if recallingId == r.id {
+                                                    ProgressView().controlSize(.mini)
+                                                } else {
+                                                    Text("Recall")
+                                                        .font(.caption2.bold())
+                                                }
+                                            }
+                                            .buttonStyle(.bordered)
+                                            .controlSize(.mini)
+                                            .tint(.orange)
+                                            .disabled(recallingId != nil)
+                                        }
                                     }
                                 }
                             } header: {
@@ -134,6 +158,14 @@ private struct TroopsTab: View {
                                         .font(.caption.monospacedDigit())
                                 }
                             }
+                        }
+                    }
+
+                    if let errorMessage {
+                        Section {
+                            Text(errorMessage)
+                                .font(.caption)
+                                .foregroundStyle(.red)
                         }
                     }
 
@@ -174,6 +206,64 @@ private struct TroopsTab: View {
             }
         }
         .refreshable { await gameState.refreshCity() }
+        .confirmationDialog(
+            "Recall Troops",
+            isPresented: Binding(
+                get: { recallConfirm != nil },
+                set: { if !$0 { recallConfirm = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            if let r = recallConfirm {
+                Button("Recall \(r.count) \(r.unitType.rawValue.displayName)", role: .destructive) {
+                    Task { await recall(r) }
+                }
+            }
+        } message: {
+            if let r = recallConfirm {
+                Text("Recall \(r.count) \(r.unitType.rawValue.displayName) back to your city?")
+            }
+        }
+    }
+
+    private func recall(_ reinforcement: ReinforcementInfo) async {
+        recallingId = reinforcement.id
+        errorMessage = nil
+        do {
+            let response = try await gameState.api.recallReinforcement(reinforcementId: reinforcement.id)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            // Calculate travel time for toast
+            let minutes = Int(response.movement.arrivesAt.timeIntervalSinceNow / 60)
+            gameState.lastCompletionNotice = CompletionNotice(
+                kind: .troopsArrived,
+                title: "Recall Sent",
+                subtitle: "Troops on the way home — arrives in \(minutes) min"
+            )
+            await gameState.refreshCity()
+            await gameState.refreshMovements()
+        } catch let error as APIError {
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            switch error {
+            case .notFound:
+                errorMessage = "Already consumed in combat"
+                await gameState.refreshCity()
+            case .conflict(let err):
+                switch err.code {
+                case .noHomeCityRecall: errorMessage = "You no longer have a city in this world"
+                case .noTroopsToRecall:
+                    errorMessage = "No troops to recall"
+                    await gameState.refreshCity()
+                default: errorMessage = err.error
+                }
+            case .forbidden(let err):
+                errorMessage = err.error
+            default:
+                errorMessage = error.localizedDescription
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        recallingId = nil
     }
 }
 
