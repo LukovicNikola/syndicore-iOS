@@ -54,6 +54,10 @@ enum BEErrorCode: String {
     case reinforcementNotFound  = "reinforcement_not_found"
     case noHomeCityRecall       = "no_home_city"
     case noTroopsToRecall       = "no_troops_to_recall"
+    // Transport
+    case noResourcesToTransport = "no_resources_to_transport"
+    case exceedsCarryCapacity   = "exceeds_carry_capacity"
+    case noCityAtTarget         = "no_city_at_target"
 }
 
 enum APIError: LocalizedError {

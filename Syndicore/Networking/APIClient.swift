@@ -333,7 +333,8 @@ extension APIClient {
         targetX: Int,
         targetY: Int,
         units: [UnitType: Int],
-        movementType: MovementType
+        movementType: MovementType,
+        resources: TransportResources? = nil
     ) async throws -> SendTroopsResponse {
         // BE ocekuje string keys za units (UnitType rawValue-ovi)
         let stringKeyedUnits = units.reduce(into: [String: Int]()) { acc, pair in
@@ -343,7 +344,8 @@ extension APIClient {
             targetX: targetX,
             targetY: targetY,
             units: stringKeyedUnits,
-            movementType: movementType.rawValue
+            movementType: movementType.rawValue,
+            resources: resources
         )
         return try await request(
             .sendTroops(cityId: cityId, body: body),

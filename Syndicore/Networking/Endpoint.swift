@@ -242,6 +242,16 @@ struct SendTroopsRequest: Codable, Sendable {
     let targetY: Int
     let units: [String: Int]
     let movementType: String
+    let resources: TransportResources?
+}
+
+struct TransportResources: Codable, Sendable {
+    let credits: Int
+    let alloys: Int
+    let tech: Int
+
+    var total: Int { credits + alloys + tech }
+    var isEmpty: Bool { credits == 0 && alloys == 0 && tech == 0 }
 }
 
 struct SessionClaimRequest: Codable, Sendable {
