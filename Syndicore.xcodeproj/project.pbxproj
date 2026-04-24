@@ -100,6 +100,7 @@
 		9BDE06D32F9BBBC40033330D /* Research.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D22F9BBBC40033330D /* Research.swift */; };
 		9BDE06D52F9BBC010033330D /* ResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D42F9BBC010033330D /* ResearchView.swift */; };
 		9BDE06D72F9BC9640033330D /* Syndikat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D62F9BC9640033330D /* Syndikat.swift */; };
+		9BDE06D92F9BCB130033330D /* CyberpunkResourceBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D82F9BCB130033330D /* CyberpunkResourceBar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -209,6 +210,7 @@
 		9BDE06D22F9BBBC40033330D /* Research.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Research.swift; sourceTree = "<group>"; };
 		9BDE06D42F9BBC010033330D /* ResearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchView.swift; sourceTree = "<group>"; };
 		9BDE06D62F9BC9640033330D /* Syndikat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Syndikat.swift; sourceTree = "<group>"; };
+		9BDE06D82F9BCB130033330D /* CyberpunkResourceBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkResourceBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -432,6 +434,7 @@
 				9B4CFC982F927EC000850457 /* ResourcePill.swift */,
 				9B4CFC9A2F927EC100850457 /* TopHUD.swift */,
 				9B4CFC9C2F927EC200850457 /* BottomHUD.swift */,
+				9BDE06D82F9BCB130033330D /* CyberpunkResourceBar.swift */,
 			);
 			path = HUD;
 			sourceTree = "<group>";
@@ -608,6 +611,7 @@
 				9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */,
 				4A0000000000000000000211 /* Endpoint.swift in Sources */,
 				4A6F526D2F93DA2000992D0B /* SpriteAlignmentTestView.swift in Sources */,
+				9BDE06D92F9BCB130033330D /* CyberpunkResourceBar.swift in Sources */,
 				9BDE06C82F9BA13D0033330D /* Rally.swift in Sources */,
 				9B4CFC9F2F927EDC00850457 /* HQInfoSheet.swift in Sources */,
 				4A0000000000000000000212 /* TokenProvider.swift in Sources */,
