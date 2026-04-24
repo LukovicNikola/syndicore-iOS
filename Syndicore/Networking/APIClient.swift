@@ -205,6 +205,15 @@ extension APIClient {
         try await request(.sessionClear, as: SessionClearResponse.self)
     }
 
+    // Device Token (APNS)
+    func registerDeviceToken(_ token: String) async throws -> DeviceTokenResponse {
+        try await request(.registerDeviceToken(token), as: DeviceTokenResponse.self)
+    }
+
+    func unregisterDeviceToken() async throws {
+        try await requestVoid(.unregisterDeviceToken)
+    }
+
     // Worlds
     func worlds() async throws -> [World] {
         try await request(.worlds, as: WorldsResponse.self, timeout: 30).worlds

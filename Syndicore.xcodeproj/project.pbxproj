@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		4A0000000000000000000201 /* SyndicoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000101 /* SyndicoreApp.swift */; };
 		4A0000000000000000000202 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000102 /* AppState.swift */; };
-		4A0000000000000000000250 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000150 /* Device.swift */; };
 		4A0000000000000000000203 /* Faction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000103 /* Faction.swift */; };
 		4A0000000000000000000204 /* Ring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000104 /* Ring.swift */; };
 		4A0000000000000000000205 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000105 /* Player.swift */; };
@@ -26,6 +25,7 @@
 		4A0000000000000000000216 /* FactionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000116 /* FactionPickerView.swift */; };
 		4A0000000000000000000217 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000118 /* Assets.xcassets */; };
 		4A0000000000000000000218 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 4A0000000000000000000301 /* Supabase */; };
+		4A0000000000000000000250 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0000000000000000000150 /* Device.swift */; };
 		4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */; };
 		4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF22F92D372004559C8 /* AppConfig.swift */; };
 		4A57FDF52F92D838004559C8 /* CityTileSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A57FDF42F92D838004559C8 /* CityTileSet.swift */; };
@@ -91,6 +91,7 @@
 		9BDE06AE2F98C4940033330D /* SendTroopsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */; };
 		9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06AF2F98C4950033330D /* MovementLineNode.swift */; };
 		9BDE06B22F9912780033330D /* CrystalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06B12F9912780033330D /* CrystalSheet.swift */; };
+		9BDE06C62F9B9B410033330D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06C52F9B9B410033330D /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,7 +108,6 @@
 		4A0000000000000000000021 /* Syndicore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syndicore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A0000000000000000000101 /* SyndicoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyndicoreApp.swift; sourceTree = "<group>"; };
 		4A0000000000000000000102 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		4A0000000000000000000150 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
 		4A0000000000000000000103 /* Faction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faction.swift; sourceTree = "<group>"; };
 		4A0000000000000000000104 /* Ring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ring.swift; sourceTree = "<group>"; };
 		4A0000000000000000000105 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
@@ -124,6 +124,7 @@
 		4A0000000000000000000116 /* FactionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactionPickerView.swift; sourceTree = "<group>"; };
 		4A0000000000000000000117 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4A0000000000000000000118 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4A0000000000000000000150 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
 		4A57FDD72F92D1E5004559C8 /* SyndicoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyndicoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A57FDF02F92D34D004559C8 /* JSONCoder+API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSONCoder+API.swift"; sourceTree = "<group>"; };
 		4A57FDF22F92D372004559C8 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
@@ -191,6 +192,7 @@
 		9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTroopsSheet.swift; sourceTree = "<group>"; };
 		9BDE06AF2F98C4950033330D /* MovementLineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLineNode.swift; sourceTree = "<group>"; };
 		9BDE06B12F9912780033330D /* CrystalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrystalSheet.swift; sourceTree = "<group>"; };
+		9BDE06C52F9B9B410033330D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -243,6 +245,7 @@
 		4A0000000000000000000012 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				9BDE06C52F9B9B410033330D /* AppDelegate.swift */,
 				4A57FDF22F92D372004559C8 /* AppConfig.swift */,
 				4A0000000000000000000101 /* SyndicoreApp.swift */,
 				4A0000000000000000000102 /* AppState.swift */,
@@ -537,6 +540,7 @@
 				4A57FDF12F92D34D004559C8 /* JSONCoder+API.swift in Sources */,
 				4A0000000000000000000202 /* AppState.swift in Sources */,
 				4A0000000000000000000250 /* Device.swift in Sources */,
+				9BDE06C62F9B9B410033330D /* AppDelegate.swift in Sources */,
 				9B4CFC9B2F927EC100850457 /* TopHUD.swift in Sources */,
 				9B2E27252F9126D000CA8E81 /* City.swift in Sources */,
 				9BDE06B02F98C4950033330D /* MovementLineNode.swift in Sources */,

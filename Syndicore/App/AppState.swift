@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import UIKit
+import UserNotifications
 import os
 
 /// Centralno stanje aplikacije.
@@ -75,6 +76,9 @@ final class GameState {
     private var isLoadingMoreMovements = false
     private var isLoadingMoreReports = false
 
+    /// Observer for APNS device token delivery (from AppDelegate).
+    private var deviceTokenObserver: NSObjectProtocol?
+
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
     // Views treba da resetuju ovo na nil nakon prikaza (ili na .task retry-u).
@@ -112,7 +116,10 @@ final class GameState {
             // 3. Claim session (safe no-op if same device)
             await claimSession()
 
-            // 4. Ako ima worlds, proveri da li je već join-ovao
+            // 4. Register for push notifications (after session claim)
+            await registerForPush()
+
+            // 5. Ako ima worlds, proveri da li je već join-ovao
             if let worlds = response.player.worlds, !worlds.isEmpty {
                 let pw = worlds[0]
                 activePlayerWorld = pw
@@ -162,6 +169,75 @@ final class GameState {
         }
     }
 
+    // MARK: - Push Notifications (APNS)
+
+    /// Requests push notification permission, registers for remote notifications,
+    /// and sends the device token to BE. Called after successful session claim.
+    func registerForPush() async {
+        let center = UNUserNotificationCenter.current()
+        do {
+            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            guard granted else {
+                Self.log.info("Push notifications denied by user")
+                return
+            }
+        } catch {
+            Self.log.error("Push authorization error: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+
+        // Listen for token delivery from AppDelegate
+        observeDeviceToken()
+
+        // Trigger APNS registration (token arrives async via AppDelegate callback)
+        await MainActor.run {
+            UIApplication.shared.registerForRemoteNotifications()
+        }
+
+        // If token was already delivered before we started observing, send it now
+        if let token = AppDelegate.pendingDeviceToken {
+            await sendDeviceTokenToBE(token)
+        }
+    }
+
+    /// Observes NotificationCenter for APNS token delivery and sends to BE.
+    private func observeDeviceToken() {
+        // Remove previous observer to avoid duplicates
+        if let observer = deviceTokenObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        deviceTokenObserver = NotificationCenter.default.addObserver(
+            forName: .didReceiveDeviceToken,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let token = notification.object as? String else { return }
+            Task { [weak self] in
+                await self?.sendDeviceTokenToBE(token)
+            }
+        }
+    }
+
+    /// Sends the APNS device token hex string to BE. Best-effort, no retry.
+    private func sendDeviceTokenToBE(_ token: String) async {
+        do {
+            let _ = try await api.registerDeviceToken(token)
+            Self.log.info("Device token registered with BE")
+        } catch {
+            Self.log.error("Device token registration failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Unregisters device token from BE. Called before signOut.
+    private func unregisterDeviceToken() async {
+        do {
+            try await api.unregisterDeviceToken()
+            Self.log.info("Device token unregistered from BE")
+        } catch {
+            Self.log.info("Device token unregister failed (continuing): \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
     /// Called when BE sends `session_kicked` via Socket.IO or when a REST call
     /// returns 401 `session_invalidated`. Force-logout the user.
     func handleSessionKicked(reason: String? = nil) async {
@@ -183,6 +259,7 @@ final class GameState {
     func didOnboard(player: Player) async {
         currentPlayer = player
         await claimSession()
+        await registerForPush()
         await autoSelectWorld()
     }
 
@@ -436,15 +513,23 @@ final class GameState {
     }
 
     func signOut() async {
-        // 1. Clear session on BE (best-effort)
+        // 1. Unregister device token from BE (best-effort, before session clear)
+        await unregisterDeviceToken()
+        // 2. Clear session on BE (best-effort)
         do { let _ = try await api.clearSession() } catch {
             Self.log.info("Session clear failed (continuing signOut): \(error.localizedDescription, privacy: .public)")
         }
-        // 2. Disconnect Socket.IO
+        // 3. Disconnect Socket.IO
         socket.disconnect()
-        // 3. Sign out from Supabase
+        // 4. Sign out from Supabase
         do { try await auth.signOut() } catch { }
-        // 4. Clear local state
+        // 5. Remove token observer
+        if let observer = deviceTokenObserver {
+            NotificationCenter.default.removeObserver(observer)
+            deviceTokenObserver = nil
+        }
+        AppDelegate.pendingDeviceToken = nil
+        // 6. Clear local state
         currentPlayer = nil
         activeWorld = nil
         activePlayerWorld = nil

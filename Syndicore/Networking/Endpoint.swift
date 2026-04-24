@@ -57,6 +57,21 @@ extension Endpoint {
         method: .delete,
         requiresAuth: true
     )
+
+    static func registerDeviceToken(_ token: String) -> Endpoint {
+        Endpoint(
+            path: "/api/v1/me/device-token",
+            method: .post,
+            requiresAuth: true,
+            body: DeviceTokenRequest(token: token, platform: "ios")
+        )
+    }
+
+    static let unregisterDeviceToken = Endpoint(
+        path: "/api/v1/me/device-token",
+        method: .delete,
+        requiresAuth: true
+    )
 }
 
 // MARK: - Worlds
@@ -199,6 +214,15 @@ struct SendTroopsRequest: Codable, Sendable {
 
 struct SessionClaimRequest: Codable, Sendable {
     let deviceId: String
+}
+
+struct DeviceTokenRequest: Codable, Sendable {
+    let token: String
+    let platform: String
+}
+
+struct DeviceTokenResponse: Codable {
+    let registered: Bool
 }
 
 struct SessionClaimResponse: Codable {

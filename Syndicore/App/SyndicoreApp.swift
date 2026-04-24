@@ -2,6 +2,8 @@ import SwiftUI
 
 @main
 struct SyndicoreApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     /// Kompaktno stanje bootstrap-a: loaduj AppConfig pre nego što GameState može da se kreira.
     /// Ako config fali → prikazi ConfigErrorView umesto crash-a.
     @State private var bootstrap: BootstrapResult = .loading
