@@ -46,6 +46,11 @@ struct MapView: View {
                 }
             }
         }
+        .overlay(alignment: .top) {
+            CyberpunkResourceBar(resources: gameState.activeCity?.resources)
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
+        }
         .overlay(alignment: .bottom) {
             if let tile = selectedTile {
                 TileInfoCard(

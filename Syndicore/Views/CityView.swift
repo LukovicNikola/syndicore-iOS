@@ -29,11 +29,27 @@ struct CityView: View {
 
             // MARK: HUD overlay
             VStack {
-                TopHUD(
-                    city: city,
-                    crystalCount: gameState.activePlayerWorld?.crystals?.count ?? 0,
-                    onTapCrystals: { showCrystals = true }
-                )
+                // Resource bar + crystal badge
+                HStack(alignment: .center, spacing: 8) {
+                    CyberpunkResourceBar(resources: city?.resources)
+                    // Crystal badge
+                    Button(action: { showCrystals = true }) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "diamond.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.purple)
+                            Text("\(gameState.activePlayerWorld?.crystals?.count ?? 0)")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
                 if let err = gameState.cityRefreshError {
                     RefreshErrorBanner(message: err) {
                         gameState.cityRefreshError = nil
