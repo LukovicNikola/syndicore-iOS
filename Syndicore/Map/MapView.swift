@@ -6,7 +6,6 @@ struct MapView: View {
 
     @State private var scene: MapScene = {
         let s = MapScene()
-        s.size = CGSize(width: 800, height: 800)
         s.scaleMode = .resizeFill
         return s
     }()

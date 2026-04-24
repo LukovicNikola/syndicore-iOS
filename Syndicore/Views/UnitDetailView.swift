@@ -5,7 +5,7 @@ struct UnitDetailView: View {
     let stats: UnitStats
 
     private var displayName: String {
-        name.replacingOccurrences(of: "_", with: " ").capitalized
+        name.displayName
     }
 
     var body: some View {
@@ -26,7 +26,7 @@ struct UnitDetailView: View {
             }
 
             Section("Info") {
-                LabeledContent("Trains At", value: stats.trainsAt.replacingOccurrences(of: "_", with: " ").capitalized)
+                LabeledContent("Trains At", value: stats.trainsAt.displayName)
                 LabeledContent("Unlock Level", value: "\(stats.unlockLevel)")
             }
         }

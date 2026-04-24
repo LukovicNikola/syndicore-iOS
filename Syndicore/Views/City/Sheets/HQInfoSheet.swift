@@ -90,8 +90,7 @@ struct HQInfoSheet: View {
                                 LabeledContent("Ring", value: ring.rawValue.capitalized)
                             }
                             if let terrain = tile.terrain {
-                                LabeledContent("Terrain", value: terrain.rawValue
-                                    .replacingOccurrences(of: "_", with: " ").capitalized)
+                                LabeledContent("Terrain", value: terrain.rawValue.displayName)
                             }
                         }
                     }

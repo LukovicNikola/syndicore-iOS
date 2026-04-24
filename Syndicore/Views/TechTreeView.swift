@@ -15,7 +15,7 @@ struct TechTreeView: View {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text(item.name.replacingOccurrences(of: "_", with: " ").capitalized)
+                            Text(item.name.displayName)
                                 .font(.headline)
                             Spacer()
                             if let faction = item.branch.faction {

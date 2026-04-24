@@ -1,5 +1,14 @@
 import Foundation
 
+// MARK: - Display Name Helper
+
+extension String {
+    /// Converts SNAKE_CASE to "Title Case" — e.g. "DATA_BANK" → "Data Bank".
+    var displayName: String {
+        replacingOccurrences(of: "_", with: " ").capitalized
+    }
+}
+
 // MARK: - Terrain
 
 enum Terrain: String, Codable, CaseIterable {

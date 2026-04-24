@@ -28,9 +28,9 @@ private struct UnitRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(name.replacingOccurrences(of: "_", with: " ").capitalized)
+                Text(name.displayName)
                     .font(.headline)
-                Text("Trains at \(stats.trainsAt.replacingOccurrences(of: "_", with: " ").capitalized)")
+                Text("Trains at \(stats.trainsAt.displayName)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

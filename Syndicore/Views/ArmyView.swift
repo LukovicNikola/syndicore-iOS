@@ -521,7 +521,7 @@ struct BattleReportDetailView: View {
                 if let damaged = report.buildingsDamaged, !damaged.isEmpty {
                     Section("Buildings Damaged") {
                         ForEach(damaged, id: \.self) { b in
-                            Text(b.replacingOccurrences(of: "_", with: " ").capitalized)
+                            Text(b.displayName)
                         }
                     }
                 }

@@ -25,10 +25,10 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 
 - [x] **`MapScene.swift:116` `group.name!`** — force unwrap uklonjen u prethodnim commitima. ✅
 - [x] **`randomNonceString` charset** (`Services/SupabaseManager.swift`) — charset je ispravan: `"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"`. ✅ (potvrđeno 2026-04-22, W postoji)
-- [ ] **`MapView` hardkodovana 800×800 scene size** — koristiti `GeometryReader` da se prosledi actual size, ili garantovati `scaleMode = .resizeFill` pre `addChild`.
+- [x] **`MapView` hardkodovana 800×800 scene size** — uklonjeno, koristi default size + `scaleMode = .resizeFill`. ✅
 - [x] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** — koristi `JSONDecoder.apiSnakeCase`. ✅
 - [x] **`AnyCodableValue` bez `.array` / `.object` varijanti** — dodati `.array` i `.object` varijante. ✅
-- [ ] **`MapView.setupCallbacks()` closure capture** — `scene.onTileTapped = { tile in selectedTile = tile }` hvata `self` implicitno. Dodati `[weak self]` eksplicitno.
+- [x] **`MapView.setupCallbacks()` closure capture** — SwiftUI struct nema retain cycle; `Task { @MainActor in }` wrapper već postoji. ✅ (false positive)
 - [x] **`RefreshErrorBanner` auto-dismiss** — 8s `.task` za fadeout sa animacijom. ✅ 55f3a25
 - [x] **`WorldPickerView.loadWorlds()` bez timeout-a** — pokriveno P1 global timeout fix-om. ✅ 50f9db8
 - [x] **`BuildingInfo` backward-compat throw** — explicit `DecodingError` sa jasnom porukom kad ni `currentLevel` ni `level` ne postoje. ✅ 55f3a25
@@ -39,10 +39,10 @@ Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
 ### 🔵 P3 — LOW (kad bude vremena)
 
 - [ ] **`Isometric.coord(forSlot:)` + `slot(forCoord:)`** — O(n²) iteracija 5×5 grida. Pre-compute static lookup dictionary.
-- [ ] **Building `displayName` helper** — repetirana `.replacingOccurrences(of: "_", with: " ").capitalized` logika. Extract u `extension BuildingType { var displayName: String }`.
+- [x] **Building `displayName` helper** — `String.displayName` extension u Enums.swift, 14 pojava zamenjeno. ✅
 - [ ] **Apple Sign In simulator detection** preko `code == .unknown` je fragile. Zamena: `ProcessInfo.processInfo.environment["SIMULATOR_UDID"] != nil`.
-- [ ] **`FactionPickerView` bez loading state-a** tokom `join()`. User može dvaput da klikne. Dodati `isJoining` flag + disable button.
-- [ ] **`SettingsView` "Refresh Constants" button** bez loading feedback-a. Dodati `@State isRefreshing`.
+- [x] **`FactionPickerView` bez loading state-a** — već ima `isJoining` + ProgressView + disabled. ✅ (false positive)
+- [x] **`SettingsView` "Refresh Constants" button** — `isRefreshing` state + ProgressView + disabled. ✅
 - [ ] **`HQInfoSheet.targetLevel` fallback logic** — `hq.targetLevel ?? hq.currentLevel + 1` je konfuzno. Pojasniti invariantu.
 - [x] **`CityView.buildableTypes` hardkodovana lista** — dodati resource buildings (DATA_BANK/FOUNDRY/TECH_LAB/POWER_GRID) sa flex slot provjerom. ✅ 55f3a25 (full allCases derivacija ostaje za later)
 - [ ] **ContentView `@unknown default`** — Swift 5.10+ warning safety za exhaustive switch kad se doda nov `Screen` case.

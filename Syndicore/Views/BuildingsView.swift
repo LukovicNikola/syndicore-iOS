@@ -50,7 +50,7 @@ struct BuildingsView: View {
     }
 
     private func formatName(_ name: String) -> String {
-        name.replacingOccurrences(of: "_", with: " ").capitalized
+        name.displayName
     }
 }
 
@@ -78,7 +78,7 @@ private struct ResourceBuildingDetailView: View {
                 LabeledContent("Time per level", value: String(format: "%.1fx", formulas.timeMultiplier))
             }
         }
-        .navigationTitle(name.replacingOccurrences(of: "_", with: " ").capitalized)
+        .navigationTitle(name.displayName)
     }
 }
 
@@ -134,6 +134,6 @@ private struct FixedBuildingDetailView: View {
                 LabeledContent("Time per level", value: String(format: "%.1fx", formulas.timeMultiplier))
             }
         }
-        .navigationTitle(name.replacingOccurrences(of: "_", with: " ").capitalized)
+        .navigationTitle(name.displayName)
     }
 }

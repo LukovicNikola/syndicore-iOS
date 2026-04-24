@@ -17,8 +17,7 @@ struct BuildingDetailSheet: View {
         NavigationStack {
             List {
                 Section("Building") {
-                    LabeledContent("Type", value: building.type.rawValue
-                        .replacingOccurrences(of: "_", with: " ").capitalized)
+                    LabeledContent("Type", value: building.type.rawValue.displayName)
                     LabeledContent("Level", value: "\(building.currentLevel)")
                     if building.isUpgrading, let endsAt = building.endsAt {
                         HStack {

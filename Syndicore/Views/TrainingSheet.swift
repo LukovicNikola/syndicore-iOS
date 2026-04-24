@@ -73,11 +73,11 @@ struct TrainingSheet: View {
         let isSelected = selectedUnit == unit.name
         let unlocked = isUnlocked(unit)
         let currentLevel = buildingLevel(for: unit.stats.trainsAt)
-        let buildingName = unit.stats.trainsAt.replacingOccurrences(of: "_", with: " ").capitalized
+        let buildingName = unit.stats.trainsAt.displayName
 
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(unit.name.replacingOccurrences(of: "_", with: " ").capitalized)
+                Text(unit.name.displayName)
                     .font(.subheadline)
                     .foregroundStyle(unlocked ? .primary : .secondary)
                 Text(subtitle)
@@ -162,7 +162,7 @@ struct TrainingSheet: View {
                                 if isTraining {
                                     ProgressView().frame(maxWidth: .infinity)
                                 } else {
-                                    Text("Train \(count)× \(selected.replacingOccurrences(of: "_", with: " ").capitalized)")
+                                    Text("Train \(count)× \(selected.displayName)")
                                         .frame(maxWidth: .infinity)
                                 }
                             }

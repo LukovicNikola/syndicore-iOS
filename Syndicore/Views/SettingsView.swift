@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(GameState.self) private var gameState
 
     @State private var showingSignOutConfirmation = false
+    @State private var isRefreshing = false
 
     // MARK: - Debug toggles (dev-only, persistirano preko UserDefaults)
 
@@ -30,9 +31,23 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    Button("Refresh Constants") {
-                        Task { await gameState.gameConstants.refresh() }
+                    Button {
+                        Task {
+                            isRefreshing = true
+                            await gameState.gameConstants.refresh()
+                            isRefreshing = false
+                        }
+                    } label: {
+                        if isRefreshing {
+                            HStack(spacing: 6) {
+                                ProgressView().controlSize(.small)
+                                Text("Refreshing…")
+                            }
+                        } else {
+                            Text("Refresh Constants")
+                        }
                     }
+                    .disabled(isRefreshing)
                 }
 
                 #if DEBUG
