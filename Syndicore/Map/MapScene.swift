@@ -141,10 +141,17 @@ final class MapScene: SKScene {
 
             if let asset = occupantAsset {
                 let occ = SKSpriteNode(imageNamed: asset)
-                occ.size = CGSize(width: Self.tileWidth * 1.4, height: Self.tileWidth * 1.4)
-                occ.anchorPoint = CGPoint(x: 0.5, y: 0.12)
+                let (sizeMul, anchor) = Self.occupantSpec(for: tile)
+                occ.size = CGSize(width: Self.tileWidth * sizeMul, height: Self.tileWidth * sizeMul)
+                occ.anchorPoint = anchor
                 occ.position = pos
                 occ.zPosition = tileZ + 1.0
+                // Defeated outposts: desaturate (gray tint)
+                if let outpost = tile.outpost, outpost.defeated {
+                    occ.colorBlendFactor = 0.7
+                    occ.color = .gray
+                    occ.alpha = 0.5
+                }
                 tileLayer.addChild(occ)
                 occupantNodes[key] = occ
             }
@@ -188,6 +195,17 @@ final class MapScene: SKScene {
             movementLayer.addChild(line)
             movementLineNodes[movement.id] = line
         }
+    }
+
+    // MARK: - Occupant specs (from SpriteAlignmentTest)
+
+    private static func occupantSpec(for tile: MapTile) -> (sizeMultiplier: CGFloat, anchor: CGPoint) {
+        if tile.city != nil     { return (0.63, CGPoint(x: 0.491, y: 0.401)) }
+        if tile.warpGate != nil { return (0.65, CGPoint(x: 0.489, y: 0.226)) }
+        if tile.mine != nil     { return (0.55, CGPoint(x: 0.489, y: 0.291)) }
+        if tile.outpost != nil  { return (0.63, CGPoint(x: 0.493, y: 0.236)) }
+        if tile.ruins != nil    { return (0.55, CGPoint(x: 0.498, y: 0.408)) }
+        return (0.63, CGPoint(x: 0.5, y: 0.3))
     }
 
     // MARK: - Gestures

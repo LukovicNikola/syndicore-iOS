@@ -113,7 +113,7 @@ Cyberpunk real-time strategy MMO (Travian stil). Jedan igrač ima JEDAN grad koj
 
 - **Swift, iOS 17+**
 - **SwiftUI** za SVE ekrane OSIM mape
-- **SpriteKit** za MapView — tile grid sa 40k+ tile-ova (ceo svet), do ~10k u viewport-u (radius 50). Pan/zoom/pinch, ring boje, Warp Gate linije, occupant ikonice. Embeduje se u SwiftUI preko `SpriteView`. Vidi sekciju **SpriteKit Performance** za strategiju renderovanja.
+- **SpriteKit** za MapView — tile grid sa 40k+ tile-ova (ceo svet), do ~10k u viewport-u (radius 50). Pan/zoom/pinch, ring boje, occupant ikonice. Embeduje se u SwiftUI preko `SpriteView`. Vidi sekciju **SpriteKit Performance** za strategiju renderovanja.
 - **Supabase Auth:** `supabase-swift` SDK (SPM: `https://github.com/supabase/supabase-swift`)
 - **Networking:** URLSession + async/await + centralizovani `APIClient` sa auth interceptor-om i retry-em na 401
 - **Cache:** SwiftData (za offline-first read model)
@@ -473,7 +473,7 @@ Ring se određuje Chebyshev distance-om: `d = max(|x|, |y|)` od centra `(0,0)`.
 - Warp Gate: ljubičasti portal
 - Ruins: razrušena kućica
 
-**Warp Gate linije:** tanke ljubičaste linije između svih gate-ova na mapi (complete graph). `SKShapeNode` sa `path`, draw-uju se jednom po viewport fetch-u.
+**Warp Gates:** vizuelno prikazani kao `map_warp_gate_v1` sprajt na tile-u. **Nema linija između gate-ova na mapi.** Gate-ovi su čvorovi u BE pathfinding grafu — kad igrač šalje trupe, BE automatski računa najkraću rutu (direktna ili preko gate-ova). `route.viaGates` u response-u sadrži listu gate ID-ova ako je gate ruta brža.
 
 ---
 
@@ -920,8 +920,6 @@ enum ResearchBranch: String, Codable, CaseIterable {
 2. **Texture atlas** za terrain i occupant ikonice — `SKTextureAtlas` učitan jednom, deljen među svim node-ovima. Izbegava GPU texture switch.
 3. **Viewport culling** — `SKCameraNode` sa manually skrivanjem node-ova van ekrana + padding zone. SpriteKit ne radi auto-culling agresivno.
 4. **Debounced refetch** na pan: fetch novi viewport samo kad se kamera pomeri preko 30% radiusa od zadnjeg fetch-a. Ne zovi API na svaki frame pan-a.
-5. **Warp Gate linije** — `SKShapeNode` sa path-om generisan jednom po viewport-u. Kompletan graph sa 20 gate-ova = 190 linija; OK kao jedan shape node sa compound path-om.
-
 **Anti-pattern:** ne praviti 10k individualnih `SKSpriteNode` sa `color` property — `SKTileMapNode` je 10-20× brži.
 
 ---
@@ -1507,7 +1505,7 @@ Kompletno funkcionalan military screen sa 3 tab-a.
 - ✅ `SKTileMapNode` terrain grid sa ring bojama
 - ✅ Occupant overlay (`SKSpriteNode` za gradove, outposts, mines, warp gates, ruins)
 - ✅ Ruins display: original ring, decay countdown (CountdownLabel), loot multiplier badge
-- ✅ Warp Gate linije (`SKShapeNode` compound path)
+- ✅ Warp Gate sprajtovi na tile-ovima (pathfinding je BE-side, nema vizuelnih linija između gate-ova)
 - ✅ Camera pan/zoom sa `SKCameraNode`
 - ✅ Tap na tile → `MapInfoView` popup (tip, ring, terrain, occupant info)
 - ✅ Send troops akcija iz tile info (Attack/Raid/Scout/Reinforce/Transport per tile type)

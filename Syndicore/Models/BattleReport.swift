@@ -15,6 +15,21 @@ struct BattleReport: Codable, Identifiable {
     let buildingsDamaged: [String]?
     let occurredAt: Date
     let isAttacker: Bool
+    let attackerName: String?
+    let defenderName: String?
+
+    /// True if the opponent in this report is a Scavenger AI (ghost player).
+    var isScavengerBattle: Bool {
+        let opponent = isAttacker ? defenderName : attackerName
+        return opponent?.hasPrefix("Scavenger-") == true
+    }
+
+    /// Display name for the opponent — shortens "Scavenger-cmo12abc..." to "Scavenger".
+    var opponentDisplayName: String? {
+        let name = isAttacker ? defenderName : attackerName
+        if name?.hasPrefix("Scavenger-") == true { return "Scavenger" }
+        return name
+    }
 }
 
 // ArmySnapshot uses [UnitType: Int] but JSON has [String: Int] keys — custom Codable required.

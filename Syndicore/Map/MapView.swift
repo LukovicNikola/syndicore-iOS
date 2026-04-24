@@ -180,9 +180,11 @@ private struct TileInfoCard: View {
         if tile.city != nil {
             return [.ATTACK, .RAID, .SCOUT, .REINFORCE, .TRANSPORT]
         }
-        if tile.outpost != nil { return [.ATTACK, .SCOUT] }
+        if let outpost = tile.outpost {
+            return outpost.defeated ? [] : [.ATTACK, .SCOUT]
+        }
         if tile.mine != nil    { return [.ATTACK, .SCOUT] }
-        if tile.warpGate != nil { return [.SCOUT] }
+        if tile.warpGate != nil { return [] }  // Warp gates su pathfinding čvorovi, ne target-i
         if tile.ruins != nil    { return [.RAID, .SCOUT] }
         // Empty tile — nema korisne akcije za sada.
         // SETTLE se ne triggeruje sa mape; Crystal Implosion automatski bira lokaciju.
@@ -222,9 +224,30 @@ private struct TileInfoCard: View {
                     .font(.caption)
             }
             if let outpost = tile.outpost {
-                Label("Outpost Lv \(outpost.level)\(outpost.defeated ? " (defeated)" : "")", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Label("Scavenger Lv \(outpost.level)", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(outpost.defeated ? .secondary : outpostLevelColor(outpost.level))
+                        if outpost.defeated {
+                            Text("Respawning")
+                                .font(.caption2.bold())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    HStack(spacing: 8) {
+                        if let wall = outpost.wallLevel, wall > 0 {
+                            Label("Wall Lv \(wall)", systemImage: "shield.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        if outpost.hasStoredLoot == true {
+                            Label("Accumulated Loot", systemImage: "bag.fill")
+                                .font(.caption2.bold())
+                                .foregroundStyle(.yellow)
+                        }
+                    }
+                }
             }
             if let mine = tile.mine {
                 Label("\(mine.resourceType.rawValue.capitalized) Mine (\(Int(mine.productionRate))/hr)", systemImage: "diamond.fill")
@@ -322,6 +345,16 @@ private struct TileInfoCard: View {
         case .COMMON: .secondary
         case .UNCOMMON: .blue
         case .RARE: .yellow
+        }
+    }
+
+    private func outpostLevelColor(_ level: Int) -> Color {
+        switch level {
+        case 1...5:   .gray
+        case 6...10:  .green
+        case 11...15: .yellow
+        case 16...20: .red
+        default:      .red
         }
     }
 }

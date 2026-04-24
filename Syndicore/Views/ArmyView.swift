@@ -405,16 +405,35 @@ private struct ReportRow: View {
 
     var body: some View {
         HStack {
-            Image(systemName: youWon ? "checkmark.shield.fill" : "xmark.shield.fill")
+            Image(systemName: reportIcon)
                 .foregroundStyle(youWon ? .green : .red)
                 .font(.title3)
             VStack(alignment: .leading, spacing: 2) {
-                Text(headline)
-                    .font(.subheadline.bold())
-                    .foregroundStyle(youWon ? .green : .red)
-                Text("(\(report.targetX), \(report.targetY)) · ratio \(String(format: "%.2f", report.ratio))")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text(headline)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(youWon ? .green : .red)
+                    if report.isScavengerBattle {
+                        Text("AI")
+                            .font(.system(size: 9, weight: .heavy))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(.orange, in: Capsule())
+                    }
+                }
+                HStack(spacing: 4) {
+                    if let opponent = report.opponentDisplayName {
+                        Text("vs \(opponent)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("·")
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("(\(report.targetX), \(report.targetY))")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
                 Text(report.occurredAt.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -430,6 +449,13 @@ private struct ReportRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private var reportIcon: String {
+        if report.isScavengerBattle {
+            return youWon ? "checkmark.shield.fill" : "bolt.shield.fill"
+        }
+        return youWon ? "checkmark.shield.fill" : "xmark.shield.fill"
     }
 
     private var headline: String {

@@ -28,7 +28,9 @@ struct TileCity: Codable {
 struct TileOutpost: Codable {
     let id: String
     let level: Int
+    let wallLevel: Int?
     let defeated: Bool
+    let hasStoredLoot: Bool?
 }
 
 struct TileMine: Codable {
