@@ -100,7 +100,8 @@
 		9BDE06D32F9BBBC40033330D /* Research.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D22F9BBBC40033330D /* Research.swift */; };
 		9BDE06D52F9BBC010033330D /* ResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D42F9BBC010033330D /* ResearchView.swift */; };
 		9BDE06D72F9BC9640033330D /* Syndikat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D62F9BC9640033330D /* Syndikat.swift */; };
-		9BDE06D92F9BCB130033330D /* CyberpunkResourceBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D82F9BCB130033330D /* CyberpunkResourceBar.swift */; };
+		9BDE06DC2F9BD0300033330D /* CyberpunkResourceBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06DB2F9BD0300033330D /* CyberpunkResourceBar.swift */; };
+		9BDE06DE2F9BD7830033330D /* CyberpunkSideMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06DD2F9BD7830033330D /* CyberpunkSideMenu.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -210,7 +211,8 @@
 		9BDE06D22F9BBBC40033330D /* Research.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Research.swift; sourceTree = "<group>"; };
 		9BDE06D42F9BBC010033330D /* ResearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchView.swift; sourceTree = "<group>"; };
 		9BDE06D62F9BC9640033330D /* Syndikat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Syndikat.swift; sourceTree = "<group>"; };
-		9BDE06D82F9BCB130033330D /* CyberpunkResourceBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkResourceBar.swift; sourceTree = "<group>"; };
+		9BDE06DB2F9BD0300033330D /* CyberpunkResourceBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkResourceBar.swift; sourceTree = "<group>"; };
+		9BDE06DD2F9BD7830033330D /* CyberpunkSideMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkSideMenu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -336,6 +338,7 @@
 				9BDE06AB2F98C4940033330D /* IncomingAttackBanner.swift */,
 				9BDE06AD2F98C4940033330D /* SendTroopsSheet.swift */,
 				9BDE06D42F9BBC010033330D /* ResearchView.swift */,
+				9BDE06DA2F9BD01E0033330D /* HUD */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -434,7 +437,6 @@
 				9B4CFC982F927EC000850457 /* ResourcePill.swift */,
 				9B4CFC9A2F927EC100850457 /* TopHUD.swift */,
 				9B4CFC9C2F927EC200850457 /* BottomHUD.swift */,
-				9BDE06D82F9BCB130033330D /* CyberpunkResourceBar.swift */,
 			);
 			path = HUD;
 			sourceTree = "<group>";
@@ -458,6 +460,15 @@
 				9BDE06CD2F9BA1650033330D /* RallyListView.swift */,
 			);
 			path = Rally;
+			sourceTree = "<group>";
+		};
+		9BDE06DA2F9BD01E0033330D /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				9BDE06DB2F9BD0300033330D /* CyberpunkResourceBar.swift */,
+				9BDE06DD2F9BD7830033330D /* CyberpunkSideMenu.swift */,
+			);
+			path = HUD;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -611,7 +622,6 @@
 				9B2E27372F91276600CA8E81 /* SupabaseManager.swift in Sources */,
 				4A0000000000000000000211 /* Endpoint.swift in Sources */,
 				4A6F526D2F93DA2000992D0B /* SpriteAlignmentTestView.swift in Sources */,
-				9BDE06D92F9BCB130033330D /* CyberpunkResourceBar.swift in Sources */,
 				9BDE06C82F9BA13D0033330D /* Rally.swift in Sources */,
 				9B4CFC9F2F927EDC00850457 /* HQInfoSheet.swift in Sources */,
 				4A0000000000000000000212 /* TokenProvider.swift in Sources */,
@@ -632,6 +642,7 @@
 				9B4CFC872F927D6600850457 /* WallLayout.swift in Sources */,
 				9BDE06D72F9BC9640033330D /* Syndikat.swift in Sources */,
 				9B2E272D2F91271900CA8E81 /* SplashView.swift in Sources */,
+				9BDE06DC2F9BD0300033330D /* CyberpunkResourceBar.swift in Sources */,
 				4B0000000000000000000001 /* GameData.swift in Sources */,
 				4B0000000000000000000002 /* GameConstantsManager.swift in Sources */,
 				4B0000000000000000000003 /* CodexView.swift in Sources */,
@@ -646,6 +657,7 @@
 				9BDE06AC2F98C4940033330D /* IncomingAttackBanner.swift in Sources */,
 				4A5847DC2F94C2E800E4C30B /* ElectricArcNode.swift in Sources */,
 				4A5847DE2F94C2E800E4C30B /* BuildingTooltipNode.swift in Sources */,
+				9BDE06DE2F9BD7830033330D /* CyberpunkSideMenu.swift in Sources */,
 				9B4CFC952F927EAB00850457 /* CityScene.swift in Sources */,
 				4B0000000000000000000005 /* UnitDetailView.swift in Sources */,
 				9BDE06AE2F98C4940033330D /* SendTroopsSheet.swift in Sources */,

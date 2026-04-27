@@ -47,9 +47,14 @@ struct MapView: View {
             }
         }
         .overlay(alignment: .top) {
-            CyberpunkResourceBar(resources: gameState.activeCity?.resources)
-                .padding(.horizontal, 8)
+            CyberpunkResourceBar(items: ResourceItem.from(gameState.activeCity?.resources, premium: gameState.premium))
+                .padding(.horizontal, 20)
                 .padding(.top, 8)
+        }
+        .overlay(alignment: .topTrailing) {
+            CyberpunkSideMenu(actions: sideMenuActions)
+                .padding(.trailing, 12)
+                .padding(.top, 60)
         }
         .overlay(alignment: .bottom) {
             if let tile = selectedTile {
@@ -130,6 +135,23 @@ struct MapView: View {
                 await fetchViewport()
             }
         }
+    }
+
+    private var sideMenuActions: [SideMenuAction] {
+        [
+            SideMenuAction(id: "settings", assetName: "ui_settings_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: nil) {
+                // TODO: open Settings view
+            },
+            SideMenuAction(id: "email", assetName: "ui_email_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: gameState.unreadEmailCount) {
+                // TODO: open Mail view
+            },
+            SideMenuAction(id: "notifications", assetName: "ui_notifications_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.3), badgeCount: gameState.unreadNotificationCount) {
+                // TODO: open Notifications view
+            },
+            SideMenuAction(id: "shop", assetName: "ui_shop_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.9), badgeCount: nil) {
+                // TODO: open Shop view
+            },
+        ]
     }
 
     private func fetchViewport() async {

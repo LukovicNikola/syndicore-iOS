@@ -60,6 +60,11 @@ final class GameState {
     var activePlayerWorld: PlayerWorld?
     var activeCity: City?
     var activeTrainingJobs: [TrainingJob] = []
+    /// Premium currency — stub, will be populated when BE endpoint is ready.
+    var premium: Int = 0
+    /// Unread counts for side menu badges — stubs, will be wired to real data later.
+    var unreadEmailCount: Int = 2
+    var unreadNotificationCount: Int = 3
 
     /// Paginated movements — accumulated preko vise stranica.
     var activeMovements: [TroopMovement] = []

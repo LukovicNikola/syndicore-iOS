@@ -1,35 +1,28 @@
 import Foundation
 import Observation
 import os
-#if canImport(SocketIO)
-import SocketIO
-#endif
 
-/// Socket.IO klijent za Syndicore BE real-time events.
+/// Native WebSocket klijent za Syndicore BE real-time events.
 ///
-/// **Zahteva SPM dependency:**
-///   `.package(url: "https://github.com/socketio/socket.io-client-swift", from: "16.1.0")`
-///
-/// Ako dependency nije dodat u Xcode project, `import SocketIO` će fail-ovati i
-/// SocketService će biti stub koji loguje upozorenje ali ne radi ništa.
-/// Ostatak app-a radi normalno — real-time features su "optional" until dep is added.
+/// Koristi `URLSessionWebSocketTask` — zero external dependencies.
+/// BE endpoint: `GET /api/v1/ws?token=<jwt>` (plain WebSocket, JSON messages).
 ///
 /// **Lifecycle:**
 /// 1. `connect(baseURL:token:)` — pozvan iz GameState.bootstrap nakon uspešnog login-a.
-/// 2. `joinCityRoom(cityId:)` — posle join world-a, pretplata na city events (incoming_attack,
-///    building_complete, training_complete).
-/// 3. `joinWorldRoom(worldId:)` — za world events (troops_arrived).
-/// 4. `disconnect()` — na signOut.
+/// 2. `joinCityRoom(cityId:)` — pretplata na city events (incoming_attack, building_complete, training_complete).
+/// 3. `joinWorldRoom(worldId:)` — za world events (troops_arrived, rally_launched, rally_resolved).
+/// 4. `joinPlayerRoom(playerId:)` — za player events (session_kicked).
+/// 5. `disconnect()` — na signOut.
 ///
-/// **UI rule:** events su refresh triggeri. UI observira @Observable properties
-/// (`lastIncomingAttack`, `lastBuildingComplete`, itd.) i refetch-uje REST state.
+/// **UI rule:** events su SAMO refresh triggeri — UI observira @Observable properties
+/// i refetch-uje REST state posle event-a.
 @Observable
 @MainActor
 final class SocketService {
 
     static let log = Logger(subsystem: "com.syndicore.ios", category: "SocketService")
 
-    // MARK: - Published state (Observable via @Observable)
+    // MARK: - Published state
 
     private(set) var isConnected: Bool = false
     private(set) var lastIncomingAttack: IncomingAttackEvent?
@@ -37,7 +30,7 @@ final class SocketService {
     private(set) var lastTrainingComplete: TrainingCompleteEvent?
     private(set) var lastTroopsArrived: TroopsArrivedEvent?
 
-    // MARK: - Optional callbacks (za view-ove koje žele direktan handler umesto @Observable)
+    // MARK: - Optional callbacks
 
     var onIncomingAttack:   ((IncomingAttackEvent)   -> Void)?
     var onBuildingComplete: ((BuildingCompleteEvent) -> Void)?
@@ -49,16 +42,23 @@ final class SocketService {
 
     // MARK: - Internal state
 
-    #if canImport(SocketIO)
-    private var manager: SocketManager?
-    private var socket: SocketIOClient?
-    #endif
+    private var webSocketTask: URLSessionWebSocketTask?
+    private var receiveTask: Task<Void, Never>?
+    private var pingTask: Task<Void, Never>?
+    private var reconnectTask: Task<Void, Never>?
+
+    private var connectionBaseURL: URL?
+    private var connectionToken: String?
 
     private var joinedCityRoom: String?
     private var joinedWorldRoom: String?
     private var joinedPlayerRoom: String?
 
+    private var reconnectAttempts: Int = 0
+    private var intentionalDisconnect = false
+
     private let decoder: JSONDecoder = .api
+    private let session = URLSession(configuration: .default)
 
     // MARK: - Singleton
 
@@ -67,44 +67,19 @@ final class SocketService {
 
     // MARK: - Connection
 
-    /// Uspostavlja Socket.IO konekciju. Pozvati nakon uspešnog auth-a.
-    /// - Parameter baseURL: BE root URL (isti kao API, npr. https://syndicore-be-staging.onrender.com)
-    /// - Parameter token: JWT access token iz Supabase session-a
+    /// Uspostavlja WebSocket konekciju ka BE.
     func connect(baseURL: URL, token: String) {
-        #if canImport(SocketIO)
-        disconnect()  // idempotent — clean up any previous connection
+        intentionalDisconnect = false
+        connectionBaseURL = baseURL
+        connectionToken = token
+        reconnectAttempts = 0
 
-        let mgr = SocketManager(
-            socketURL: baseURL,
-            config: [
-                .log(false),
-                .compress,
-                .connectParams(["token": token]),
-                .reconnects(true),
-                .reconnectAttempts(-1),   // beskonačni retry
-                .reconnectWait(2),
-                .reconnectWaitMax(30)
-            ]
-        )
-        let sock = mgr.defaultSocket
-
-        attachHandlers(to: sock)
-        sock.connect()
-
-        self.manager = mgr
-        self.socket = sock
-        Self.log.info("Socket connecting to \(baseURL.absoluteString, privacy: .public)")
-        #else
-        Self.log.warning("SocketIO not imported — real-time events disabled. Add socket.io-client-swift SPM dep to enable.")
-        #endif
+        establishConnection()
     }
 
     func disconnect() {
-        #if canImport(SocketIO)
-        socket?.disconnect()
-        socket = nil
-        manager = nil
-        #endif
+        intentionalDisconnect = true
+        tearDown()
         joinedCityRoom = nil
         joinedWorldRoom = nil
         joinedPlayerRoom = nil
@@ -120,150 +95,245 @@ final class SocketService {
 
     // MARK: - Room joining
 
-    /// Pretplata na per-city events. Zove se posle `connect(...)` + kad se aktivna city promeni.
     func joinCityRoom(cityId: String) {
-        #if canImport(SocketIO)
-        guard let socket else { return }
-        // Ako smo već u toj sobi, skip
         if joinedCityRoom == cityId { return }
-        // Leave prethodnu sobu
         if let prev = joinedCityRoom {
-            socket.emit("leave_city", prev)
+            send(action: "leave_city", id: prev)
         }
-        socket.emit("join_city", cityId)
+        send(action: "join_city", id: cityId)
         joinedCityRoom = cityId
         Self.log.info("Joined city room: \(cityId, privacy: .public)")
-        #endif
     }
 
-    /// Reset-uje lastIncomingAttack — pozvan iz UI-ja kad user dismiss-uje banner ili
-    /// kad countdown dođe na 0.
+    func joinWorldRoom(worldId: String) {
+        if joinedWorldRoom == worldId { return }
+        if let prev = joinedWorldRoom {
+            send(action: "leave_world", id: prev)
+        }
+        send(action: "join_world", id: worldId)
+        joinedWorldRoom = worldId
+        Self.log.info("Joined world room: \(worldId, privacy: .public)")
+    }
+
+    func joinPlayerRoom(playerId: String) {
+        if joinedPlayerRoom == playerId { return }
+        if let prev = joinedPlayerRoom {
+            send(action: "leave_player", id: prev)
+        }
+        send(action: "join_player", id: playerId)
+        joinedPlayerRoom = playerId
+        Self.log.info("Joined player room: \(playerId, privacy: .public)")
+    }
+
     func clearIncomingAttack() {
         lastIncomingAttack = nil
     }
 
-    /// Pretplata na player-level events (session_kicked). Zove se posle connect.
-    func joinPlayerRoom(playerId: String) {
-        #if canImport(SocketIO)
-        guard let socket else { return }
-        if joinedPlayerRoom == playerId { return }
-        if let prev = joinedPlayerRoom {
-            socket.emit("leave_player", prev)
+    // MARK: - Connection internals
+
+    private func establishConnection() {
+        tearDown()
+
+        guard let baseURL = connectionBaseURL, let token = connectionToken else { return }
+
+        // Build wss:// URL: /api/v1/ws?token=<jwt>
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/ws"), resolvingAgainstBaseURL: false)!
+        components.queryItems = [URLQueryItem(name: "token", value: token)]
+        // Force wss:// for https:// base URLs
+        if components.scheme == "https" {
+            components.scheme = "wss"
+        } else if components.scheme == "http" {
+            components.scheme = "ws"
         }
-        socket.emit("join_player", playerId)
-        joinedPlayerRoom = playerId
-        Self.log.info("Joined player room: \(playerId, privacy: .public)")
-        #endif
+
+        guard let wsURL = components.url else {
+            Self.log.error("Failed to build WebSocket URL from \(baseURL.absoluteString, privacy: .public)")
+            return
+        }
+
+        let task = session.webSocketTask(with: wsURL)
+        task.resume()
+        self.webSocketTask = task
+
+        Self.log.info("WebSocket connecting to \(wsURL.host() ?? "unknown", privacy: .public)")
+
+        // Start receive loop
+        receiveTask = Task { [weak self] in
+            await self?.receiveLoop()
+        }
     }
 
-    /// Pretplata na world-wide events (troops_arrived). Zove se posle connect + kad se world promeni.
-    func joinWorldRoom(worldId: String) {
-        #if canImport(SocketIO)
-        guard let socket else { return }
-        if joinedWorldRoom == worldId { return }
-        if let prev = joinedWorldRoom {
-            socket.emit("leave_world", prev)
-        }
-        socket.emit("join_world", worldId)
-        joinedWorldRoom = worldId
-        Self.log.info("Joined world room: \(worldId, privacy: .public)")
-        #endif
+    private func tearDown() {
+        receiveTask?.cancel()
+        receiveTask = nil
+        pingTask?.cancel()
+        pingTask = nil
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        webSocketTask?.cancel(with: .goingAway, reason: nil)
+        webSocketTask = nil
     }
 
-    // MARK: - Event handlers
+    // MARK: - Send
 
-    #if canImport(SocketIO)
-    private func attachHandlers(to socket: SocketIOClient) {
-        socket.on(clientEvent: .connect) { [weak self] _, _ in
-            Task { @MainActor in
-                self?.isConnected = true
-                Self.log.info("Socket connected")
-                // Re-join rooms ako smo imali prethodne (reconnect scenario)
-                if let player = self?.joinedPlayerRoom { socket.emit("join_player", player) }
-                if let city = self?.joinedCityRoom { socket.emit("join_city", city) }
-                if let world = self?.joinedWorldRoom { socket.emit("join_world", world) }
-            }
-        }
-
-        socket.on(clientEvent: .disconnect) { [weak self] _, _ in
-            Task { @MainActor in
-                self?.isConnected = false
-                Self.log.info("Socket disconnected")
-            }
-        }
-
-        socket.on(clientEvent: .error) { data, _ in
-            Self.log.error("Socket error: \(String(describing: data), privacy: .public)")
-        }
-
-        // Incoming attack (city room)
-        socket.on("incoming_attack") { [weak self] data, _ in
-            self?.handleEvent(IncomingAttackEvent.self, from: data) { event in
-                self?.lastIncomingAttack = event
-                self?.onIncomingAttack?(event)
-            }
-        }
-
-        // Building complete (city room)
-        socket.on("building_complete") { [weak self] data, _ in
-            self?.handleEvent(BuildingCompleteEvent.self, from: data) { event in
-                self?.lastBuildingComplete = event
-                self?.onBuildingComplete?(event)
-            }
-        }
-
-        // Training complete (city room)
-        socket.on("training_complete") { [weak self] data, _ in
-            self?.handleEvent(TrainingCompleteEvent.self, from: data) { event in
-                self?.lastTrainingComplete = event
-                self?.onTrainingComplete?(event)
-            }
-        }
-
-        // Troops arrived (world room)
-        socket.on("troops_arrived") { [weak self] data, _ in
-            self?.handleEvent(TroopsArrivedEvent.self, from: data) { event in
-                self?.lastTroopsArrived = event
-                self?.onTroopsArrived?(event)
-            }
-        }
-
-        // Session kicked (player room) — another device claimed this account
-        socket.on("session_kicked") { [weak self] data, _ in
-            self?.handleEvent(SessionKickedEvent.self, from: data) { event in
-                self?.onSessionKicked?(event)
-            }
-        }
-
-        // Rally launched (world room)
-        socket.on("rally_launched") { [weak self] data, _ in
-            self?.handleEvent(RallyLaunchedEvent.self, from: data) { event in
-                self?.onRallyLaunched?(event)
-            }
-        }
-
-        // Rally resolved (world room)
-        socket.on("rally_resolved") { [weak self] data, _ in
-            self?.handleEvent(RallyResolvedEvent.self, from: data) { event in
-                self?.onRallyResolved?(event)
+    private func send(action: String, id: String? = nil) {
+        guard let ws = webSocketTask else { return }
+        var dict: [String: String] = ["action": action]
+        if let id { dict["id"] = id }
+        guard let data = try? JSONSerialization.data(withJSONObject: dict),
+              let str = String(data: data, encoding: .utf8) else { return }
+        ws.send(.string(str)) { error in
+            if let error {
+                Self.log.error("WS send error: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
 
-    /// Decode helper — Socket.IO prosleđuje `[Any]` sa payload JSON-om u prvom elementu.
-    private func handleEvent<T: Decodable>(
-        _ type: T.Type,
-        from data: [Any],
-        onSuccess: @escaping @MainActor (T) -> Void
-    ) {
-        guard let first = data.first else { return }
+    // MARK: - Receive loop
+
+    private func receiveLoop() async {
+        guard let ws = webSocketTask else { return }
+
+        while !Task.isCancelled {
+            do {
+                let message = try await ws.receive()
+                switch message {
+                case .string(let text):
+                    await handleMessage(text)
+                case .data(let data):
+                    if let text = String(data: data, encoding: .utf8) {
+                        await handleMessage(text)
+                    }
+                @unknown default:
+                    break
+                }
+            } catch {
+                // Connection lost
+                if !Task.isCancelled {
+                    await MainActor.run {
+                        self.isConnected = false
+                        Self.log.info("WebSocket disconnected: \(error.localizedDescription, privacy: .public)")
+                        self.scheduleReconnect()
+                    }
+                }
+                return
+            }
+        }
+    }
+
+    // MARK: - Message handling
+
+    private func handleMessage(_ text: String) async {
+        guard let data = text.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let event = json["event"] as? String else { return }
+
+        let payload = json["data"]
+
+        await MainActor.run {
+            switch event {
+            case "connected":
+                self.isConnected = true
+                self.reconnectAttempts = 0
+                Self.log.info("WebSocket connected")
+                self.startPingTimer()
+                self.rejoinRooms()
+
+            case "ping":
+                self.send(action: "pong")
+
+            case "incoming_attack":
+                self.decodeAndDispatch(IncomingAttackEvent.self, from: payload) { ev in
+                    self.lastIncomingAttack = ev
+                    self.onIncomingAttack?(ev)
+                }
+
+            case "building_complete":
+                self.decodeAndDispatch(BuildingCompleteEvent.self, from: payload) { ev in
+                    self.lastBuildingComplete = ev
+                    self.onBuildingComplete?(ev)
+                }
+
+            case "training_complete":
+                self.decodeAndDispatch(TrainingCompleteEvent.self, from: payload) { ev in
+                    self.lastTrainingComplete = ev
+                    self.onTrainingComplete?(ev)
+                }
+
+            case "troops_arrived":
+                self.decodeAndDispatch(TroopsArrivedEvent.self, from: payload) { ev in
+                    self.lastTroopsArrived = ev
+                    self.onTroopsArrived?(ev)
+                }
+
+            case "session_kicked":
+                self.decodeAndDispatch(SessionKickedEvent.self, from: payload) { ev in
+                    self.onSessionKicked?(ev)
+                }
+
+            case "rally_launched":
+                self.decodeAndDispatch(RallyLaunchedEvent.self, from: payload) { ev in
+                    self.onRallyLaunched?(ev)
+                }
+
+            case "rally_resolved":
+                self.decodeAndDispatch(RallyResolvedEvent.self, from: payload) { ev in
+                    self.onRallyResolved?(ev)
+                }
+
+            default:
+                Self.log.debug("Unknown WS event: \(event, privacy: .public)")
+            }
+        }
+    }
+
+    private func decodeAndDispatch<T: Decodable>(_ type: T.Type, from payload: Any?, handler: (T) -> Void) {
+        guard let payload else { return }
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: first, options: [])
+            let jsonData = try JSONSerialization.data(withJSONObject: payload)
             let event = try decoder.decode(T.self, from: jsonData)
-            Task { @MainActor in onSuccess(event) }
+            handler(event)
         } catch {
             Self.log.error("Failed to decode \(String(describing: T.self), privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
     }
-    #endif
+
+    // MARK: - Ping timer
+
+    private func startPingTimer() {
+        pingTask?.cancel()
+        // Server sends ping every 25s — we just respond in handleMessage.
+        // No client-side ping needed, but we keep reference for cleanup.
+    }
+
+    // MARK: - Re-join rooms on reconnect
+
+    private func rejoinRooms() {
+        if let player = joinedPlayerRoom { send(action: "join_player", id: player) }
+        if let city = joinedCityRoom { send(action: "join_city", id: city) }
+        if let world = joinedWorldRoom { send(action: "join_world", id: world) }
+    }
+
+    // MARK: - Auto-reconnect
+
+    private func scheduleReconnect() {
+        guard !intentionalDisconnect else { return }
+        reconnectTask?.cancel()
+        reconnectTask = Task { [weak self] in
+            guard let self else { return }
+            let delay = self.reconnectDelay()
+            Self.log.info("Reconnecting in \(delay, privacy: .public)s (attempt \(self.reconnectAttempts + 1, privacy: .public))")
+            try? await Task.sleep(for: .seconds(delay))
+            if Task.isCancelled { return }
+            await MainActor.run {
+                self.reconnectAttempts += 1
+                self.establishConnection()
+            }
+        }
+    }
+
+    /// Exponential backoff: 2s, 4s, 8s, 16s, max 30s
+    private func reconnectDelay() -> Double {
+        min(Double(2 << min(reconnectAttempts, 4)), 30.0)
+    }
 }

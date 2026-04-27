@@ -29,27 +29,9 @@ struct CityView: View {
 
             // MARK: HUD overlay
             VStack {
-                // Resource bar + crystal badge
-                HStack(alignment: .center, spacing: 8) {
-                    CyberpunkResourceBar(resources: city?.resources)
-                    // Crystal badge
-                    Button(action: { showCrystals = true }) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "diamond.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.purple)
-                            Text("\(gameState.activePlayerWorld?.crystals?.count ?? 0)")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .foregroundStyle(.white)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
-                    }
-                }
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
+                CyberpunkResourceBar(items: ResourceItem.from(city?.resources, premium: gameState.premium))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
                 if let err = gameState.cityRefreshError {
                     RefreshErrorBanner(message: err) {
                         gameState.cityRefreshError = nil
@@ -93,6 +75,11 @@ struct CityView: View {
                 .padding(.leading, 20)
                 .padding(.bottom, 90)
             }
+        }
+        .overlay(alignment: .topTrailing) {
+            CyberpunkSideMenu(actions: sideMenuActions)
+                .padding(.trailing, 12)
+                .padding(.top, 60)
         }
         // Sheets
         .sheet(item: $selectedBuilding) { building in
@@ -149,6 +136,23 @@ struct CityView: View {
         } catch {
             gameState.cityRefreshError = "Skip failed: \(error)"
         }
+    }
+
+    private var sideMenuActions: [SideMenuAction] {
+        [
+            SideMenuAction(id: "settings", assetName: "ui_settings_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: nil) {
+                // TODO: open Settings view
+            },
+            SideMenuAction(id: "email", assetName: "ui_email_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: gameState.unreadEmailCount) {
+                // TODO: open Mail view
+            },
+            SideMenuAction(id: "notifications", assetName: "ui_notifications_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.3), badgeCount: gameState.unreadNotificationCount) {
+                // TODO: open Notifications view
+            },
+            SideMenuAction(id: "shop", assetName: "ui_shop_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.9), badgeCount: nil) {
+                // TODO: open Shop view
+            },
+        ]
     }
 
     private func skipTraining(_ job: TrainingJob) async {
