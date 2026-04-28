@@ -44,16 +44,6 @@ struct CityView: View {
                         }
                     }
                 }
-                BottomHUD(
-                    constructionQueue: city?.constructionQueue,
-                    trainingJobs: gameState.activeTrainingJobs,
-                    onSkipBuild: {
-                        Task { await skipBuild() }
-                    },
-                    onSkipTraining: { job in
-                        Task { await skipTraining(job) }
-                    }
-                )
                 Spacer()
             }
 
@@ -80,6 +70,14 @@ struct CityView: View {
             CyberpunkSideMenu(actions: sideMenuActions)
                 .padding(.trailing, 12)
                 .padding(.top, 60)
+        }
+        .overlay(alignment: .topLeading) {
+            CyberpunkBuildQueue(
+                constructionQueue: city?.constructionQueue,
+                trainingJobs: gameState.activeTrainingJobs
+            )
+            .padding(.leading, 12)
+            .padding(.top, 100)
         }
         // Sheets
         .sheet(item: $selectedBuilding) { building in

@@ -56,6 +56,14 @@ struct MapView: View {
                 .padding(.trailing, 12)
                 .padding(.top, 60)
         }
+        .overlay(alignment: .topLeading) {
+            CyberpunkBuildQueue(
+                constructionQueue: gameState.activeCity?.constructionQueue,
+                trainingJobs: gameState.activeTrainingJobs
+            )
+            .padding(.leading, 12)
+            .padding(.top, 100)
+        }
         .overlay(alignment: .bottom) {
             if let tile = selectedTile {
                 TileInfoCard(

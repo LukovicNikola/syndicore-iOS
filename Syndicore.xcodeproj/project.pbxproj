@@ -102,6 +102,8 @@
 		9BDE06D72F9BC9640033330D /* Syndikat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06D62F9BC9640033330D /* Syndikat.swift */; };
 		9BDE06DC2F9BD0300033330D /* CyberpunkResourceBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06DB2F9BD0300033330D /* CyberpunkResourceBar.swift */; };
 		9BDE06DE2F9BD7830033330D /* CyberpunkSideMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06DD2F9BD7830033330D /* CyberpunkSideMenu.swift */; };
+		9BDE06E22FA127870033330D /* CyberpunkBuildQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06E12FA127870033330D /* CyberpunkBuildQueue.swift */; };
+		9BDE06E72FA128C40033330D /* BuildingIconMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDE06E62FA128C40033330D /* BuildingIconMapping.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -213,6 +215,8 @@
 		9BDE06D62F9BC9640033330D /* Syndikat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Syndikat.swift; sourceTree = "<group>"; };
 		9BDE06DB2F9BD0300033330D /* CyberpunkResourceBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkResourceBar.swift; sourceTree = "<group>"; };
 		9BDE06DD2F9BD7830033330D /* CyberpunkSideMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkSideMenu.swift; sourceTree = "<group>"; };
+		9BDE06E12FA127870033330D /* CyberpunkBuildQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkBuildQueue.swift; sourceTree = "<group>"; };
+		9BDE06E62FA128C40033330D /* BuildingIconMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingIconMapping.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -258,6 +262,7 @@
 				4A0000000000000000000016 /* Resources */,
 				9B2E27352F91275700CA8E81 /* Services */,
 				4B0000000000000000000200 /* Map */,
+				9BDE06E52FA128B50033330D /* Helpers 2 */,
 			);
 			path = Syndicore;
 			sourceTree = "<group>";
@@ -467,8 +472,17 @@
 			children = (
 				9BDE06DB2F9BD0300033330D /* CyberpunkResourceBar.swift */,
 				9BDE06DD2F9BD7830033330D /* CyberpunkSideMenu.swift */,
+				9BDE06E12FA127870033330D /* CyberpunkBuildQueue.swift */,
 			);
 			path = HUD;
+			sourceTree = "<group>";
+		};
+		9BDE06E52FA128B50033330D /* Helpers 2 */ = {
+			isa = PBXGroup;
+			children = (
+				9BDE06E62FA128C40033330D /* BuildingIconMapping.swift */,
+			);
+			path = "Helpers 2";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -598,6 +612,7 @@
 				9B4CFC912F927E8600850457 /* CornerPylonNode.swift in Sources */,
 				4A5847E82F95419900E4C30B /* TileGridEditorView.swift in Sources */,
 				9B4CFC992F927EC000850457 /* ResourcePill.swift in Sources */,
+				9BDE06E22FA127870033330D /* CyberpunkBuildQueue.swift in Sources */,
 				9B4CFC852F927D5A00850457 /* Isometric.swift in Sources */,
 				4A0000000000000000000205 /* Player.swift in Sources */,
 				9B2E27232F9126D000CA8E81 /* Enums.swift in Sources */,
@@ -606,6 +621,7 @@
 				4A0000000000000000000208 /* Health.swift in Sources */,
 				9B4CFC8B2F927E8300850457 /* HQNode.swift in Sources */,
 				4A0000000000000000000209 /* APIClient.swift in Sources */,
+				9BDE06E72FA128C40033330D /* BuildingIconMapping.swift in Sources */,
 				4A5847E02F94C2E800E4C30B /* CelebrationBurstNode.swift in Sources */,
 				4A57FDF32F92D372004559C8 /* AppConfig.swift in Sources */,
 				9B2E27312F91271A00CA8E81 /* MainGameView.swift in Sources */,
