@@ -21,7 +21,7 @@ import Foundation
 /// - **WT 6-10:** dodat `troopEstimate` (small/medium/large)
 /// - **WT 11-15:** umesto `troopEstimate`, exact `units` dict
 /// - **WT 16-20:** dodat `origin` (attacker's city coords)
-struct IncomingAttackEvent: Decodable {
+struct IncomingAttackEvent: Decodable, Sendable {
     let movementType: String      // "ATTACK" ili "RAID"
     let arrivesAt: Date
 
@@ -74,7 +74,7 @@ struct IncomingAttackEvent: Decodable {
 // MARK: - Building Complete
 
 /// `building_complete` event — emituje kad se gradnja ili upgrade završi.
-struct BuildingCompleteEvent: Decodable {
+struct BuildingCompleteEvent: Decodable, Sendable {
     let buildingId: String
     let type: BuildingType
     let newLevel: Int
@@ -83,7 +83,7 @@ struct BuildingCompleteEvent: Decodable {
 // MARK: - Training Complete
 
 /// `training_complete` event — emituje kad training job završi.
-struct TrainingCompleteEvent: Decodable {
+struct TrainingCompleteEvent: Decodable, Sendable {
     let unitType: UnitType
     let count: Int
 }
@@ -91,7 +91,7 @@ struct TrainingCompleteEvent: Decodable {
 // MARK: - Troops Arrived
 
 /// `troops_arrived` event — emituje na world room-u kad stigne movement na destination.
-struct TroopsArrivedEvent: Decodable {
+struct TroopsArrivedEvent: Decodable, Sendable {
     let movementId: String
     let type: MovementType
     let targetX: Int
@@ -101,19 +101,19 @@ struct TroopsArrivedEvent: Decodable {
 // MARK: - Rally Events
 
 /// `rally_launched` event — rally status changed to LAUNCHED, movements created.
-struct RallyLaunchedEvent: Decodable {
+struct RallyLaunchedEvent: Decodable, Sendable {
     let rallyId: String
 }
 
 /// `rally_resolved` event — rally combat finished, check reports.
-struct RallyResolvedEvent: Decodable {
+struct RallyResolvedEvent: Decodable, Sendable {
     let rallyId: String
 }
 
 // MARK: - Session Kicked
 
 /// `session_kicked` event — emituje na player room-u kad drugi uređaj claim-uje sesiju.
-struct SessionKickedEvent: Decodable {
+struct SessionKickedEvent: Decodable, Sendable {
     let reason: String?
     let at: Date?
 }

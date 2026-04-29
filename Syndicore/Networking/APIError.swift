@@ -1,6 +1,6 @@
 import Foundation
 
-struct ErrorResponse: Codable {
+struct ErrorResponse: Codable, Sendable {
     let error: String
     let details: [String: AnyCodableValue]?
 
@@ -75,7 +75,7 @@ enum BEErrorCode: String {
     case targetNotInSyndikat    = "target_not_in_syndikat"
 }
 
-enum APIError: LocalizedError {
+enum APIError: LocalizedError, Sendable {
     case invalidURL
     case unauthorized
     case forbidden(ErrorResponse)
@@ -116,7 +116,7 @@ enum APIError: LocalizedError {
 /// Type-erased Codable value for dynamic JSON fields.
 /// Supports scalars + nested arrays/objects da BE `details` field može da
 /// vrati bilo kakav JSON bez puknuća decode-a.
-indirect enum AnyCodableValue: Codable {
+indirect enum AnyCodableValue: Codable, Sendable {
     case string(String)
     case int(Int)
     case double(Double)

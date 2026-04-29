@@ -47,31 +47,36 @@ extension JSONEncoder {
     }()
 }
 
-/// Thread-safe ISO8601 formatter wrapper. ISO8601DateFormatter je dokumentovano
-/// safe za concurrent use samo ako se formatOptions ne menja — zato držimo
-/// dva instance (sa i bez fractional seconds) umesto mutiranja jedne.
+/// Thread-safe ISO8601 formatter wrapper. ISO8601DateFormatter is documented
+/// safe for concurrent use as long as formatOptions stays immutable — we hold
+/// two instances (with/without fractional seconds) instead of mutating one.
+/// Wrapped in @unchecked Sendable storage so static let satisfies Swift 6.
 enum ISO8601DateCoder {
-    private static let withFractional: ISO8601DateFormatter = {
+    private struct SendableFormatter: @unchecked Sendable {
+        let formatter: ISO8601DateFormatter
+    }
+
+    private static let withFractional: SendableFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return f
+        return SendableFormatter(formatter: f)
     }()
 
-    private static let withoutFractional: ISO8601DateFormatter = {
+    private static let withoutFractional: SendableFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime]
-        return f
+        return SendableFormatter(formatter: f)
     }()
 
     static func dateWithFractionalSeconds(from string: String) -> Date? {
-        withFractional.date(from: string)
+        withFractional.formatter.date(from: string)
     }
 
     static func dateWithoutFractionalSeconds(from string: String) -> Date? {
-        withoutFractional.date(from: string)
+        withoutFractional.formatter.date(from: string)
     }
 
     static func stringWithFractionalSeconds(from date: Date) -> String {
-        withFractional.string(from: date)
+        withFractional.formatter.string(from: date)
     }
 }

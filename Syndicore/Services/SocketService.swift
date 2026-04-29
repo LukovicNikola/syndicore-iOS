@@ -20,7 +20,7 @@ import os
 @MainActor
 final class SocketService {
 
-    static let log = Logger(subsystem: "com.syndicore.ios", category: "SocketService")
+    nonisolated static let log = Logger(subsystem: "com.syndicore.ios", category: "SocketService")
 
     // MARK: - Published state
 

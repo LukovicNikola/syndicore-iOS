@@ -1,7 +1,9 @@
 import Foundation
 import Observation
+import os
 
 @Observable
+@MainActor
 final class GameConstantsManager {
     private let api: APIClient
 
@@ -12,6 +14,8 @@ final class GameConstantsManager {
 
     private let etagKey = "gameConstants.etag"
     private let dataKey = "gameConstants.data"
+
+    nonisolated private static let log = Logger(subsystem: "com.syndicore.ios", category: "GameConstants")
 
     init(api: APIClient) {
         self.api = api
@@ -43,7 +47,7 @@ final class GameConstantsManager {
                 isLoaded = gameData != nil
             }
         } catch {
-            // Cached data still valid if available
+            Self.log.warning("gameConstants refresh failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

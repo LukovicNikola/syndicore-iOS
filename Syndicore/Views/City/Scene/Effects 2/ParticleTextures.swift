@@ -2,6 +2,9 @@ import SpriteKit
 import UIKit
 
 /// Reusable cyan glow dot textura — generišemo jednom (lazy), koristimo svuda.
+/// SpriteKit objekti žive samo na MainActor — anotacija eliminiše Swift 6 warning
+/// za non-Sendable SKTexture u static let storage-u.
+@MainActor
 enum ParticleTextures {
 
     /// Mali soft cyan glow disc (16×16 px) sa transparent fade ka ivicama.

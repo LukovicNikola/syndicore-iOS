@@ -10,7 +10,7 @@ import os
 @MainActor
 final class GameState {
 
-    static let log = Logger(subsystem: "com.syndicore.ios", category: "GameState")
+    nonisolated static let log = Logger(subsystem: "com.syndicore.ios", category: "GameState")
 
     // MARK: - Navigation
 
@@ -567,7 +567,7 @@ final class GameState {
         movementsHasMore = false
 
         // Toast
-        let ringName = response.newRing.capitalized
+        let ringName = response.newRing.rawValue.capitalized
         lastCompletionNotice = CompletionNotice(
             kind: .implosion,
             title: "Crystal Implosion!",

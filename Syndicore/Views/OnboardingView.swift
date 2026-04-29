@@ -75,6 +75,7 @@ struct OnboardingView: View {
                 // Typed error code check — robust vs string match
                 if err.code == .alreadyOnboarded {
                     await gameState.bootstrap()
+                    isSubmitting = false
                     return
                 }
                 errorMessage = err.error

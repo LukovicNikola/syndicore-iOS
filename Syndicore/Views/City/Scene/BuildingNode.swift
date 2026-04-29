@@ -65,7 +65,6 @@ final class BuildingNode: SKNode {
             let scaffoldTop = scaffoldSpec.renderHeight * (1 - scaffoldSpec.anchor.y)
             progress.position = CGPoint(x: 0, y: scaffoldTop + 8)
             progress.zPosition = 0.5  // iznad scaffold-a u istom node-u
-            progress.isHidden = true
             addChild(progress)
             self.progressNode = progress
         }

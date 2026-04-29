@@ -47,8 +47,10 @@ final class SupabaseManager {
     /// Nonce za Apple Sign In (mora da se sacuva izmedju request-a i completion-a)
     var currentNonce: String?
 
-    /// Task koji slusa onAuthStateChange stream. Cuva se da bi mogao da se cancel-uje.
-    nonisolated(unsafe) private var authListenerTask: Task<Void, Never>?
+    /// Task koji slusa onAuthStateChange stream. Postavlja se jednom u init() i ne menja se posle.
+    /// `let` je sigurniji od `nonisolated(unsafe) var` jer eliminiše potencijal racea
+    /// između init/deinit i ostalih main-actor poziva.
+    private let authListenerTask: Task<Void, Never>
 
     // MARK: - Init
 
@@ -60,14 +62,20 @@ final class SupabaseManager {
                 auth: .init(emitLocalSessionAsInitialSession: true)
             )
         )
-        // Start listening za auth state changes (token refresh, signed out iz drugih tab-ova/uređaja)
-        self.authListenerTask = Task { [weak self] in
-            await self?.listenToAuthChanges()
+        // Start listening za auth state changes (token refresh, signed out iz drugih tab-ova/uređaja).
+        // `weak self` da bi listener task umro ako instance nestane.
+        let listener = Task { [weak self] () -> Void in
+            guard let self else { return }
+            await self.listenToAuthChanges()
         }
+        self.authListenerTask = listener
     }
 
-    deinit {
-        authListenerTask?.cancel()
+    /// `nonisolated` deinit — Task.cancel() je dokumentovano thread-safe pa može
+    /// da se zove iz bilo kog konteksta. `MainActor` deinit u Swift 6 ne sme da
+    /// dotakne main-isolated state, ali Task tip je sam-Sendable.
+    nonisolated deinit {
+        authListenerTask.cancel()
     }
 
     // MARK: - Session Management
@@ -164,7 +172,9 @@ final class SupabaseManager {
     // MARK: - Private
 
     private func randomNonceString(length: Int = 32) throws -> String {
-        precondition(length > 0)
+        guard length > 0 else {
+            throw SupabaseAuthError.nonceGenerationFailed(osStatus: -1)
+        }
         var randomBytes = [UInt8](repeating: 0, count: length)
         let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
         if errorCode != errSecSuccess {

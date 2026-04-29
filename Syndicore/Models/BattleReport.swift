@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-struct BattleReport: Codable, Identifiable {
+struct BattleReport: Codable, Identifiable, Sendable {
     let id: String
     let attackerWon: Bool
     let targetX: Int
@@ -39,13 +39,13 @@ struct BattleReport: Codable, Identifiable {
 }
 
 /// Optional modifiers on a battle report — present for rally battles, etc.
-struct BattleModifiers: Codable {
+struct BattleModifiers: Codable, Sendable {
     let rallyId: String?
     let rallyParticipants: [RallyBattleParticipant]?
 }
 
 /// Per-participant contribution and return in a rally battle.
-struct RallyBattleParticipant: Codable, Identifiable {
+struct RallyBattleParticipant: Codable, Identifiable, Sendable {
     var id: String { playerWorldId }
     let playerWorldId: String
     let username: String
@@ -55,7 +55,7 @@ struct RallyBattleParticipant: Codable, Identifiable {
 }
 
 // ArmySnapshot uses [UnitType: Int] but JSON has [String: Int] keys — custom Codable required.
-struct ArmySnapshot: Codable {
+struct ArmySnapshot: Codable, Sendable {
     let before: [UnitType: Int]
     let after: [UnitType: Int]
     let lost: [UnitType: Int]
@@ -90,7 +90,7 @@ struct ArmySnapshot: Codable {
 }
 
 // TroopMovement uses [UnitType: Int] for units and renamed viaGates — custom Codable required.
-struct TroopMovement: Codable, Identifiable {
+struct TroopMovement: Codable, Identifiable, Sendable {
     let id: String
     let type: MovementType
     let from: Coordinate
@@ -105,6 +105,8 @@ struct TroopMovement: Codable, Identifiable {
         case id, type, from, to, units, viaGates, departedAt, arrivesAt, isReturning
     }
 
+    private static let log = Logger(subsystem: "com.syndicore.ios", category: "TroopMovement")
+
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id          = try c.decode(String.self,       forKey: .id)
@@ -116,8 +118,7 @@ struct TroopMovement: Codable, Identifiable {
             if let unit = UnitType(rawValue: kv.key) {
                 acc[unit] = kv.value
             } else {
-                Logger(subsystem: "com.syndicore.ios", category: "TroopMovement")
-                    .warning("Unknown UnitType '\(kv.key, privacy: .public)' dropped during decoding (count: \(kv.value))")
+                Self.log.warning("Unknown UnitType '\(kv.key, privacy: .public)' dropped during decoding (count: \(kv.value))")
             }
         }
         viaGates    = try c.decode([String].self,     forKey: .viaGates)
@@ -140,7 +141,7 @@ struct TroopMovement: Codable, Identifiable {
     }
 }
 
-struct Coordinate: Codable, Hashable {
+struct Coordinate: Codable, Hashable, Sendable {
     let x: Int
     let y: Int
 }
@@ -151,7 +152,7 @@ struct Coordinate: Codable, Hashable {
 /// BE contract:
 ///   GET /movements?limit=50 → { items: [...], nextCursor: "mv_abc" | null, hasMore: bool }
 ///   GET /movements?limit=50&before=<cursor> → sledeca strana
-struct PaginatedResponse<Item: Codable>: Codable {
+struct PaginatedResponse<Item: Codable & Sendable>: Codable, Sendable {
     let items: [Item]
     let nextCursor: String?
     let hasMore: Bool
@@ -160,12 +161,12 @@ struct PaginatedResponse<Item: Codable>: Codable {
 typealias PaginatedMovementsResponse = PaginatedResponse<TroopMovement>
 typealias PaginatedReportsResponse   = PaginatedResponse<BattleReport>
 
-struct SendTroopsResponse: Codable {
+struct SendTroopsResponse: Codable, Sendable {
     let movement: TroopMovement
     let route: Route
 }
 
-struct Route: Codable {
+struct Route: Codable, Sendable {
     let direct: Bool
     let viaGates: [String]
     let travelMinutes: Double

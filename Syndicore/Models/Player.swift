@@ -1,6 +1,6 @@
 import Foundation
 
-struct Player: Codable, Identifiable {
+struct Player: Codable, Identifiable, Sendable {
     let id: String
     let username: String
     let createdAt: Date
@@ -8,7 +8,7 @@ struct Player: Codable, Identifiable {
     let worlds: [PlayerWorld]?
 }
 
-struct PlayerWorld: Codable, Identifiable {
+struct PlayerWorld: Codable, Identifiable, Sendable {
     let id: String
     let playerId: String?   // nije u join response-u, prisutan u GET /me
     let worldId: String?    // nije u join response-u, prisutan u GET /me
@@ -26,7 +26,7 @@ struct PlayerWorld: Codable, Identifiable {
 }
 
 /// Lightweight syndikat info embedded in PlayerWorld (from GET /me).
-struct SyndikatSummary: Codable {
+struct SyndikatSummary: Codable, Sendable {
     let id: String
     let name: String
     let tag: String
@@ -34,19 +34,19 @@ struct SyndikatSummary: Codable {
 
 // MARK: - API
 
-struct MeResponse: Codable {
+struct MeResponse: Codable, Sendable {
     let player: Player
 }
 
-struct OnboardingRequest: Codable {
+struct OnboardingRequest: Codable, Sendable {
     let username: String
 }
 
-struct JoinWorldRequest: Codable {
+struct JoinWorldRequest: Codable, Sendable {
     let faction: Faction
 }
 
-struct JoinWorldResponse: Codable {
+struct JoinWorldResponse: Codable, Sendable {
     let playerWorld: PlayerWorld
     let city: City?
     let tile: TileInfo?

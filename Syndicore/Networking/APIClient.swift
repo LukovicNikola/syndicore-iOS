@@ -10,7 +10,7 @@ final class APIClient: @unchecked Sendable {
     let decoder: JSONDecoder
     let encoder: JSONEncoder
 
-    static let log = Logger(subsystem: "com.syndicore.ios", category: "APIClient")
+    nonisolated static let log = Logger(subsystem: "com.syndicore.ios", category: "APIClient")
 
     init(
         baseURL: URL,
@@ -156,7 +156,8 @@ final class APIClient: @unchecked Sendable {
             }
             throw APIError.unauthorized
         case 404:
-            if let onboarding = try? decoder.decode(OnboardingRequiredResponse.self, from: data) {
+            if let onboarding = try? decoder.decode(OnboardingRequiredResponse.self, from: data),
+               onboarding.error == BEErrorCode.onboardingRequired.rawValue {
                 throw APIError.onboardingRequired(onboarding)
             }
             throw APIError.notFound

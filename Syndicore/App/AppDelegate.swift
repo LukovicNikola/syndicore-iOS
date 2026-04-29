@@ -4,6 +4,7 @@ import os
 
 /// Handles APNS device token registration and foreground notification presentation.
 /// Wired via `@UIApplicationDelegateAdaptor` in SyndicoreApp.
+@MainActor
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
     private static let log = Logger(subsystem: "com.syndicore.ios", category: "AppDelegate")

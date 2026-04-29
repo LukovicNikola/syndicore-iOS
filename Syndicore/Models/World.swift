@@ -1,6 +1,6 @@
 import Foundation
 
-struct World: Codable, Identifiable, Equatable {
+struct World: Codable, Identifiable, Equatable, Sendable {
     let id: String
     let name: String
     let slug: String
@@ -11,6 +11,6 @@ struct World: Codable, Identifiable, Equatable {
     let playerCount: Int
 }
 
-struct WorldsResponse: Codable {
+struct WorldsResponse: Codable, Sendable {
     let worlds: [World]
 }
