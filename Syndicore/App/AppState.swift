@@ -107,7 +107,7 @@ final class GameState {
     private var isRefreshingReports = false
 
     /// Observer for APNS device token delivery (from AppDelegate).
-    private var deviceTokenObserver: NSObjectProtocol?
+    nonisolated(unsafe) private var deviceTokenObserver: NSObjectProtocol?
 
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.

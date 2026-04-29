@@ -12,7 +12,7 @@ final class ElectricArcNode: SKNode {
     /// pa cikliramo kroz njih svake sekvence. Pre toga smo regenerisali CGMutablePath
     /// 16 puta u sekundi za svaki Power Grid što je značajna allocation pressure.
     private static let zigzagPaths: [CGPath] = {
-        (0..<8).map { _ in Self.makeZigzagPath() }
+        (0..<8).map { _ in ElectricArcNode.makeZigzagPath() }
     }()
 
     private var pathIndex = 0
