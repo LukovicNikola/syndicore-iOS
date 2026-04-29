@@ -23,7 +23,11 @@ struct CityView: View {
                 onTapEmptySlot: { tappedSlotIndex = $0 },
                 onConstructionComplete: {
                     Task { await gameState.refreshCity() }
-                }
+                },
+                onWorldMapTapped:  { gameState.selectedTab = .map },
+                onHomeTapped:      { /* already on city */ },
+                onResearchTapped:  { gameState.selectedTab = .research },
+                onSyndicateTapped: { gameState.selectedTab = .syndikat }
             )
             .ignoresSafeArea()
 

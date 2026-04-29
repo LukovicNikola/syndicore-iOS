@@ -25,11 +25,24 @@ final class CityScene: SKScene {
     /// SwiftUI sloj wire-uje na refreshCity() da povuče novi state sa BE-a.
     var onConstructionComplete: (() -> Void)?
 
+    /// Bottom nav button callbacks — wired from CitySceneView/CityView.
+    var onWorldMapTapped:   (() -> Void)?
+    var onHomeTapped:       (() -> Void)?
+    var onResearchTapped:   (() -> Void)?
+    var onSyndicateTapped:  (() -> Void)?
+
     // MARK: - Private
 
     private let worldNode = SKNode()
+    private let hudLayer  = SKNode()          // UI layer — fixed to screen, zPosition 1000+
     private var skyboxNode: SKSpriteNode?
     private var attachedGestures: [UIGestureRecognizer] = []
+
+    // Bottom nav buttons
+    private var btnWorldMap:   SKSpriteNode?
+    private var btnHome:       SKSpriteNode?
+    private var btnResearch:   SKSpriteNode?
+    private var btnSyndicate:  SKSpriteNode?
 
     private let tileSet = CityTileSet.build()
     private var tileMapNode: SKTileMapNode?
@@ -116,6 +129,13 @@ final class CityScene: SKScene {
             buildTileMap()
         }
 
+        // HUD layer — fixed to screen, above everything
+        if hudLayer.parent == nil {
+            hudLayer.zPosition = 1000
+            addChild(hudLayer)
+            buildNavButtons()
+        }
+
         // Long-press gesture za tooltip — re-attach na novi view
         attachLongPressGesture(to: view)
         // layoutWorld() ide u didChangeSize — size je u didMove jos uvek 0
@@ -184,6 +204,7 @@ final class CityScene: SKScene {
         guard size.width > 0, size.height > 0 else { return }
         resizeSkybox(to: size)
         layoutWorld(viewSize: size)
+        layoutNavButtons()
     }
 
     private func resizeSkybox(to targetSize: CGSize) {
@@ -242,6 +263,60 @@ final class CityScene: SKScene {
         } else if !enabled, let overlay = debugOverlay {
             overlay.removeFromParent()
             debugOverlay = nil
+        }
+    }
+
+    // MARK: - Nav Buttons
+
+    private func buildNavButtons() {
+        // Placeholder size — layoutNavButtons will resize based on screen width
+        let buttonSize = CGSize(width: 80, height: 80)
+
+        func makeButton(named assetName: String) -> SKSpriteNode {
+            let btn = SKSpriteNode(imageNamed: assetName)
+            btn.size = buttonSize
+            btn.name = assetName
+            btn.zPosition = 1
+            hudLayer.addChild(btn)
+            return btn
+        }
+
+        btnWorldMap  = makeButton(named: "button_world_map")
+        btnHome      = makeButton(named: "button_home")
+        btnResearch  = makeButton(named: "button_research")
+        btnSyndicate = makeButton(named: "button_syndicate")
+    }
+
+    /// Pozicionira 4 nav dugmeta ravnomerno na dnu ekrana.
+    /// Order: WORLD MAP | HOME | RESEARCH | SYNDICATE
+    private func layoutNavButtons() {
+        guard size.width > 0, size.height > 0 else { return }
+
+        let safeBottomInset: CGFloat = view?.safeAreaInsets.bottom ?? 0
+        let safeLeftInset:   CGFloat = view?.safeAreaInsets.left ?? 0
+        let safeRightInset:  CGFloat = view?.safeAreaInsets.right ?? 0
+        let bottomY = -size.height / 2 + safeBottomInset + 45
+
+        // 4 buttons, each ~18% of screen width, with equal gaps
+        let usableWidth = size.width - safeLeftInset - safeRightInset - 40  // 20pt margin each side
+        let btnWidth = usableWidth * 0.20
+        let btnSize = CGSize(width: btnWidth, height: btnWidth)  // square aspect
+
+        let buttons = [btnWorldMap, btnHome, btnResearch, btnSyndicate]
+        let count = CGFloat(buttons.count)
+        let totalButtonsWidth = count * btnWidth
+        let totalGap = usableWidth - totalButtonsWidth
+        let gap = totalGap / (count - 1)
+
+        // Left edge of first button center
+        let startX = -usableWidth / 2 + btnWidth / 2
+
+        for (i, btn) in buttons.enumerated() {
+            btn?.size = btnSize
+            btn?.position = CGPoint(
+                x: startX + CGFloat(i) * (btnWidth + gap),
+                y: bottomY
+            )
         }
     }
 
@@ -412,6 +487,23 @@ final class CityScene: SKScene {
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first, let tileMap = tileMapNode else { return }
+
+        // Check HUD layer first (nav buttons)
+        let locationInHud = touch.location(in: hudLayer)
+        if let tappedBtn = hudLayer.nodes(at: locationInHud).first(where: { $0 is SKSpriteNode }) as? SKSpriteNode,
+           [btnWorldMap, btnHome, btnResearch, btnSyndicate].contains(tappedBtn) {
+            animateButtonTap(tappedBtn)
+            hapticTap.impactOccurred()
+            switch tappedBtn {
+            case btnWorldMap:  onWorldMapTapped?()
+            case btnHome:      onHomeTapped?()
+            case btnResearch:  onResearchTapped?()
+            case btnSyndicate: onSyndicateTapped?()
+            default: break
+            }
+            return
+        }
+
         let locationInWorld = touch.location(in: worldNode)
 
         // Reset prethodno selected tile + HQ selected stanje + pulse overlay.
@@ -483,5 +575,15 @@ final class CityScene: SKScene {
             }
         }
         return nil
+    }
+
+    /// Scale-down + scale-up tap animacija za nav dugmice.
+    private func animateButtonTap(_ node: SKSpriteNode) {
+        node.removeAction(forKey: "btnTap")
+        let down = SKAction.scale(to: 0.85, duration: 0.08)
+        down.timingMode = .easeOut
+        let up = SKAction.scale(to: 1.0, duration: 0.08)
+        up.timingMode = .easeIn
+        node.run(.sequence([down, up]), withKey: "btnTap")
     }
 }

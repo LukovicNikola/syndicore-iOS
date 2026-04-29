@@ -25,6 +25,12 @@ final class GameState {
 
     var activeScreen: Screen = .splash
 
+    /// Tab unutar MainGameView — driven from SpriteKit nav buttons or SwiftUI.
+    enum GameTab: String, CaseIterable {
+        case city, map, army, syndikat, research, codex, settings
+    }
+    var selectedTab: GameTab = .city
+
     /// Za SwiftUI animaciju tranzicija između ekrana
     var screenId: String {
         switch activeScreen {

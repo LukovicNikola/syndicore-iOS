@@ -54,13 +54,13 @@ struct CyberpunkBuildQueue: View {
             .frame(width: 220)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(red: 0.04, green: 0.04, blue: 0.10).opacity(0.92))
+                    .fill(Color(red: 0.04, green: 0.04, blue: 0.10).opacity(0.55))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(Color.cyan.opacity(0.6), lineWidth: 1)
             )
-            .shadow(color: .cyan.opacity(0.3), radius: 8)
+            .shadow(color: .cyan.opacity(0.2), radius: 6)
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
                 refreshTrigger = date
             }
@@ -110,10 +110,14 @@ private struct QueueRow: View {
     let endsAt: Date
     let now: Date
 
-    private var totalDuration: TimeInterval { max(1, endsAt.timeIntervalSince(now) + elapsed) }
-    private var elapsed: TimeInterval { max(0, now.timeIntervalSince(endsAt.addingTimeInterval(-totalDuration))) }
+    @State private var initialRemaining: TimeInterval?
+
     private var remaining: TimeInterval { max(0, endsAt.timeIntervalSince(now)) }
-    private var progress: Double { min(1.0, 1.0 - (remaining / max(1, remaining + 1))) }
+
+    private var progress: Double {
+        guard let initial = initialRemaining, initial > 0 else { return 0 }
+        return min(1.0, 1.0 - (remaining / initial))
+    }
 
     private var formattedRemaining: String {
         let total = Int(remaining)
@@ -165,6 +169,11 @@ private struct QueueRow: View {
             }
         }
         .frame(height: 32)
+        .onAppear {
+            if initialRemaining == nil {
+                initialRemaining = max(1, endsAt.timeIntervalSince(Date()))
+            }
+        }
     }
 }
 
