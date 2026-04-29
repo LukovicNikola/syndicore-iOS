@@ -29,15 +29,12 @@
   "resources": ["credits", "alloys", "tech", "energy"],
 
   "units": {
-    "grunt":     { "atk": 30,  "def": 12, "spd": 11, "carry": 40,  "energy": 1, "train_min": 8,   "cost": { "credits": 120, "alloys": 30 },  "trains_at": "BARRACKS",   "unlock_level": 1 },
-    "enforcer":  { "atk": 65,  "def": 35, "spd": 8,  "carry": 20,  "energy": 2, "train_min": 18,  "cost": { "credits": 280, "alloys": 90 },  "trains_at": "BARRACKS",   "unlock_level": 5 },
-    "sentinel":  { "atk": 20,  "def": 70, "spd": 6,  "carry": 10,  "energy": 3, "train_min": 24,  "cost": { "alloys": 300, "credits": 80 },  "trains_at": "BARRACKS",   "unlock_level": 10 },
-    "striker":   { "atk": 60,  "def": 20, "spd": 20, "carry": 60,  "energy": 3, "train_min": 22,  "cost": { "credits": 400, "alloys": 100 }, "trains_at": "MOTOR_POOL", "unlock_level": 1 },
-    "hauler":    { "atk": 0,   "def": 15, "spd": 14, "carry": 120, "energy": 1, "train_min": 12,  "cost": { "credits": 150 },                "trains_at": "MOTOR_POOL", "unlock_level": 5 },
-    "phantom":   { "atk": 5,   "def": 5,  "spd": 24, "carry": 0,   "energy": 1, "train_min": 10,  "cost": { "credits": 60, "tech": 40 },     "trains_at": "OPS_CENTER", "unlock_level": 5 },
-    "buster":    { "atk": 10,  "def": 8,  "spd": 4,  "carry": 0,   "energy": 5, "train_min": 40,  "cost": { "tech": 350, "alloys": 200 },    "trains_at": "OPS_CENTER", "unlock_level": 10 },
-    "titan":     { "atk": 200, "def": 200,"spd": 4,  "carry": 0,   "energy": 15,"train_min": 180, "cost": { "credits": 50000, "alloys": 50000, "tech": 30000 }, "trains_at": "WAR_FACTORY", "unlock_level": 1, "max_per_clan": 5 },
-    "settler":   { "atk": 0,   "def": 0,  "spd": 5,  "carry": 0,   "energy": 0, "train_min": 120, "cost": { "credits": 10000, "alloys": 10000, "tech": 5000 }, "trains_at": "HQ", "unlock_level": 20 }
+    "ronin":     { "role": "light_infantry",  "atk": 30,  "def": 12, "spd": 11, "carry": 40,  "energy": 1, "train_min": 2,  "cost": { "credits": 50,  "alloys": 30 },                "trains_at": "BARRACKS",   "unlock_level": 1 },
+    "vanguard":  { "role": "heavy_infantry",  "atk": 75,  "def": 65, "spd": 7,  "carry": 25,  "energy": 2, "train_min": 6,  "cost": { "credits": 120, "alloys": 80,  "tech": 20 },   "trains_at": "BARRACKS",   "unlock_level": 5 },
+    "wraith":    { "role": "fast_vehicle",    "atk": 65,  "def": 25, "spd": 18, "carry": 100, "energy": 3, "train_min": 8,  "cost": { "credits": 150, "alloys": 100, "tech": 30 },   "trains_at": "MOTOR_POOL", "unlock_level": 1 },
+    "cipher":    { "role": "scout",           "atk": 5,   "def": 5,  "spd": 24, "carry": 0,   "energy": 1, "train_min": 5,  "cost": { "credits": 80,  "alloys": 40,  "tech": 60 },   "trains_at": "OPS_CENTER", "unlock_level": 5 },
+    "breaker":   { "role": "siege",           "atk": 15,  "def": 10, "spd": 4,  "carry": 0,   "energy": 5, "train_min": 15, "cost": { "credits": 200, "alloys": 150, "tech": 100 },  "trains_at": "OPS_CENTER", "unlock_level": 10, "siege_damage": 100 },
+    "architect": { "role": "expansion",       "atk": 0,   "def": 0,  "spd": 5,  "carry": 0,   "energy": 0, "train_min": 30, "cost": { "credits": 200, "alloys": 200, "tech": 200 },  "trains_at": "HQ",         "unlock_level": 10, "max_count": 2, "abilities": ["FOUND_OUTPOST", "CRYSTAL_IMPLOSION"] }
   },
 
   "building_formulas": {
@@ -53,121 +50,364 @@
       "power_grid": { "produces": "energy",  "base_rate": 80, "max_rate": 1200, "max_level": 20, "base_cost": { "credits": 100, "alloys": 80 }, "base_time_minutes": 5 }
     },
     "fixed": {
-      "hq":           { "max_level": 20, "settler_unlock": { "10": 2, "15": 3, "20": 4 }, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
-      "barracks":     { "max_level": 20, "unlocks": { "1": "fodder", "5": "core", "10": "specialist" },                "base_cost": { "credits": 150, "alloys": 100 },             "base_time_minutes": 8 },
-      "motor_pool":   { "max_level": 20, "unlocks": { "1": "vehicle", "5": "transport" },                              "base_cost": { "credits": 200, "alloys": 150 },             "base_time_minutes": 8 },
-      "ops_center":   { "max_level": 20, "unlocks": { "5": "scout", "10": "siege" },                                   "base_cost": { "credits": 150, "alloys": 100, "tech": 80 }, "base_time_minutes": 8 },
+      "hq":           { "max_level": 20, "architect_unlock_level": 10, "architect_max": 2, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
+      "barracks":     { "max_level": 20, "unlocks": { "1": "ronin", "5": "vanguard" },                                 "base_cost": { "credits": 150, "alloys": 100 },             "base_time_minutes": 8 },
+      "motor_pool":   { "max_level": 20, "unlocks": { "1": "wraith" },                                                 "base_cost": { "credits": 200, "alloys": 150 },             "base_time_minutes": 8 },
+      "ops_center":   { "max_level": 20, "unlocks": { "5": "cipher", "10": "breaker" },                                "base_cost": { "credits": 150, "alloys": 100, "tech": 80 }, "base_time_minutes": 8 },
       "warehouse":    { "max_level": 20, "protection_min": 2000, "protection_max": 50000,                              "base_cost": { "credits": 100, "alloys": 150 },             "base_time_minutes": 6 },
       "wall":         { "max_level": 20, "def_bonus_min": 0.03, "def_bonus_max": 0.40,                                 "base_cost": { "credits": 50,  "alloys": 200 },             "base_time_minutes": 8 },
       "watchtower":   { "max_level": 20,                                                                                "base_cost": { "credits": 80,  "alloys": 80, "tech": 50 }, "base_time_minutes": 6 },
       "rally_point":  { "max_level": 15, "create_at": { "5": 3, "10": 5 }, "silent_march_at": 15,                      "base_cost": { "credits": 120, "alloys": 80 },              "base_time_minutes": 7 },
       "trade_post":   { "max_level": 20, "max_transaction_min": 5000, "max_transaction_max": 200000,                   "base_cost": { "credits": 150, "alloys": 50, "tech": 50 },  "base_time_minutes": 6 },
-      "research_lab": { "max_level": 20, "points": { "1": 5, "5": 15, "10": 30, "15": 45, "20": 60 },                 "base_cost": { "credits": 100, "alloys": 100, "tech": 100 },"base_time_minutes": 10 }
+      "research_lab": { "max_level": 20, "rp_per_hour_formula": "1 + floor((level - 1) / 2)",                       "base_cost": { "credits": 100, "alloys": 100, "tech": 100 },"base_time_minutes": 10 }
     }
   },
 
-  "tech_tree": {
-    "research_cost_multiplier": 1.6,
-    "research_time_multiplier": 1.5,
+  "talent_tree": {
+    "config": {
+      "_doc": "V3 Phase 4b. Standard tree: 3 branches × 10 nodes × 5 levels (150 level-purchases). Faction tree: 5 units × 15 nodes × 1 level per faction (75 nodes/faction). Cost target ≈36 000 RP for full upgrade — calibrated to V3 G.13 5-month progression at RL 20 (240 RP/day).",
+      "standard_cost_per_level": [50, 100, 150, 200, 250],
+      "faction_cost": 180,
+      "respec_cooldown_days": 7,
+      "respec_refund_pct": 1.0
+    },
 
-    "universal": {
-      "LOGISTICS": {
-        "max_level": 5,
-        "point_costs": [1, 1, 2, 2, 3],
-        "base_cost": { "credits": 400, "tech": 300 },
-        "base_time_minutes": 20,
-        "effects": [
-          { "production_bonus": 0.05 },
-          { "production_bonus": 0.10 },
-          { "production_bonus": 0.15 },
-          { "production_bonus": 0.20 },
-          { "production_bonus": 0.25, "capstone": "FREE_MARKET" }
-        ]
-      },
-      "SIEGE_ENGINEERING": {
-        "max_level": 5,
-        "point_costs": [1, 1, 2, 2, 3],
-        "base_cost": { "credits": 500, "alloys": 400 },
-        "base_time_minutes": 25,
-        "effects": [
-          { "siege_bonus": 0.10 },
-          { "siege_bonus": 0.20 },
-          { "siege_bonus": 0.35 },
-          { "siege_bonus": 0.50 },
-          { "siege_bonus": 0.50, "capstone": "CARPET_BOMB" }
-        ]
-      },
-      "MOBILIZATION": {
-        "max_level": 5,
-        "point_costs": [1, 1, 2, 2, 3],
-        "base_cost": { "credits": 350, "alloys": 200, "tech": 150 },
-        "base_time_minutes": 20,
-        "effects": [
-          { "training_speed": 0.05 },
-          { "training_speed": 0.10, "movement_speed": 0.05 },
-          { "training_speed": 0.15, "movement_speed": 0.10 },
-          { "training_speed": 0.20, "movement_speed": 0.15 },
-          { "training_speed": 0.20, "movement_speed": 0.20, "capstone": "RAPID_EXPANSION" }
-        ]
-      }
+    "standard": {
+      "LOGISTICS": [
+        { "key": "logi_credits",     "label": "Profit Margins",      "effect_per_level": { "credits_production_bonus": 0.01 } },
+        { "key": "logi_alloys",      "label": "Smelter Optimization", "effect_per_level": { "alloys_production_bonus": 0.01 } },
+        { "key": "logi_tech",        "label": "Compiler Tuning",      "effect_per_level": { "tech_production_bonus": 0.01 } },
+        { "key": "logi_energy",      "label": "Reactor Tuning",       "effect_per_level": { "energy_production_bonus": 0.01 } },
+        { "key": "logi_build_speed", "label": "Construction Crew",    "effect_per_level": { "build_speed_bonus": 0.01 } },
+        { "key": "logi_train_speed", "label": "Drill Sergeant",       "effect_per_level": { "training_speed_bonus": 0.01 } },
+        { "key": "logi_storage",     "label": "Reinforced Storage",   "effect_per_level": { "storage_cap_bonus": 0.02 } },
+        { "key": "logi_trade",       "label": "Black Market Ties",    "effect_per_level": { "trade_fee_bonus": -0.01 } },
+        { "key": "logi_rp",          "label": "Research Throughput",  "effect_per_level": { "rp_per_hour_bonus": 0.1 } },
+        { "key": "logi_settle",      "label": "Logistics Networks",   "effect_per_level": { "settle_cost_bonus": -0.01 } }
+      ],
+
+      "SIEGE_ENGINEERING": [
+        { "key": "siege_atk",         "label": "Combat Drills",        "effect_per_level": { "atk_bonus": 0.01 } },
+        { "key": "siege_def",         "label": "Defensive Doctrine",   "effect_per_level": { "def_bonus": 0.01 } },
+        { "key": "siege_damage",      "label": "Heavy Ordnance",       "effect_per_level": { "siege_bonus": 0.01 } },
+        { "key": "siege_wall_hp",     "label": "Reinforced Outposts",  "effect_per_level": { "outpost_wall_hp_bonus": 0.05 } },
+        { "key": "siege_scout",       "label": "Recon Mastery",        "effect_per_level": { "scout_power_bonus": 0.01 } },
+        { "key": "siege_watchtower",  "label": "Sentinel Network",     "effect_per_level": { "watchtower_detail_bonus": 1 } },
+        { "key": "siege_loot",        "label": "Cargo Riggers",        "effect_per_level": { "loot_cap_bonus": 0.02 } },
+        { "key": "siege_march_size",  "label": "Forward Operations",   "effect_per_level": { "march_size_bonus": 0.05 } },
+        { "key": "siege_garrison",    "label": "Home Front Drill",     "effect_per_level": { "garrison_def_bonus": 0.01 } },
+        { "key": "siege_return_speed","label": "Quick March Home",     "effect_per_level": { "return_speed_bonus": 0.02 } }
+      ],
+
+      "MOBILIZATION": [
+        { "key": "mob_movement",      "label": "Optimized Routing",    "effect_per_level": { "movement_speed": 0.01 } },
+        { "key": "mob_architect_train","label": "Specialist Cadre",    "effect_per_level": { "architect_training_time_bonus": -0.01 } },
+        { "key": "mob_outpost_limit", "label": "Distributed Command",  "effect_per_level": { "outpost_limit_bonus": 0.2 } },
+        { "key": "mob_sabo_resistance","label": "Counter-Intel Net",   "effect_per_level": { "sabotage_resistance_bonus": 0.02 } },
+        { "key": "mob_alert_window",  "label": "Early Warning",        "effect_per_level": { "alert_window_minutes": 5 } },
+        { "key": "mob_ally_support",  "label": "Brother In Arms",      "effect_per_level": { "ally_support_bonus": 0.01 } },
+        { "key": "mob_crystal_effect","label": "Resonance Tuning",     "effect_per_level": { "crystal_effect_bonus": 0.01 } },
+        { "key": "mob_repair_speed",  "label": "Field Repair",         "effect_per_level": { "repair_speed_bonus": 0.05 } },
+        { "key": "mob_rp_cost_reduction","label": "Lab Efficiency",    "effect_per_level": { "rp_cost_reduction_bonus": -0.01 } },
+        { "key": "mob_expansion_radius","label": "Expanded Range",     "effect_per_level": { "expansion_range_bonus": 1 } }
+      ]
     },
 
     "faction": {
-      "AGGRESSION_PROTOCOL": {
-        "faction": "REAPERS",
-        "max_level": 10,
-        "point_costs": [1, 1, 2, 2, 2, 3, 3, 3, 3, 3],
-        "base_cost": { "credits": 600, "alloys": 300 },
-        "base_time_minutes": 30,
-        "effects": [
-          { "unit_mod": "GRUNT", "spd": 5 },
-          { "atk_bonus": 0.08 },
-          { "special": "STRIKER_LOOT_FIRST" },
-          { "atk_bonus": 0.15 },
-          { "special": "GRUNT_DEATH_BONUS" },
-          { "unit_mod": "ENFORCER", "atk": 15 },
-          { "special": "PHANTOM_ATK_EXPOSE" },
-          { "atk_bonus": 0.20 },
-          { "special": "BUSTER_REBUILD_LOCK" },
-          { "special": "LAST_STAND", "atk_bonus": 0.20 }
+      "REAPERS": {
+        "_theme": "Aggressive — speed, ATK, raid efficiency",
+        "RONIN": [
+          { "key": "fr_ronin_atk",        "label": "Cyber Edge",           "effect": { "ronin_atk_bonus": 0.05 } },
+          { "key": "fr_ronin_spd",        "label": "Adrenal Boost",        "effect": { "ronin_spd_bonus": 0.05 } },
+          { "key": "fr_ronin_train",      "label": "Mass Production",      "effect": { "ronin_training_time_bonus": -0.10 } },
+          { "key": "fr_ronin_carry",      "label": "Pilfered Packs",       "effect": { "ronin_carry_bonus": 0.10 } },
+          { "key": "fr_ronin_upkeep",     "label": "Cheap Reinforcements", "effect": { "ronin_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fr_ronin_vs_vanguard","label": "Light vs Heavy",       "effect": { "ronin_atk_vs_vanguard_bonus": 0.10 } },
+          { "key": "fr_ronin_swarm",      "label": "Swarm Tactics",        "effect": { "ronin_atk_swarm_bonus": 0.05 } },
+          { "key": "fr_ronin_synergy",    "label": "Cipher Sync",          "effect": { "ronin_atk_with_cipher_bonus": 0.05 } },
+          { "key": "fr_ronin_garrison",   "label": "Garrison Bonus",       "effect": { "ronin_garrison_def_bonus": 0.05 } },
+          { "key": "fr_ronin_vs_walls",   "label": "Wall Breaker",         "effect": { "ronin_siege_bonus": 0.05 } },
+
+          { "key": "fr_ronin_march",      "label": "Forced March",         "effect": { "ronin_travel_time_bonus": -0.05 } },
+          { "key": "fr_ronin_loot",       "label": "Black Market Salvage", "effect": { "ronin_loot_bonus": 0.10 } },
+          { "key": "fr_ronin_repair",     "label": "Battlefield Triage",   "effect": { "ronin_repair_time_bonus": -0.05 } },
+          { "key": "fr_ronin_stealth",    "label": "Stealth March",        "effect": { "ronin_watchtower_bypass_chance": 0.20 } },
+          { "key": "fr_ronin_capstone",   "label": "Berserker Doctrine",   "effect": { "ronin_atk_bonus": 0.05, "ronin_training_time_bonus": -0.05, "ronin_travel_time_bonus": -0.05, "rename_unit": "Berserker Ronin" }, "capstone": true }
+        ],
+        "VANGUARD": [
+          { "key": "fr_vanguard_atk",     "label": "Heavy Hitter",        "effect": { "vanguard_atk_bonus": 0.05 } },
+          { "key": "fr_vanguard_spd",     "label": "Combat Stims",        "effect": { "vanguard_spd_bonus": 0.05 } },
+          { "key": "fr_vanguard_train",   "label": "Reckless Training",   "effect": { "vanguard_training_time_bonus": -0.05 } },
+          { "key": "fr_vanguard_carry",   "label": "Bandolier",           "effect": { "vanguard_carry_bonus": 0.10 } },
+          { "key": "fr_vanguard_upkeep",  "label": "Bloody Veterans",     "effect": { "vanguard_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fr_vanguard_breakthrough","label": "Breakthrough",    "effect": { "vanguard_atk_vs_walls_bonus": 0.10 } },
+          { "key": "fr_vanguard_veteran", "label": "Veteran Force",       "effect": { "vanguard_atk_veteran_bonus": 0.05 } },
+          { "key": "fr_vanguard_synergy", "label": "Crush Tactics",       "effect": { "vanguard_siege_bonus": 0.05 } },
+          { "key": "fr_vanguard_garrison","label": "Counter-Charge",      "effect": { "vanguard_garrison_atk_bonus": 0.05 } },
+          { "key": "fr_vanguard_anti_cipher","label": "Anti-Cipher",      "effect": { "vanguard_atk_vs_cipher_bonus": 0.10 } },
+
+          { "key": "fr_vanguard_rage",    "label": "Rage Drive",          "effect": { "vanguard_streak_atk_bonus": 0.05 } },
+          { "key": "fr_vanguard_loot",    "label": "Spoils of War",       "effect": { "vanguard_loot_bonus": 0.10 } },
+          { "key": "fr_vanguard_march",   "label": "Reaver March",        "effect": { "vanguard_travel_time_bonus": -0.05 } },
+          { "key": "fr_vanguard_stealth", "label": "Brutal Surprise",     "effect": { "vanguard_watchtower_bypass_chance": 0.10 } },
+          { "key": "fr_vanguard_capstone","label": "Reaver Doctrine",     "effect": { "vanguard_atk_bonus": 0.05, "vanguard_travel_time_bonus": -0.05, "rename_unit": "Reaver Vanguard" }, "capstone": true }
+        ],
+        "WRAITH": [
+          { "key": "fr_wraith_spd",       "label": "Overcharged Engines", "effect": { "wraith_spd_bonus": 0.05 } },
+          { "key": "fr_wraith_atk",       "label": "Light Plating",       "effect": { "wraith_atk_bonus": 0.05 } },
+          { "key": "fr_wraith_upkeep",    "label": "Cheap Fuel",          "effect": { "wraith_energy_upkeep_bonus": -0.05 } },
+          { "key": "fr_wraith_carry",     "label": "Loot Hunters",        "effect": { "wraith_carry_bonus": 0.10 } },
+          { "key": "fr_wraith_train",     "label": "Garage Mechanics",    "effect": { "wraith_training_time_bonus": -0.05 } },
+
+          { "key": "fr_wraith_vs_cipher", "label": "Hunter Class",        "effect": { "wraith_atk_vs_cipher_bonus": 0.10 } },
+          { "key": "fr_wraith_pack",      "label": "Pack Tactics",        "effect": { "wraith_atk_pack_bonus": 0.05 } },
+          { "key": "fr_wraith_synergy",   "label": "Convoy Tactics",      "effect": { "wraith_atk_with_vanguard_bonus": 0.05 } },
+          { "key": "fr_wraith_garrison",  "label": "Patrol Defense",      "effect": { "wraith_garrison_def_bonus": 0.05 } },
+          { "key": "fr_wraith_vs_walls",  "label": "Ramming Speed",       "effect": { "wraith_siege_bonus": 0.05 } },
+
+          { "key": "fr_wraith_march",     "label": "Lightning Raid",      "effect": { "wraith_travel_time_bonus": -0.10 } },
+          { "key": "fr_wraith_hitrun",    "label": "Hit & Run",           "effect": { "wraith_return_time_bonus": -0.10 } },
+          { "key": "fr_wraith_loot",      "label": "Pillage Specialist",  "effect": { "wraith_loot_bonus": 0.10 } },
+          { "key": "fr_wraith_stealth",   "label": "Ghost Drives",        "effect": { "wraith_watchtower_bypass_chance": 0.20 } },
+          { "key": "fr_wraith_capstone",  "label": "Predator Doctrine",   "effect": { "wraith_spd_bonus": 0.05, "wraith_loot_bonus": 0.10, "rename_unit": "Predator Wraith" }, "capstone": true }
+        ],
+        "CIPHER": [
+          { "key": "fr_cipher_scout",     "label": "Sensor Pack",         "effect": { "cipher_scout_power_bonus": 0.05 } },
+          { "key": "fr_cipher_atk",       "label": "Combat Recon",        "effect": { "cipher_atk_bonus": 0.05 } },
+          { "key": "fr_cipher_train",     "label": "Cheap Drones",        "effect": { "cipher_training_time_bonus": -0.10 } },
+          { "key": "fr_cipher_spd",       "label": "Quick Recon",         "effect": { "cipher_spd_bonus": 0.05 } },
+          { "key": "fr_cipher_upkeep",    "label": "Drone Efficiency",    "effect": { "cipher_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fr_cipher_counter",   "label": "Counter-Scout",       "effect": { "cipher_scout_vs_cipher_bonus": 0.10 } },
+          { "key": "fr_cipher_strike",    "label": "Strike Force Sync",   "effect": { "army_atk_with_cipher_bonus": 0.05 } },
+          { "key": "fr_cipher_synergy",   "label": "Disruptive Recon",    "effect": { "scout_disrupt_watchtower_bonus": 0.10 } },
+          { "key": "fr_cipher_garrison",  "label": "Watchtower Boost",    "effect": { "cipher_garrison_scout_bonus": 0.05 } },
+          { "key": "fr_cipher_vs_outpost","label": "Outpost Recon",       "effect": { "cipher_atk_vs_outposts_bonus": 0.10 } },
+
+          { "key": "fr_cipher_speed_recon","label": "Speed Recon",        "effect": { "cipher_scout_travel_time_bonus": -0.10 } },
+          { "key": "fr_cipher_battlefield","label": "Battlefield Awareness","effect": { "post_scout_atk_bonus": 0.05 } },
+          { "key": "fr_cipher_loot",      "label": "Salvage Operator",    "effect": { "cipher_loot_bonus": 0.10 } },
+          { "key": "fr_cipher_stealth",   "label": "Phantom Recon",       "effect": { "cipher_watchtower_bypass_chance": 0.20 } },
+          { "key": "fr_cipher_capstone",  "label": "Aggressive Doctrine", "effect": { "cipher_scout_power_bonus": 0.05, "cipher_atk_bonus": 0.05, "rename_unit": "Aggressive Cipher" }, "capstone": true }
+        ],
+        "BREAKER": [
+          { "key": "fr_breaker_siege",    "label": "Heavy Hitter",        "effect": { "breaker_siege_bonus": 0.05 } },
+          { "key": "fr_breaker_spd",      "label": "Quick Setup",         "effect": { "breaker_spd_bonus": 0.05 } },
+          { "key": "fr_breaker_train",    "label": "Cheap Ordnance",      "effect": { "breaker_training_time_bonus": -0.10 } },
+          { "key": "fr_breaker_atk",      "label": "Combat Calibration",  "effect": { "breaker_atk_bonus": 0.05 } },
+          { "key": "fr_breaker_upkeep",   "label": "Industrial Production","effect": { "breaker_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fr_breaker_walls",    "label": "Wall Crusher",        "effect": { "breaker_siege_vs_walls_bonus": 0.10 } },
+          { "key": "fr_breaker_repeat",   "label": "Repeat Strike",       "effect": { "breaker_repeat_target_speed_bonus": -0.05 } },
+          { "key": "fr_breaker_synergy",  "label": "Coordinated Assault", "effect": { "breaker_siege_pack_bonus": 0.05 } },
+          { "key": "fr_breaker_garrison", "label": "Defense Line",        "effect": { "breaker_garrison_def_bonus": 0.05 } },
+          { "key": "fr_breaker_vs_outpost","label": "Outpost Specialist", "effect": { "breaker_siege_vs_outposts_bonus": 0.10 } },
+
+          { "key": "fr_breaker_multi",    "label": "Multi-Strike",        "effect": { "breaker_multi_strike_chance": 0.20 } },
+          { "key": "fr_breaker_devastate","label": "Devastating Strike",  "effect": { "breaker_extra_damage_bonus": 0.10 } },
+          { "key": "fr_breaker_loot",     "label": "Quick Resupply",      "effect": { "breaker_loot_bonus": 0.10 } },
+          { "key": "fr_breaker_stealth",  "label": "Silent Approach",     "effect": { "breaker_watchtower_bypass_chance": 0.10 } },
+          { "key": "fr_breaker_capstone", "label": "Blitz Doctrine",      "effect": { "breaker_siege_bonus": 0.05, "breaker_travel_time_bonus": -0.10, "rename_unit": "Blitz Breaker" }, "capstone": true }
         ]
       },
-      "BASTION_PROTOCOL": {
-        "faction": "HEGEMONY",
-        "max_level": 10,
-        "point_costs": [1, 1, 2, 2, 2, 3, 3, 3, 3, 3],
-        "base_cost": { "alloys": 600, "credits": 200 },
-        "base_time_minutes": 30,
-        "effects": [
-          { "unit_mod": "SENTINEL", "def": 10 },
-          { "def_bonus": 0.08 },
-          { "special": "GRUNT_WALL_HP" },
-          { "def_bonus": 0.15 },
-          { "special": "SENTINEL_AURA" },
-          { "special": "ENFORCER_HOME_BONUS" },
-          { "special": "STRIKER_DAMAGE_SHIELD" },
-          { "def_bonus": 0.20 },
-          { "special": "PHANTOM_REVEAL_ATTACKER" },
-          { "special": "WALL_REGEN", "def_bonus": 0.20 }
+
+      "HEGEMONY": {
+        "_theme": "Defensive — DEF, repair, ally support",
+        "RONIN": [
+          { "key": "fh_ronin_def",        "label": "Riot Plating",        "effect": { "ronin_def_bonus": 0.05 } },
+          { "key": "fh_ronin_atk_def",    "label": "Iron Discipline",     "effect": { "ronin_atk_bonus": 0.025, "ronin_def_bonus": 0.025 } },
+          { "key": "fh_ronin_alloys",     "label": "Bulk Training",       "effect": { "ronin_alloys_cost_bonus": -0.10 } },
+          { "key": "fh_ronin_carry",      "label": "Combat Webbing",      "effect": { "ronin_carry_bonus": 0.10 } },
+          { "key": "fh_ronin_upkeep",     "label": "Disciplined Logistics","effect": { "ronin_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fh_ronin_vs_wraith",  "label": "Anti-Fast Stance",    "effect": { "ronin_def_vs_wraith_bonus": 0.10 } },
+          { "key": "fh_ronin_wall",       "label": "Wall Synergy",        "effect": { "ronin_def_with_wall_bonus": 0.05 } },
+          { "key": "fh_ronin_brotherhood","label": "Brotherhood",         "effect": { "ronin_garrison_def_bonus": 0.05 } },
+          { "key": "fh_ronin_synergy",    "label": "Phalanx Drill",       "effect": { "ronin_def_with_vanguard_bonus": 0.05 } },
+          { "key": "fh_ronin_anti_outpost","label": "Light Skirmish",     "effect": { "ronin_atk_vs_outposts_bonus": 0.05 } },
+
+          { "key": "fh_ronin_watchtower", "label": "Watchtower Boost",    "effect": { "watchtower_detail_bonus": 1 } },
+          { "key": "fh_ronin_repair",     "label": "Field Surgeons",      "effect": { "ronin_repair_time_bonus": -0.05 } },
+          { "key": "fh_ronin_loot_def",   "label": "Resilient Reserve",   "effect": { "ronin_loot_protection_bonus": 0.10 } },
+          { "key": "fh_ronin_movement",   "label": "Defensive Maneuvers", "effect": { "ronin_garrison_response_speed_bonus": -0.10 } },
+          { "key": "fh_ronin_capstone",   "label": "Bulwark Doctrine",    "effect": { "ronin_def_bonus": 0.05, "ronin_repair_time_bonus": -0.10, "rename_unit": "Bulwark Ronin" }, "capstone": true }
+        ],
+        "VANGUARD": [
+          { "key": "fh_vanguard_def",     "label": "Reinforced Armor",    "effect": { "vanguard_def_bonus": 0.05 } },
+          { "key": "fh_vanguard_shield",  "label": "Shield Mastery",      "effect": { "vanguard_def_bonus": 0.05 } },
+          { "key": "fh_vanguard_upkeep",  "label": "Disciplined Training","effect": { "vanguard_energy_upkeep_bonus": -0.05 } },
+          { "key": "fh_vanguard_carry",   "label": "Heavy Loadout",       "effect": { "vanguard_carry_bonus": 0.10 } },
+          { "key": "fh_vanguard_train",   "label": "Steady Drill",        "effect": { "vanguard_training_time_bonus": -0.05 } },
+
+          { "key": "fh_vanguard_anti_cipher","label": "Anti-Cipher Counter","effect": { "vanguard_atk_vs_cipher_bonus": 0.10 } },
+          { "key": "fh_vanguard_synergy", "label": "Tactical Coordination","effect": { "vanguard_atk_with_ronin_bonus": 0.025, "vanguard_def_with_ronin_bonus": 0.025 } },
+          { "key": "fh_vanguard_hardened","label": "Hardened Veterans",   "effect": { "vanguard_effective_hp_bonus": 0.05 } },
+          { "key": "fh_vanguard_garrison","label": "Garrison Bonus",      "effect": { "vanguard_garrison_def_bonus": 0.10 } },
+          { "key": "fh_vanguard_charge",  "label": "Counter-Charge",      "effect": { "vanguard_atk_when_defending_bonus": 0.05 } },
+
+          { "key": "fh_vanguard_repair",  "label": "Combat Engineers",    "effect": { "vanguard_repair_time_bonus": -0.10 } },
+          { "key": "fh_vanguard_aura",    "label": "Tactical Aura",       "effect": { "army_def_with_vanguard_bonus": 0.025 } },
+          { "key": "fh_vanguard_warden",  "label": "Warden Stance",       "effect": { "vanguard_def_in_main_city_bonus": 0.10 } },
+          { "key": "fh_vanguard_loot_def","label": "Stalwart Defense",    "effect": { "loot_protection_with_vanguard_bonus": 0.10 } },
+          { "key": "fh_vanguard_capstone","label": "Bulwark Doctrine",    "effect": { "vanguard_def_bonus": 0.05, "vanguard_garrison_def_bonus": 0.10, "rename_unit": "Bulwark Vanguard" }, "capstone": true }
+        ],
+        "WRAITH": [
+          { "key": "fh_wraith_def",       "label": "Heavy Plating",       "effect": { "wraith_def_bonus": 0.05 } },
+          { "key": "fh_wraith_atk_def",   "label": "Stable Engines",      "effect": { "wraith_atk_bonus": 0.025, "wraith_def_bonus": 0.025 } },
+          { "key": "fh_wraith_upkeep",    "label": "Fuel Efficiency",     "effect": { "wraith_energy_upkeep_bonus": -0.10 } },
+          { "key": "fh_wraith_carry",     "label": "Hauler Frames",       "effect": { "wraith_carry_bonus": 0.10 } },
+          { "key": "fh_wraith_train",     "label": "Reliable Builds",     "effect": { "wraith_training_time_bonus": -0.05 } },
+
+          { "key": "fh_wraith_vs_ronin",  "label": "Anti-Light Defense",  "effect": { "wraith_def_vs_ronin_bonus": 0.10 } },
+          { "key": "fh_wraith_synergy",   "label": "Convoy Synergy",      "effect": { "wraith_def_with_vanguard_bonus": 0.05 } },
+          { "key": "fh_wraith_loot_def",  "label": "Hardened Crew",       "effect": { "wraith_loss_in_attack_bonus": -0.10 } },
+          { "key": "fh_wraith_garrison",  "label": "Patrol Routes",       "effect": { "wraith_garrison_scout_bonus": 0.05 } },
+          { "key": "fh_wraith_vs_outpost","label": "Outpost Patrol",      "effect": { "wraith_atk_vs_outposts_bonus": 0.05 } },
+
+          { "key": "fh_wraith_transport", "label": "Resource Carrier",    "effect": { "transport_capacity_bonus": 0.10 } },
+          { "key": "fh_wraith_repair",    "label": "Crew Maintenance",    "effect": { "wraith_repair_time_bonus": -0.05 } },
+          { "key": "fh_wraith_aura",      "label": "Convoy Aura",         "effect": { "convoy_def_bonus": 0.05 } },
+          { "key": "fh_wraith_anti_amb",  "label": "Anti-Ambush",         "effect": { "wraith_intercept_def_bonus": 0.05 } },
+          { "key": "fh_wraith_capstone",  "label": "Bastion Doctrine",    "effect": { "wraith_def_bonus": 0.05, "transport_capacity_bonus": 0.10, "rename_unit": "Bastion Wraith" }, "capstone": true }
+        ],
+        "CIPHER": [
+          { "key": "fh_cipher_scout",     "label": "Hardened Sensors",    "effect": { "cipher_scout_power_bonus": 0.05 } },
+          { "key": "fh_cipher_def",       "label": "Defensive Recon",     "effect": { "cipher_def_bonus": 0.05 } },
+          { "key": "fh_cipher_upkeep",    "label": "Reliable Tech",       "effect": { "cipher_energy_upkeep_bonus": -0.05 } },
+          { "key": "fh_cipher_train",     "label": "Trained Operators",   "effect": { "cipher_training_time_bonus": -0.05 } },
+          { "key": "fh_cipher_spd",       "label": "Steady Patrols",      "effect": { "cipher_spd_bonus": 0.05 } },
+
+          { "key": "fh_cipher_anti_stealth","label": "Anti-Stealth",      "effect": { "cipher_scout_vs_stealth_bonus": 0.10 } },
+          { "key": "fh_cipher_synergy",   "label": "Watchtower Sync",     "effect": { "watchtower_with_cipher_bonus": 0.05 } },
+          { "key": "fh_cipher_network",   "label": "Patrol Network",      "effect": { "cipher_garrison_scout_bonus": 0.05 } },
+          { "key": "fh_cipher_warden",    "label": "Warden Eyes",         "effect": { "alert_window_minutes": 5 } },
+          { "key": "fh_cipher_ally",      "label": "Ally Intel Share",    "effect": { "ally_scout_share": true } },
+
+          { "key": "fh_cipher_repair",    "label": "Sensor Maintenance",  "effect": { "cipher_repair_time_bonus": -0.05 } },
+          { "key": "fh_cipher_alert",     "label": "Early Warning",       "effect": { "alert_window_minutes": 15 } },
+          { "key": "fh_cipher_intel",     "label": "Intel Mastery",       "effect": { "scout_full_report_chance_bonus": 0.10 } },
+          { "key": "fh_cipher_loot_def",  "label": "Counter-Recon",       "effect": { "cipher_garrison_intel_protection_bonus": 0.10 } },
+          { "key": "fh_cipher_capstone",  "label": "Sentinel Doctrine",   "effect": { "cipher_scout_power_bonus": 0.05, "alert_window_minutes": 30, "rename_unit": "Sentinel Cipher" }, "capstone": true }
+        ],
+        "BREAKER": [
+          { "key": "fh_breaker_siege",    "label": "Heavy Munitions",     "effect": { "breaker_siege_bonus": 0.05 } },
+          { "key": "fh_breaker_def",      "label": "Reinforced Plating",  "effect": { "breaker_def_bonus": 0.05 } },
+          { "key": "fh_breaker_upkeep",   "label": "Industrial Production","effect": { "breaker_energy_upkeep_bonus": -0.05 } },
+          { "key": "fh_breaker_carry",    "label": "Heavy Carriers",      "effect": { "breaker_carry_bonus": 0.10 } },
+          { "key": "fh_breaker_train",    "label": "Methodical Training", "effect": { "breaker_training_time_bonus": -0.05 } },
+
+          { "key": "fh_breaker_buildings","label": "Building Specialist", "effect": { "breaker_siege_vs_buildings_bonus": 0.10 } },
+          { "key": "fh_breaker_synergy",  "label": "Heavy Coordination",  "effect": { "breaker_siege_with_vanguard_bonus": 0.05 } },
+          { "key": "fh_breaker_wall_def", "label": "Wall Hardening",      "effect": { "wall_def_bonus": 0.05 } },
+          { "key": "fh_breaker_garrison", "label": "Anchor Squad",        "effect": { "breaker_garrison_def_bonus": 0.05 } },
+          { "key": "fh_breaker_vs_outpost","label": "Sustained Siege",    "effect": { "breaker_siege_vs_outposts_bonus": 0.10 } },
+
+          { "key": "fh_breaker_devastate","label": "Devastating Strike",  "effect": { "breaker_extra_damage_bonus": 0.05 } },
+          { "key": "fh_breaker_loot",     "label": "Quick Resupply",      "effect": { "breaker_loot_bonus": 0.10 } },
+          { "key": "fh_breaker_repair",   "label": "Engineer Doctrine",   "effect": { "breaker_repair_time_bonus": -0.10 } },
+          { "key": "fh_breaker_aura",     "label": "Wall Aura",           "effect": { "wall_hp_bonus": 0.05 } },
+          { "key": "fh_breaker_capstone", "label": "Demolition Doctrine", "effect": { "breaker_siege_bonus": 0.10, "breaker_extra_damage_bonus": 0.10, "rename_unit": "Demolition Breaker" }, "capstone": true }
         ]
       },
-      "OVERRIDE_PROTOCOL": {
-        "faction": "NETRUNNERS",
-        "max_level": 10,
-        "point_costs": [1, 1, 2, 2, 2, 3, 3, 3, 3, 3],
-        "base_cost": { "tech": 600, "credits": 200 },
-        "base_time_minutes": 30,
-        "effects": [
-          { "production_bonus": 0.10 },
-          { "special": "PHANTOM_STEALTH_SCOUT" },
-          { "unit_mod": "GRUNT", "carry": 30 },
-          { "production_bonus": 0.20 },
-          { "special": "HAULER_STEALTH" },
-          { "special": "ENFORCER_INTEL_REPORT" },
-          { "special": "STRIKER_INTERCEPT" },
-          { "special": "BUSTER_ECON_DAMAGE" },
-          { "special": "SENTINEL_WAREHOUSE_BYPASS" },
-          { "special": "INTEL_BREACH", "production_bonus": 0.20 }
+
+      "NETRUNNERS": {
+        "_theme": "Stealth/intel — sabotage, override, hidden movement",
+        "RONIN": [
+          { "key": "fn_ronin_spd",        "label": "Stealth Mods",        "effect": { "ronin_spd_bonus": 0.05 } },
+          { "key": "fn_ronin_atk_def",    "label": "Encrypted Comms",     "effect": { "ronin_atk_bonus": 0.025, "ronin_def_bonus": 0.025 } },
+          { "key": "fn_ronin_credits",    "label": "Ghost Training",      "effect": { "ronin_credits_cost_bonus": -0.10 } },
+          { "key": "fn_ronin_carry",      "label": "Quiet Loadout",       "effect": { "ronin_carry_bonus": 0.10 } },
+          { "key": "fn_ronin_upkeep",     "label": "Low Profile",         "effect": { "ronin_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fn_ronin_mirror",    "label": "Anti-Light Counter",  "effect": { "ronin_atk_vs_ronin_bonus": 0.10 } },
+          { "key": "fn_ronin_synergy",   "label": "Cipher Network",      "effect": { "ronin_atk_with_5plus_cipher_bonus": 0.05 } },
+          { "key": "fn_ronin_loot_skim", "label": "Loot Skimmer",        "effect": { "ronin_loot_bonus": 0.05 } },
+          { "key": "fn_ronin_garrison",  "label": "Hidden Garrison",     "effect": { "ronin_garrison_intel_protection_bonus": 0.10 } },
+          { "key": "fn_ronin_vs_outpost","label": "Phantom Raid",        "effect": { "ronin_atk_vs_outposts_bonus": 0.05 } },
+
+          { "key": "fn_ronin_stealth",   "label": "Stealth March",       "effect": { "ronin_watchtower_bypass_chance": 0.20 } },
+          { "key": "fn_ronin_battle_aware","label": "Black Market Salvage","effect": { "ronin_post_kill_credits_bonus": 0.05 } },
+          { "key": "fn_ronin_repair",    "label": "Backdoor Maintenance","effect": { "ronin_repair_time_bonus": -0.05 } },
+          { "key": "fn_ronin_intel",     "label": "Decoy Strike",        "effect": { "ronin_attacker_origin_hidden_chance": 0.20 } },
+          { "key": "fn_ronin_capstone",  "label": "Phantom Doctrine",    "effect": { "ronin_spd_bonus": 0.05, "ronin_loot_bonus": 0.05, "ronin_watchtower_bypass_guaranteed": true, "rename_unit": "Phantom Ronin" }, "capstone": true }
+        ],
+        "VANGUARD": [
+          { "key": "fn_vanguard_atk_def","label": "Tactical Mods",       "effect": { "vanguard_atk_bonus": 0.025, "vanguard_def_bonus": 0.025 } },
+          { "key": "fn_vanguard_spd",    "label": "Cyber Reflex",        "effect": { "vanguard_spd_bonus": 0.05 } },
+          { "key": "fn_vanguard_train",  "label": "Optimized Training",  "effect": { "vanguard_training_time_bonus": -0.10 } },
+          { "key": "fn_vanguard_carry",  "label": "Hidden Compartments", "effect": { "vanguard_carry_bonus": 0.10 } },
+          { "key": "fn_vanguard_credits","label": "Cheap Implants",      "effect": { "vanguard_credits_cost_bonus": -0.05 } },
+
+          { "key": "fn_vanguard_hack",   "label": "Combat Hacking",      "effect": { "vanguard_atk_vs_heavy_bonus": 0.05 } },
+          { "key": "fn_vanguard_synergy","label": "Data Sync",           "effect": { "vanguard_atk_with_cipher_bonus": 0.025, "vanguard_def_with_cipher_bonus": 0.025 } },
+          { "key": "fn_vanguard_adaptive","label": "Adaptive Tactics",   "effect": { "vanguard_atk_vs_largest_bonus": 0.05 } },
+          { "key": "fn_vanguard_garrison","label": "Hidden Garrison",    "effect": { "vanguard_garrison_intel_protection_bonus": 0.10 } },
+          { "key": "fn_vanguard_vs_outpost","label": "Phantom Push",     "effect": { "vanguard_atk_vs_outposts_bonus": 0.05 } },
+
+          { "key": "fn_vanguard_override","label": "Override Strike",    "effect": { "vanguard_skip_wall_chance": 0.10 } },
+          { "key": "fn_vanguard_stealth","label": "Stealth March",       "effect": { "vanguard_watchtower_bypass_chance": 0.20 } },
+          { "key": "fn_vanguard_loot",   "label": "Data Theft",          "effect": { "vanguard_loot_bonus": 0.05 } },
+          { "key": "fn_vanguard_repair", "label": "Auto-Patch",          "effect": { "vanguard_repair_time_bonus": -0.05 } },
+          { "key": "fn_vanguard_capstone","label": "Override Doctrine",  "effect": { "vanguard_atk_bonus": 0.05, "vanguard_spd_bonus": 0.05, "vanguard_skip_wall_chance": 0.20, "rename_unit": "Override Vanguard" }, "capstone": true }
+        ],
+        "WRAITH": [
+          { "key": "fn_wraith_spd",      "label": "Stealth Drives",      "effect": { "wraith_spd_bonus": 0.05 } },
+          { "key": "fn_wraith_atk",      "label": "Optimized Loadout",   "effect": { "wraith_atk_bonus": 0.05 } },
+          { "key": "fn_wraith_credits",  "label": "Cheap Hardware",      "effect": { "wraith_credits_cost_bonus": -0.10 } },
+          { "key": "fn_wraith_carry",    "label": "Black Market Cargo",  "effect": { "wraith_carry_bonus": 0.10 } },
+          { "key": "fn_wraith_upkeep",   "label": "Fuel Hacks",          "effect": { "wraith_energy_upkeep_bonus": -0.05 } },
+
+          { "key": "fn_wraith_mirror",   "label": "Anti-Wraith Mirror",  "effect": { "wraith_atk_vs_wraith_bonus": 0.10 } },
+          { "key": "fn_wraith_synergy",  "label": "Cipher Datalink",     "effect": { "wraith_spd_with_cipher_bonus": 0.05 } },
+          { "key": "fn_wraith_loot",     "label": "Data Pillage",        "effect": { "wraith_loot_bonus": 0.10 } },
+          { "key": "fn_wraith_garrison", "label": "Stealth Patrol",      "effect": { "wraith_garrison_intel_protection_bonus": 0.05 } },
+          { "key": "fn_wraith_vs_outpost","label": "Phantom Raid",       "effect": { "wraith_atk_vs_outposts_bonus": 0.05 } },
+
+          { "key": "fn_wraith_stealth",  "label": "Stealth Movement",    "effect": { "wraith_watchtower_bypass_chance": 0.20 } },
+          { "key": "fn_wraith_convoy",   "label": "Ghost Convoy",        "effect": { "transport_travel_time_bonus": -0.10 } },
+          { "key": "fn_wraith_repair",   "label": "Quick Patch",         "effect": { "wraith_repair_time_bonus": -0.05 } },
+          { "key": "fn_wraith_intel",    "label": "Trace Mask",          "effect": { "wraith_attacker_origin_hidden_chance": 0.20 } },
+          { "key": "fn_wraith_capstone", "label": "Phantom Doctrine",    "effect": { "wraith_spd_bonus": 0.05, "wraith_watchtower_bypass_guaranteed": true, "wraith_loot_bonus": 0.10, "rename_unit": "Phantom Wraith" }, "capstone": true }
+        ],
+        "CIPHER": [
+          { "key": "fn_cipher_scout",    "label": "Hacked Sensors",      "effect": { "cipher_scout_power_bonus": 0.05 } },
+          { "key": "fn_cipher_spd",      "label": "Encrypted Drones",    "effect": { "cipher_spd_bonus": 0.05 } },
+          { "key": "fn_cipher_tech",     "label": "Optimized Code",      "effect": { "cipher_tech_cost_bonus": -0.10 } },
+          { "key": "fn_cipher_atk",      "label": "Drone Strike",        "effect": { "cipher_atk_bonus": 0.05 } },
+          { "key": "fn_cipher_train",    "label": "Self-Replicating",    "effect": { "cipher_training_time_bonus": -0.05 } },
+
+          { "key": "fn_cipher_counter",  "label": "Counter-Hack",        "effect": { "cipher_scout_vs_cipher_bonus": 0.10 } },
+          { "key": "fn_cipher_synergy",  "label": "Network Overload",    "effect": { "scout_disrupt_watchtower_bonus": 0.10 } },
+          { "key": "fn_cipher_intel",    "label": "Black Market Intel",  "effect": { "scout_full_report_chance_bonus": 0.10 } },
+          { "key": "fn_cipher_garrison", "label": "Phantom Patrol",      "effect": { "cipher_garrison_scout_bonus": 0.05 } },
+          { "key": "fn_cipher_vs_outpost","label": "Phantom Recon",      "effect": { "cipher_scout_vs_outposts_bonus": 0.10 } },
+
+          { "key": "fn_cipher_phantom",  "label": "Phantom Recon",       "effect": { "cipher_watchtower_bypass_chance": 0.20 } },
+          { "key": "fn_cipher_sabotage", "label": "Sabotage Detection",  "effect": { "scout_detect_sabotage_chance_bonus": 0.10 } },
+          { "key": "fn_cipher_repair",   "label": "Self-Repair Drones",  "effect": { "cipher_repair_time_bonus": -0.05 } },
+          { "key": "fn_cipher_loot",     "label": "Data Pillage",        "effect": { "cipher_loot_bonus": 0.05 } },
+          { "key": "fn_cipher_capstone", "label": "Override Doctrine",   "effect": { "cipher_scout_power_bonus": 0.05, "cipher_watchtower_bypass_guaranteed": true, "scout_full_report_chance_bonus": 0.20, "rename_unit": "Override Cipher" }, "capstone": true }
+        ],
+        "BREAKER": [
+          { "key": "fn_breaker_siege",   "label": "Targeted Strike",     "effect": { "breaker_siege_bonus": 0.05 } },
+          { "key": "fn_breaker_spd",     "label": "Hacked Optics",       "effect": { "breaker_spd_bonus": 0.05 } },
+          { "key": "fn_breaker_credits", "label": "Optimized Ordnance",  "effect": { "breaker_credits_cost_bonus": -0.10 } },
+          { "key": "fn_breaker_carry",   "label": "Drone Carriers",      "effect": { "breaker_carry_bonus": 0.10 } },
+          { "key": "fn_breaker_atk",     "label": "Smart Munitions",     "effect": { "breaker_atk_bonus": 0.05 } },
+
+          { "key": "fn_breaker_bypass",  "label": "System Bypass",       "effect": { "breaker_siege_vs_walls_bonus": 0.10 } },
+          { "key": "fn_breaker_synergy", "label": "Cipher Sync",         "effect": { "breaker_siege_with_cipher_bonus": 0.05 } },
+          { "key": "fn_breaker_loot",    "label": "Cheap Salvage",       "effect": { "breaker_loot_bonus": 0.05 } },
+          { "key": "fn_breaker_garrison","label": "Stealth Garrison",    "effect": { "breaker_garrison_intel_protection_bonus": 0.05 } },
+          { "key": "fn_breaker_vs_outpost","label": "Phantom Demolition","effect": { "breaker_siege_vs_outposts_bonus": 0.10 } },
+
+          { "key": "fn_breaker_wall_override","label": "Wall Override",  "effect": { "breaker_skip_wall_chance": 0.20 } },
+          { "key": "fn_breaker_targeted","label": "Targeted Demolition", "effect": { "breaker_choose_target_unlock": true } },
+          { "key": "fn_breaker_repair",  "label": "Auto-Patch",          "effect": { "breaker_repair_time_bonus": -0.05 } },
+          { "key": "fn_breaker_stealth", "label": "Silent Approach",     "effect": { "breaker_watchtower_bypass_chance": 0.10 } },
+          { "key": "fn_breaker_capstone","label": "Override Doctrine",   "effect": { "breaker_siege_bonus": 0.05, "breaker_skip_wall_chance": 0.20, "breaker_choose_target_unlock": true, "rename_unit": "Override Breaker" }, "capstone": true }
         ]
       }
     }
