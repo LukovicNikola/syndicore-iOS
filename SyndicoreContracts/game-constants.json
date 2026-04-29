@@ -29,15 +29,12 @@
   "resources": ["credits", "alloys", "tech", "energy"],
 
   "units": {
-    "grunt":     { "atk": 30,  "def": 12, "spd": 11, "carry": 40,  "energy": 1, "train_min": 8,   "cost": { "credits": 120, "alloys": 30 },  "trains_at": "BARRACKS",   "unlock_level": 1 },
-    "enforcer":  { "atk": 65,  "def": 35, "spd": 8,  "carry": 20,  "energy": 2, "train_min": 18,  "cost": { "credits": 280, "alloys": 90 },  "trains_at": "BARRACKS",   "unlock_level": 5 },
-    "sentinel":  { "atk": 20,  "def": 70, "spd": 6,  "carry": 10,  "energy": 3, "train_min": 24,  "cost": { "alloys": 300, "credits": 80 },  "trains_at": "BARRACKS",   "unlock_level": 10 },
-    "striker":   { "atk": 60,  "def": 20, "spd": 20, "carry": 60,  "energy": 3, "train_min": 22,  "cost": { "credits": 400, "alloys": 100 }, "trains_at": "MOTOR_POOL", "unlock_level": 1 },
-    "hauler":    { "atk": 0,   "def": 15, "spd": 14, "carry": 120, "energy": 1, "train_min": 12,  "cost": { "credits": 150 },                "trains_at": "MOTOR_POOL", "unlock_level": 5 },
-    "phantom":   { "atk": 5,   "def": 5,  "spd": 24, "carry": 0,   "energy": 1, "train_min": 10,  "cost": { "credits": 60, "tech": 40 },     "trains_at": "OPS_CENTER", "unlock_level": 5 },
-    "buster":    { "atk": 10,  "def": 8,  "spd": 4,  "carry": 0,   "energy": 5, "train_min": 40,  "cost": { "tech": 350, "alloys": 200 },    "trains_at": "OPS_CENTER", "unlock_level": 10 },
-    "titan":     { "atk": 200, "def": 200,"spd": 4,  "carry": 0,   "energy": 15,"train_min": 180, "cost": { "credits": 50000, "alloys": 50000, "tech": 30000 }, "trains_at": "WAR_FACTORY", "unlock_level": 1, "max_per_clan": 5 },
-    "settler":   { "atk": 0,   "def": 0,  "spd": 5,  "carry": 0,   "energy": 0, "train_min": 120, "cost": { "credits": 10000, "alloys": 10000, "tech": 5000 }, "trains_at": "HQ", "unlock_level": 20 }
+    "ronin":     { "role": "light_infantry",  "atk": 30,  "def": 12, "spd": 11, "carry": 40,  "energy": 1, "train_min": 2,  "cost": { "credits": 50,  "alloys": 30 },                "trains_at": "BARRACKS",   "unlock_level": 1 },
+    "vanguard":  { "role": "heavy_infantry",  "atk": 75,  "def": 65, "spd": 7,  "carry": 25,  "energy": 2, "train_min": 6,  "cost": { "credits": 120, "alloys": 80,  "tech": 20 },   "trains_at": "BARRACKS",   "unlock_level": 5 },
+    "wraith":    { "role": "fast_vehicle",    "atk": 65,  "def": 25, "spd": 18, "carry": 100, "energy": 3, "train_min": 8,  "cost": { "credits": 150, "alloys": 100, "tech": 30 },   "trains_at": "MOTOR_POOL", "unlock_level": 1 },
+    "cipher":    { "role": "scout",           "atk": 5,   "def": 5,  "spd": 24, "carry": 0,   "energy": 1, "train_min": 5,  "cost": { "credits": 80,  "alloys": 40,  "tech": 60 },   "trains_at": "OPS_CENTER", "unlock_level": 5 },
+    "breaker":   { "role": "siege",           "atk": 15,  "def": 10, "spd": 4,  "carry": 0,   "energy": 5, "train_min": 15, "cost": { "credits": 200, "alloys": 150, "tech": 100 },  "trains_at": "OPS_CENTER", "unlock_level": 10, "siege_damage": 100 },
+    "architect": { "role": "expansion",       "atk": 0,   "def": 0,  "spd": 5,  "carry": 0,   "energy": 0, "train_min": 30, "cost": { "credits": 200, "alloys": 200, "tech": 200 },  "trains_at": "HQ",         "unlock_level": 10, "max_count": 2, "abilities": ["FOUND_OUTPOST", "CRYSTAL_IMPLOSION"] }
   },
 
   "building_formulas": {
@@ -53,10 +50,10 @@
       "power_grid": { "produces": "energy",  "base_rate": 80, "max_rate": 1200, "max_level": 20, "base_cost": { "credits": 100, "alloys": 80 }, "base_time_minutes": 5 }
     },
     "fixed": {
-      "hq":           { "max_level": 20, "settler_unlock": { "10": 2, "15": 3, "20": 4 }, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
-      "barracks":     { "max_level": 20, "unlocks": { "1": "fodder", "5": "core", "10": "specialist" },                "base_cost": { "credits": 150, "alloys": 100 },             "base_time_minutes": 8 },
-      "motor_pool":   { "max_level": 20, "unlocks": { "1": "vehicle", "5": "transport" },                              "base_cost": { "credits": 200, "alloys": 150 },             "base_time_minutes": 8 },
-      "ops_center":   { "max_level": 20, "unlocks": { "5": "scout", "10": "siege" },                                   "base_cost": { "credits": 150, "alloys": 100, "tech": 80 }, "base_time_minutes": 8 },
+      "hq":           { "max_level": 20, "architect_unlock_level": 10, "architect_max": 2, "base_cost": { "credits": 200, "alloys": 200, "tech": 100 }, "base_time_minutes": 10 },
+      "barracks":     { "max_level": 20, "unlocks": { "1": "ronin", "5": "vanguard" },                                 "base_cost": { "credits": 150, "alloys": 100 },             "base_time_minutes": 8 },
+      "motor_pool":   { "max_level": 20, "unlocks": { "1": "wraith" },                                                 "base_cost": { "credits": 200, "alloys": 150 },             "base_time_minutes": 8 },
+      "ops_center":   { "max_level": 20, "unlocks": { "5": "cipher", "10": "breaker" },                                "base_cost": { "credits": 150, "alloys": 100, "tech": 80 }, "base_time_minutes": 8 },
       "warehouse":    { "max_level": 20, "protection_min": 2000, "protection_max": 50000,                              "base_cost": { "credits": 100, "alloys": 150 },             "base_time_minutes": 6 },
       "wall":         { "max_level": 20, "def_bonus_min": 0.03, "def_bonus_max": 0.40,                                 "base_cost": { "credits": 50,  "alloys": 200 },             "base_time_minutes": 8 },
       "watchtower":   { "max_level": 20,                                                                                "base_cost": { "credits": 80,  "alloys": 80, "tech": 50 }, "base_time_minutes": 6 },
