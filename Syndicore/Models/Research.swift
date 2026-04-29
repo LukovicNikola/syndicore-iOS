@@ -2,14 +2,14 @@ import Foundation
 
 // MARK: - GET /worlds/:worldId/research
 
-struct ResearchResponse: Codable {
+struct ResearchResponse: Codable, Sendable {
     var researchPoints: [String: Int]
     let modifiers: ResearchModifiers
     var pointsAvailable: Int
     var pointsUsed: Int
 }
 
-struct ResearchModifiers: Codable {
+struct ResearchModifiers: Codable, Sendable {
     let atkMultiplier: Double?
     let defMultiplier: Double?
     let spdMultiplier: Double?
@@ -21,15 +21,15 @@ struct ResearchModifiers: Codable {
 // MARK: - POST /worlds/:worldId/research
 
 struct ResearchUpgradeRequest: Codable, Sendable {
-    let branch: String
+    let branch: ResearchBranch
 }
 
-struct ResearchUpgradeResponse: Codable {
+struct ResearchUpgradeResponse: Codable, Sendable {
     let result: ResearchResult
 }
 
-struct ResearchResult: Codable {
-    let branch: String
+struct ResearchResult: Codable, Sendable {
+    let branch: ResearchBranch
     let previousLevel: Int
     let newLevel: Int
     let cost: [String: Int]
@@ -39,10 +39,10 @@ struct ResearchResult: Codable {
 
 // MARK: - POST /worlds/:worldId/research/respec
 
-struct ResearchRespecResponse: Codable {
+struct ResearchRespecResponse: Codable, Sendable {
     let result: RespecResult
 }
 
-struct RespecResult: Codable {
+struct RespecResult: Codable, Sendable {
     let penalty: [String: Int]
 }

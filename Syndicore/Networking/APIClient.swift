@@ -408,7 +408,7 @@ extension APIClient {
     }
 
     func upgradeResearch(worldId: String, branch: ResearchBranch) async throws -> ResearchUpgradeResponse {
-        try await request(.upgradeResearch(worldId: worldId, branch: branch.rawValue), as: ResearchUpgradeResponse.self)
+        try await request(.upgradeResearch(worldId: worldId, branch: branch), as: ResearchUpgradeResponse.self)
     }
 
     func respecResearch(worldId: String) async throws -> ResearchRespecResponse {

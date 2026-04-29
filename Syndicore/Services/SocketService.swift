@@ -44,11 +44,13 @@ final class SocketService {
 
     private var webSocketTask: URLSessionWebSocketTask?
     private var receiveTask: Task<Void, Never>?
-    private var pingTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
 
     private var connectionBaseURL: URL?
-    private var connectionToken: String?
+    /// Token provider used to fetch a fresh JWT on every (re)connect — eliminates
+    /// the "stale-token reconnect storm" failure mode where a long-lived cached
+    /// token expires mid-reconnect-loop and every retry rejects with 401.
+    private var tokenProvider: TokenProvider?
 
     private var joinedCityRoom: String?
     private var joinedWorldRoom: String?
@@ -56,6 +58,9 @@ final class SocketService {
 
     private var reconnectAttempts: Int = 0
     private var intentionalDisconnect = false
+    /// Set when the app goes background — keeps connection state for resume()
+    /// without triggering reconnect storms during suspension.
+    private var isSuspended = false
 
     private let decoder: JSONDecoder = .api
     private let session = URLSession(configuration: .default)
@@ -67,13 +72,33 @@ final class SocketService {
 
     // MARK: - Connection
 
-    /// Uspostavlja WebSocket konekciju ka BE.
-    func connect(baseURL: URL, token: String) {
+    /// Uspostavlja WebSocket konekciju ka BE. `tokenProvider` se zove na svakom
+    /// (re)connect-u tako da reconnect posle expire-a token-a koristi svežu vrednost.
+    func connect(baseURL: URL, tokenProvider: TokenProvider) {
         intentionalDisconnect = false
+        isSuspended = false
         connectionBaseURL = baseURL
-        connectionToken = token
+        self.tokenProvider = tokenProvider
         reconnectAttempts = 0
 
+        establishConnection()
+    }
+
+    /// Background-suspend — drži konekcione parametre, ali zatvara WS pre nego
+    /// što iOS sam ubije proces. Spreciti reconnect storm kad app dolazi nazad.
+    func suspend() {
+        guard !intentionalDisconnect else { return }
+        isSuspended = true
+        tearDown()
+        isConnected = false
+    }
+
+    /// Foreground-resume — ako smo bili suspendovani, otvori novi WS sa svežim
+    /// JWT-om iz tokenProvider-a.
+    func resume() {
+        guard isSuspended, !intentionalDisconnect else { return }
+        isSuspended = false
+        reconnectAttempts = 0
         establishConnection()
     }
 
@@ -84,6 +109,15 @@ final class SocketService {
         joinedWorldRoom = nil
         joinedPlayerRoom = nil
         isConnected = false
+        clearHandlers()
+        tokenProvider = nil
+        connectionBaseURL = nil
+    }
+
+    /// Skida sve registered event callback-e bez gašenja konekcije. Razdvojeno od
+    /// `disconnect()` — zovni kad menjaš handler ownership (npr. user logout pa
+    /// nov GameState init), ali konekciju zatvori posebno.
+    func clearHandlers() {
         onIncomingAttack = nil
         onBuildingComplete = nil
         onTrainingComplete = nil
@@ -134,40 +168,63 @@ final class SocketService {
     private func establishConnection() {
         tearDown()
 
-        guard let baseURL = connectionBaseURL, let token = connectionToken else { return }
+        guard let baseURL = connectionBaseURL, let provider = tokenProvider else { return }
 
-        // Build wss:// URL: /api/v1/ws?token=<jwt>
-        var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/ws"), resolvingAgainstBaseURL: false)!
+        // Fetch fresh JWT (Supabase SDK auto-refresh-uje ako je blizu expire-a) pa
+        // tek onda gradi URL i konekciju.
+        receiveTask = Task { [weak self] in
+            guard let self else { return }
+            let token: String
+            do {
+                token = try await provider.accessToken()
+            } catch {
+                await MainActor.run {
+                    Self.log.error("WebSocket token fetch failed: \(error.localizedDescription, privacy: .public)")
+                    self.scheduleReconnect()
+                }
+                return
+            }
+
+            guard let url = await self.buildWebSocketURL(baseURL: baseURL, token: token) else {
+                return
+            }
+
+            await MainActor.run {
+                let task = self.session.webSocketTask(with: url)
+                task.resume()
+                self.webSocketTask = task
+                Self.log.info("WebSocket connecting to \(url.host() ?? "unknown", privacy: .public)")
+            }
+
+            await self.receiveLoop()
+        }
+    }
+
+    private func buildWebSocketURL(baseURL: URL, token: String) async -> URL? {
+        guard var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/ws"), resolvingAgainstBaseURL: false) else {
+            await MainActor.run {
+                Self.log.error("Invalid baseURL for WebSocket: \(baseURL.absoluteString, privacy: .public)")
+            }
+            return nil
+        }
         components.queryItems = [URLQueryItem(name: "token", value: token)]
-        // Force wss:// for https:// base URLs
         if components.scheme == "https" {
             components.scheme = "wss"
         } else if components.scheme == "http" {
             components.scheme = "ws"
         }
-
-        guard let wsURL = components.url else {
+        if let url = components.url {
+            return url
+        }
+        await MainActor.run {
             Self.log.error("Failed to build WebSocket URL from \(baseURL.absoluteString, privacy: .public)")
-            return
         }
-
-        let task = session.webSocketTask(with: wsURL)
-        task.resume()
-        self.webSocketTask = task
-
-        Self.log.info("WebSocket connecting to \(wsURL.host() ?? "unknown", privacy: .public)")
-
-        // Start receive loop
-        receiveTask = Task { [weak self] in
-            await self?.receiveLoop()
-        }
+        return nil
     }
 
     private func tearDown() {
         receiveTask?.cancel()
         receiveTask = nil
-        pingTask?.cancel()
-        pingTask = nil
         reconnectTask?.cancel()
         reconnectTask = nil
         webSocketTask?.cancel(with: .goingAway, reason: nil)
@@ -236,7 +293,6 @@ final class SocketService {
                 self.isConnected = true
                 self.reconnectAttempts = 0
                 Self.log.info("WebSocket connected")
-                self.startPingTimer()
                 self.rejoinRooms()
 
             case "ping":
@@ -298,13 +354,9 @@ final class SocketService {
         }
     }
 
-    // MARK: - Ping timer
-
-    private func startPingTimer() {
-        pingTask?.cancel()
-        // Server sends ping every 25s — we just respond in handleMessage.
-        // No client-side ping needed, but we keep reference for cleanup.
-    }
+    // MARK: - Ping
+    // Server šalje ping svakih 25s; mi samo odgovaramo u handleMessage("ping").
+    // Nema client-side timer-a.
 
     // MARK: - Re-join rooms on reconnect
 
@@ -317,7 +369,7 @@ final class SocketService {
     // MARK: - Auto-reconnect
 
     private func scheduleReconnect() {
-        guard !intentionalDisconnect else { return }
+        guard !intentionalDisconnect, !isSuspended else { return }
         reconnectTask?.cancel()
         reconnectTask = Task { [weak self] in
             guard let self else { return }
@@ -326,6 +378,7 @@ final class SocketService {
             try? await Task.sleep(for: .seconds(delay))
             if Task.isCancelled { return }
             await MainActor.run {
+                guard !self.intentionalDisconnect, !self.isSuspended else { return }
                 self.reconnectAttempts += 1
                 self.establishConnection()
             }

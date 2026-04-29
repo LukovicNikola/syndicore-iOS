@@ -289,7 +289,7 @@ extension Endpoint {
         Endpoint(path: "/api/v1/worlds/\(worldId)/research", requiresAuth: true)
     }
 
-    static func upgradeResearch(worldId: String, branch: String) -> Endpoint {
+    static func upgradeResearch(worldId: String, branch: ResearchBranch) -> Endpoint {
         Endpoint(
             path: "/api/v1/worlds/\(worldId)/research",
             method: .post,

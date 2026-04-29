@@ -8,6 +8,11 @@ struct SyndicoreApp: App {
     /// Ako config fali → prikazi ConfigErrorView umesto crash-a.
     @State private var bootstrap: BootstrapResult = .loading
 
+    /// Prati background/foreground tranzicije — koristi se da WebSocket
+    /// suspend-uje na background (iOS gasi WS posle ~30s u suspend stanju),
+    /// pa resume-uje na povratak.
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some Scene {
         WindowGroup {
             switch bootstrap {
@@ -17,11 +22,32 @@ struct SyndicoreApp: App {
             case .ready(let state):
                 ContentView()
                     .environment(state)
+                    .onChange(of: scenePhase) { _, newPhase in
+                        Task { await handleScenePhase(newPhase, state: state) }
+                    }
             case .failed(let message):
                 ConfigErrorView(message: message) {
                     Task { await loadConfig() }
                 }
             }
+        }
+    }
+
+    @MainActor
+    private func handleScenePhase(_ phase: ScenePhase, state: GameState) async {
+        switch phase {
+        case .background:
+            // Skini WS pre nego sto iOS suspend-uje proces — sprečava reconnect storm
+            // kad iOS ubije socket i tek pri foreground-u app primeti.
+            state.socket.suspend()
+        case .active:
+            // Vrati WS — koristi cached connectionToken iz prethodne sesije.
+            // Ako je istekao, scheduleReconnect će probati refresh.
+            state.socket.resume()
+        case .inactive:
+            break
+        @unknown default:
+            break
         }
     }
 

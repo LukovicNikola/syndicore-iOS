@@ -59,6 +59,17 @@ final class GameState {
         self.socket = SocketService.shared
     }
 
+    /// Catches the case where SyndicoreApp.loadConfig() retries — old GameState
+    /// goes out of scope without signOut() so we still need to free the
+    /// NotificationCenter observer to avoid stale fire-on-token paths.
+    /// `nonisolated` because deinit on @MainActor classes can run off main in
+    /// Swift 6; `removeObserver` is documented thread-safe.
+    nonisolated deinit {
+        if let observer = deviceTokenObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
     // MARK: - Player Data
 
     var currentPlayer: Player?
@@ -89,6 +100,11 @@ final class GameState {
     /// Guards against double-fire on infinite scroll (rapid onAppear triggers).
     private var isLoadingMoreMovements = false
     private var isLoadingMoreReports = false
+
+    /// Guards against concurrent first-page refreshes (.task + pull-to-refresh
+    /// + socket-triggered events can all fire simultaneously and clobber state).
+    private var isRefreshingMovements = false
+    private var isRefreshingReports = false
 
     /// Observer for APNS device token delivery (from AppDelegate).
     private var deviceTokenObserver: NSObjectProtocol?
@@ -133,24 +149,29 @@ final class GameState {
             // 4. Register for push notifications (after session claim)
             await registerForPush()
 
-            // 5. Ako ima worlds, proveri da li je već join-ovao
+            // 5. Ako ima worlds, proveri da li je već join-ovao.
+            //    Filtriraj na OPEN/RUNNING — ARCHIVED/ENDED gradovi su mrtvi pa user mora da bira novi.
             if let worlds = response.player.worlds, !worlds.isEmpty {
-                let pw = worlds[0]
-                activePlayerWorld = pw
-
                 let allWorlds = try await api.worlds()
-                activeWorld = allWorlds.first { $0.id == pw.worldId }
+                let liveWorldIds = Set(allWorlds.filter { $0.status == .OPEN || $0.status == .RUNNING }.map(\.id))
+                if let pw = worlds.first(where: { liveWorldIds.contains($0.worldId ?? "") }) {
+                    activePlayerWorld = pw
+                    activeWorld = allWorlds.first { $0.id == pw.worldId }
 
-                if let city = pw.city {
-                    do {
-                        activeCity = try await api.city(id: city.id)
-                    } catch {
-                        Self.log.info("City fetch failed in bootstrap, using /me fallback: \(error.localizedDescription, privacy: .public)")
-                        activeCity = City(id: city.id, name: city.name, resources: city.resources, tile: city.tile, buildings: city.buildings, troops: city.troops, reinforcements: city.reinforcements, constructionQueue: city.constructionQueue)
+                    if let city = pw.city {
+                        do {
+                            activeCity = try await api.city(id: city.id)
+                        } catch {
+                            Self.log.info("City fetch failed in bootstrap, using /me fallback: \(error.localizedDescription, privacy: .public)")
+                            activeCity = City(id: city.id, name: city.name, resources: city.resources, tile: city.tile, buildings: city.buildings, troops: city.troops, reinforcements: city.reinforcements, constructionQueue: city.constructionQueue)
+                        }
                     }
+                    activeScreen = .mainGame
+                    await connectRealtime()
+                } else {
+                    Self.log.info("All player worlds are ARCHIVED/ENDED — sending to world picker")
+                    await autoSelectWorld()
                 }
-                activeScreen = .mainGame
-                await connectRealtime()
             } else {
                 await autoSelectWorld()
             }
@@ -203,10 +224,9 @@ final class GameState {
         // Listen for token delivery from AppDelegate
         observeDeviceToken()
 
-        // Trigger APNS registration (token arrives async via AppDelegate callback)
-        await MainActor.run {
-            UIApplication.shared.registerForRemoteNotifications()
-        }
+        // Trigger APNS registration (token arrives async via AppDelegate callback).
+        // Already on MainActor, no need for the wrapper.
+        UIApplication.shared.registerForRemoteNotifications()
 
         // If token was already delivered before we started observing, send it now
         if let token = AppDelegate.pendingDeviceToken {
@@ -306,25 +326,20 @@ final class GameState {
 
     // MARK: - Realtime (Socket.IO)
 
-    /// Uspostavlja Socket.IO konekciju + pretplata na city i world rooms.
+    /// Uspostavlja WebSocket konekciju + pretplata na city/world/player rooms.
     /// Zove se posle uspešnog bootstrap-a (postoji aktivna sesija + join-ovan svet).
     /// Idempotent — ako je socket već konektovan, samo re-join-uje rooms.
     private func connectRealtime() async {
-        do {
-            let token = try await auth.accessToken()
-            socket.connect(baseURL: api.baseURL, token: token)
-            wireSocketEventHandlers()
-            if let playerId = currentPlayer?.id {
-                socket.joinPlayerRoom(playerId: playerId)
-            }
-            if let cityId = activeCity?.id {
-                socket.joinCityRoom(cityId: cityId)
-            }
-            if let worldId = activePlayerWorld?.worldId ?? activeWorld?.id {
-                socket.joinWorldRoom(worldId: worldId)
-            }
-        } catch {
-            Self.log.info("Realtime connect skipped (no token): \(error.localizedDescription, privacy: .public)")
+        socket.connect(baseURL: api.baseURL, tokenProvider: SupabaseTokenProvider())
+        wireSocketEventHandlers()
+        if let playerId = currentPlayer?.id {
+            socket.joinPlayerRoom(playerId: playerId)
+        }
+        if let cityId = activeCity?.id {
+            socket.joinCityRoom(cityId: cityId)
+        }
+        if let worldId = activePlayerWorld?.worldId ?? activeWorld?.id {
+            socket.joinWorldRoom(worldId: worldId)
         }
     }
 
@@ -461,8 +476,13 @@ final class GameState {
 
     /// Fetch-uje PRVU stranu movements-a. Resetuje accumulated list + cursor.
     /// Pozvati pri prvom load-u ili pull-to-refresh.
+    /// `isRefreshingMovements` guard sprečava da paralelni .task / pull-to-refresh
+    /// / socket events clobber-uju state — najsporiji pobeđuje i cursor desync-uje.
     func refreshMovements(limit: Int = 50) async {
         guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        guard !isRefreshingMovements else { return }
+        isRefreshingMovements = true
+        defer { isRefreshingMovements = false }
         do {
             let page = try await api.movements(worldId: worldId, limit: limit, before: nil)
             activeMovements = page.items
@@ -494,8 +514,12 @@ final class GameState {
     // MARK: - Reports (paginated)
 
     /// Fetch-uje PRVU stranu battle reports-a. Resetuje accumulated list + cursor.
+    /// `isRefreshingReports` guard — vidi `refreshMovements` za rationale.
     func refreshReports(limit: Int = 50) async {
         guard let worldId = activePlayerWorld?.worldId ?? activeWorld?.id else { return }
+        guard !isRefreshingReports else { return }
+        isRefreshingReports = true
+        defer { isRefreshingReports = false }
         do {
             let page = try await api.reports(worldId: worldId, limit: limit, before: nil)
             activeReports = page.items
