@@ -8,6 +8,15 @@ final class ElectricArcNode: SKNode {
     private let emitter = SKEmitterNode()
     private let zigzag = SKShapeNode()
 
+    /// Pre-baked CGPath-ovi za zigzag — generišemo 8 random putanja jednom u init-u
+    /// pa cikliramo kroz njih svake sekvence. Pre toga smo regenerisali CGMutablePath
+    /// 16 puta u sekundi za svaki Power Grid što je značajna allocation pressure.
+    private static let zigzagPaths: [CGPath] = {
+        (0..<8).map { _ in Self.makeZigzagPath() }
+    }()
+
+    private var pathIndex = 0
+
     override init() {
         super.init()
         setupEmitter()
@@ -43,13 +52,13 @@ final class ElectricArcNode: SKNode {
         zigzag.lineWidth = 1.5
         zigzag.glowWidth = 2.0
         zigzag.lineCap = .round
-        regenerateZigzagPath()
+        zigzag.path = Self.zigzagPaths[0]
     }
 
-    private func regenerateZigzagPath() {
+    private static func makeZigzagPath() -> CGPath {
         let path = CGMutablePath()
         let segments = 5
-        let halfWidth = Self.arcWidth
+        let halfWidth = arcWidth
         let startX = -halfWidth
         let endX = halfWidth
         let stepX = (endX - startX) / CGFloat(segments)
@@ -59,12 +68,16 @@ final class ElectricArcNode: SKNode {
             let y = (i == segments) ? 0 : CGFloat.random(in: -4...4)
             path.addLine(to: CGPoint(x: x, y: y))
         }
-        zigzag.path = path
+        return path
     }
 
     private func startZigzagRefresh() {
-        let regenerate = SKAction.run { [weak self] in self?.regenerateZigzagPath() }
-        let wait = SKAction.wait(forDuration: 0.06)
+        let regenerate = SKAction.run { [weak self] in
+            guard let self else { return }
+            self.pathIndex = (self.pathIndex + 1) % Self.zigzagPaths.count
+            self.zigzag.path = Self.zigzagPaths[self.pathIndex]
+        }
+        let wait = SKAction.wait(forDuration: 0.12)
         run(.repeatForever(.sequence([regenerate, wait])), withKey: "zigzag")
     }
 }

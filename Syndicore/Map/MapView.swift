@@ -13,6 +13,10 @@ struct MapView: View {
     @State private var selectedTile: MapTile?
     @State private var isLoading = true
     @State private var viewportCenter = (cx: 0, cy: 0)
+    /// Drži referencu na poslednji viewport fetch task — cancel-uje ga pre nego
+    /// što startuje novi. Spreciti gomilanje paralelnih API poziva kad user
+    /// brzo pan-uje preko više thresholdova zaredom.
+    @State private var viewportFetchTask: Task<Void, Never>?
 
     /// Kad user klikne Attack/Scout/etc u info card-u, ovo se setuje i otvara SendTroopsSheet.
     @State private var sendTroopsTarget: SendTroopsTarget?
@@ -103,6 +107,15 @@ struct MapView: View {
             // Re-push movement lines na scene kad se lista menja
             scene.setMovements(gameState.activeMovements)
         }
+        .onChange(of: gameState.activePlayerWorld?.worldId) { _, _ in
+            // World switch (npr. Crystal Implosion) — clear stale tile cache
+            // pre nego što ucita novi viewport.
+            scene.reset()
+            if let tile = gameState.activeCity?.tile {
+                viewportCenter = (cx: tile.x, cy: tile.y)
+            }
+            Task { await fetchViewport() }
+        }
         .task {
             setupCallbacks()
             if let tile = gameState.activeCity?.tile {
@@ -140,7 +153,10 @@ struct MapView: View {
         scene.onViewportMoved = { cx, cy in
             Task { @MainActor in
                 viewportCenter = (cx: cx, cy: cy)
-                await fetchViewport()
+                viewportFetchTask?.cancel()
+                viewportFetchTask = Task { @MainActor in
+                    await fetchViewport()
+                }
             }
         }
     }

@@ -6,6 +6,8 @@ struct BattleReport: Codable, Identifiable, Sendable {
     let attackerWon: Bool
     let targetX: Int
     let targetY: Int
+    /// Power ratio = totalAtk / totalDef. > 1.0 = attacker dominated; near 1.0 = close fight.
+    /// Used to drive UI flair (decisive vs pyrrhic victory copy).
     let ratio: Double
     let totalAtk: Double
     let totalDef: Double

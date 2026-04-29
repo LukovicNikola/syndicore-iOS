@@ -90,6 +90,22 @@ final class MapScene: SKScene {
 
     // MARK: - Public API
 
+    /// Brisanje svih tile / occupant / movement node-ova + cached state-a.
+    /// Pozivati pri prelasku na drugi svet (Crystal Implosion → novi grad u
+    /// novom ringu) — inače stari nodi-ovi ostaju u memoriji + stale viewport.
+    func reset() {
+        for (_, node) in tileNodes { node.removeFromParent() }
+        for (_, node) in occupantNodes { node.removeFromParent() }
+        for (_, node) in labelNodes { node.removeFromParent() }
+        for (_, node) in movementLineNodes { node.removeFromParent() }
+        tileNodes.removeAll()
+        occupantNodes.removeAll()
+        labelNodes.removeAll()
+        movementLineNodes.removeAll()
+        tiles = []
+        lastFetchCenter = (cx: 0, cy: 0)
+    }
+
     func loadTiles(_ newTiles: [MapTile], center: (cx: Int, cy: Int)) {
         lastFetchCenter = center
         tiles = newTiles
