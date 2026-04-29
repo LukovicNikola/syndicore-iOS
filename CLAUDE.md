@@ -1,53 +1,95 @@
 # SYNDICORE iOS — Claude Instructions
 
-> **Verzija:** 2026-04-22 (Phase 4 Crystal Implosion done, feature status sync)
+> **Verzija:** 2026-04-29 (Round 3 review — Swift 6 + lifecycle hardening; CI Xcode 26 fix)
 > **Pending:** rešavanje TBD stavki nakon reconcile-a sa `syndicore-BE/CLAUDE.md`
 
 ---
 
-## 📋 CODE REVIEW TODO (round 2, 2026-04-18)
+## 📋 CODE REVIEW TODO (round 3, 2026-04-29)
 
-Posle merge-a HIGH/CRITICAL fixeva (commits `3f3148b` + `3d50270`) ostalo:
+Posle merge-a P0/P1/P2/P3 ispravki iz round 3 (commits `f5000f5`, `36adb82`, `54c70dd`,
+`abc4266`, `c5390ce`) i CI fix-a (`01d287b`):
 
-### 🔴 P0 — Regresija iz 3f3148b (fix odmah)
+### 🔴 P0 — Završeno
 
-- [x] **Bootstrap retry double-configure crash** — `SupabaseManager.configure()` je sada idempotent (`if _shared != nil { return }`). Retry u `ConfigErrorView` bezbedan. ✅ (fixovano pre 2026-04-22, potvrđeno)
+- [x] **TestFlight upload SDK mismatch** — CI workflow sada bira Xcode 26 preko
+  `maxim-lobanov/setup-xcode@v1` (`xcode-version: latest-stable`). Build se sada arhiviraja sa iOS 26 SDK-om
+  koji App Store Connect zahteva. ✅ `01d287b`
+- [x] **`BuildingNode.swift:68` `progress.isHidden = true`** — countdown bar, progress fill i
+  celebration burst su bili nevidljivi jer overlay node nije nikad bio shown. Liniju uklonjenu. ✅ `36adb82`
+- [x] **`OnboardingView` `alreadyOnboarded` lock-up** — rana `return` grana je preskakala
+  `isSubmitting = false`. Dodat reset pre `return`. ✅ `36adb82`
+- [x] **Mrtav `Effects/` folder (bez razmaka)** — duplikat `Effects 2/` koji je u pbxproj-u; obrisani 7 fajla u `Effects/`. ✅ `f5000f5`
+- [x] **404 onboarding decode permissivan** — `APIClient` sada proverava `onboarding.error == BEErrorCode.onboardingRequired.rawValue` pre nego što baci `.onboardingRequired`. Sprečava false-positive routing. ✅ `36adb82`
 
-### 🟠 P1 — HIGH iz review-a (radi sledeće)
+### 🟠 P1 — Završeno
 
-- [x] **`BuildCostResponse.buildingType: String` → `BuildingType` enum** (`Models/City.swift:~105`). ✅ 50f9db8
-- [x] **URL query param encoding** (`Networking/Endpoint.swift`). Refaktor na `URLComponents` + `queryItems`. ✅ 50f9db8
-- [x] **Timeout wrapper za async network pozive** — `withOptionalTimeout` helper u `APIClient`, 30s default na city/map/worlds. ✅ 50f9db8
-- [x] **Silent unit dropping** — `os_log` warning za nepoznati `UnitType` u `ArmySnapshot` i `TroopMovement`. ✅ 50f9db8
-- [x] **BuildSheet cost preview** — lokalni cost preview iz `game-constants.json` (credits/alloys/tech/duration). ✅ 50f9db8
+**Swift 6 strict concurrency** (zatvara 13 od 16 warning-a iz `36adb82`):
+- [x] **Sendable propagacija** kroz Codable modele: `Player`, `PlayerWorld`, `World`, `City`, `BuildingInfo`, `Resources`, `TileInfo`, `Coordinate`, `TroopMovement`, `BattleReport`, `ArmySnapshot`, `PaginatedResponse`, `RealtimeEvents.*`, `Research.*`. ✅
+- [x] **`APIError`, `ErrorResponse`, `AnyCodableValue`, `OnboardingRequiredResponse`** sada `Sendable`. ✅
+- [x] **`GameConstantsManager` `@MainActor`** + nonisolated logger; `refresh()` greške se loguju umesto da budu silent. ✅
+- [x] **`AppDelegate` `@MainActor`** — UIKit delegate je main-thread po kontraktu. ✅
+- [x] **`ParticleTextures` `@MainActor`** — SKTexture mora živeti na main. ✅
+- [x] **`Device.id` `nonisolated(unsafe) static let`** — `identifierForVendor` je dokumentovano thread-safe. ✅
+- [x] **`SupabaseManager.authListenerTask` immutable `let`** + `nonisolated deinit { task.cancel() }`. ✅
+- [x] **`SocketService.log`, `AppState.log`, `APIClient.log`** sada `nonisolated static let` — Sendable closure-i mogu da pristupe bez main-actor hop-a. ✅
+- [x] **`ISO8601DateCoder`** formatter-i wrapped u `@unchecked Sendable` struct. ✅
 
-### 🟡 P2 — MEDIUM (posle P0/P1)
+**Lifecycle / robustnost** (`54c70dd`):
+- [x] **`scenePhase` observation** u `SyndicoreApp` → `socket.suspend()` na background, `socket.resume()` na foreground. Sprečava reconnect storm kad iOS ubije WS u suspend stanju. ✅
+- [x] **JWT refresh na svaki (re)connect** — `SocketService.connect` sada uzima `TokenProvider` umesto static token-a. `establishConnection` poziva `tokenProvider.accessToken()` na svakom retry-u. ✅
+- [x] **Pagination guards** — `isRefreshingMovements` / `isRefreshingReports` sprečavaju da konkurentni `.task` + pull-to-refresh + socket-event fetch-evi clobber-uju state ili desync-uju cursor. ✅
+- [x] **World status filter u bootstrap-u** — `worlds.first(where: liveWorldIds.contains(...))` umesto blind `worlds[0]`. ARCHIVED/ENDED gradovi vode u worldPicker. ✅
+- [x] **`GameState` `nonisolated deinit`** — uklanja `deviceTokenObserver` ako `signOut()` nije pokrenut. Catches the SyndicoreApp.loadConfig retry path. ✅
 
-- [x] **`MapScene.swift:116` `group.name!`** — force unwrap uklonjen u prethodnim commitima. ✅
-- [x] **`randomNonceString` charset** (`Services/SupabaseManager.swift`) — charset je ispravan: `"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"`. ✅ (potvrđeno 2026-04-22, W postoji)
-- [x] **`MapView` hardkodovana 800×800 scene size** — uklonjeno, koristi default size + `scaleMode = .resizeFill`. ✅
-- [x] **`GameConstantsManager.decode` koristi plain `JSONDecoder`** — koristi `JSONDecoder.apiSnakeCase`. ✅
-- [x] **`AnyCodableValue` bez `.array` / `.object` varijanti** — dodati `.array` i `.object` varijante. ✅
-- [x] **`MapView.setupCallbacks()` closure capture** — SwiftUI struct nema retain cycle; `Task { @MainActor in }` wrapper već postoji. ✅ (false positive)
-- [x] **`RefreshErrorBanner` auto-dismiss** — 8s `.task` za fadeout sa animacijom. ✅ 55f3a25
-- [x] **`WorldPickerView.loadWorlds()` bez timeout-a** — pokriveno P1 global timeout fix-om. ✅ 50f9db8
-- [x] **`BuildingInfo` backward-compat throw** — explicit `DecodingError` sa jasnom porukom kad ni `currentLevel` ni `level` ne postoje. ✅ 55f3a25
-- [x] **`OnboardingView` error string match** — koristi `BEErrorCode` typed enum (`err.code == .alreadyOnboarded`). ✅
-- [x] **`GameState.bootstrap` decode fail u `api.city(id:)`** — do/catch sa fallback na `pw.city` iz `/me` response-a. ✅
-- [x] **`CountdownLabel` Timer cleanup** — early-return guard kad countdown završi, uklonjeno nepotrebno stanje. ✅
+**Contract drift** (`54c70dd`):
+- [x] **`ImplodeResponse.crystal` / `newRing` `Ring` enum** umesto String. ✅
+- [x] **`ResearchUpgradeRequest/Response/Result.branch` `ResearchBranch` enum** end-to-end (View → APIClient → Endpoint). ✅
 
-### 🔵 P3 — LOW (kad bude vremena)
+**UI** (`abc4266`):
+- [x] **CompletionNoticeBanner SF Symbol** — `flag.checkered.2.crossed` (invalid → "?") zamenjen sa `flag.2.crossed.fill`. ✅
+- [x] **CountdownLabel reset na `endsAt` change** — SwiftUI list recycling više ne pokazuje "Done" trajno. ✅
+- [x] **IncomingAttackBanner unnested Button** — `contentShape + onTapGesture` umesto outer Button(action:). ✅
+- [x] **CityView Train button padding 90 → 130** — više se ne preklapa sa SpriteKit nav strip-om na iPhone 13 mini. ✅
+- [x] **CyberpunkSideMenu actions** — settings → switch tab; email/notifications/shop → "Coming soon" toast (umesto silent no-op). ✅
 
+**P2/P3 hygiene** (`c5390ce`):
+- [x] **`ElectricArcNode` pre-baked paths** — 8 random zigzag CGPath instances jednom u `static let`, cikliranje umesto regenerisanja CGMutablePath 16×/sec po Power Grid-u. ✅
+- [x] **MapView viewport fetch task cancellation** — drži `Task<Void, Never>?` handle, cancel-uje prethodni pre starta novog. ✅
+- [x] **MapScene reset na world switch** — Crystal Implosion ne ostavlja stale tile cache. ✅
+- [x] **BattleReport.ratio doc komentar**. ✅
+- [x] **`SocketService.startPingTimer()` empty stub** uklonjen + `clearHandlers()` razdvojen od `disconnect()`. ✅
+- [x] **AppState.registerForPush redundant `await MainActor.run`** uklonjen. ✅
+- [x] **`randomNonceString` precondition → guard/throws** za bezbednije misconfig recovery. ✅
+- [x] **TroopMovement Logger static** — bio kreiran per-decode (`Logger(subsystem:...)` u closure), sad `private static let log`. ✅
+
+### 🟠 P1 — Otvoreno (zahteva BE coordination)
+
+- [ ] **WebSocket Authorization header umesto query string-a** — JWT u `?token=<jwt>` curi kroz proxy/server access logove i crash report-e. Treba dogovor sa BE: prebaciti na `Authorization: Bearer <jwt>` header u `URLRequest`. (`SocketService.swift:140-158`)
+- [ ] **`ResearchResponse` shape vs CLAUDE.md doc** — model: `researchPoints: [String: Int]`, `pointsAvailable`, `pointsUsed`. CLAUDE.md API ref: `branches`, `totalPoints`, `spentPoints`, `remainingPoints`, `researchLabLevel`. View koristi iOS shape — verovatno je doc stale. Verifikovati sa BE i ažurirati API ref ovde.
+- [ ] **`BuildResponse.cost: Resources?`** — Resources je Double-valued (za on-demand calc), a cost je Int-valued na BE strani. Razdvojiti u `ResourceCost` (Int) struct ili potvrditi sa BE.
+
+### 🟡 P2/P3 — Otvoreno (kad bude vremena, ne hitno)
+
+- [ ] **Folder rename `Helpers 2` → `Helpers`, `Effects 2` → `Effects`** — kosmetički, ali zahteva pbxproj patch. Live je sve, samo imena ružna.
+- [ ] **Mrtav HUD/scene kod** — `Views/City/HUD/{TopHUD,BottomHUD,ResourcePill}.swift` (zamenjeno Cyberpunk*); `Views/City/Scene/{WallNode, CornerPylonNode, WallCornerNode, WallLayout, ScaffoldNode}.swift` + `Effects 2/QueueIndicatorNode.swift` — nikad instancirani. Brisanje zahteva pbxproj pažljivo.
+- [ ] **`Helpers 2/BuildingIconMapping.swift`** — kompajlira se ali nigde nije import-ovan; iconi se rade hardkodovanim path-om `building_icon_<type>_v1`. Ili wire ovo, ili obriši.
+- [ ] **`MapInfoView`** — naziv mislečan; sadržaj je Codex "Map & Terrain" reference (ne tile detail popup kako CLAUDE.md kaže). Rename u `MapCodexView` ili ažurirati doc.
 - [ ] **`Isometric.coord(forSlot:)` + `slot(forCoord:)`** — O(n²) iteracija 5×5 grida. Pre-compute static lookup dictionary.
-- [x] **Building `displayName` helper** — `String.displayName` extension u Enums.swift, 14 pojava zamenjeno. ✅
 - [ ] **Apple Sign In simulator detection** preko `code == .unknown` je fragile. Zamena: `ProcessInfo.processInfo.environment["SIMULATOR_UDID"] != nil`.
-- [x] **`FactionPickerView` bez loading state-a** — već ima `isJoining` + ProgressView + disabled. ✅ (false positive)
-- [x] **`SettingsView` "Refresh Constants" button** — `isRefreshing` state + ProgressView + disabled. ✅
 - [ ] **`HQInfoSheet.targetLevel` fallback logic** — `hq.targetLevel ?? hq.currentLevel + 1` je konfuzno. Pojasniti invariantu.
-- [x] **`CityView.buildableTypes` hardkodovana lista** — dodati resource buildings (DATA_BANK/FOUNDRY/TECH_LAB/POWER_GRID) sa flex slot provjerom. ✅ 55f3a25 (full allCases derivacija ostaje za later)
 - [ ] **ContentView `@unknown default`** — Swift 5.10+ warning safety za exhaustive switch kad se doda nov `Screen` case.
-- [ ] **APIClient `@unchecked Sendable`** — proveri da li može da bude `Sendable` direktno (URLSession, decoder, encoder su thread-safe).
-- [ ] **Doc komentari na public API** — APIClient metodi, GameState metodi, CityScene callbacks.
+- [ ] **APIClient `@unchecked Sendable`** — kandidat za pravi `Sendable` (URLSession, decoder, encoder, TokenProvider su Sendable u Swift 5.10+). Treba build verify-uje.
+- [ ] **Hardkodovani engleski stringovi svuda** — lokalizacija (Localizable.xcstrings).
+- [ ] **`accessibilityLabel`** na icon-only button-ima (DEV skip lightning, side menu icon-i).
+- [ ] **`IncomingAttackEvent.type`** defaults `.ATTACK` na bad rawValue → skriva BE bug. Promeni u `MovementType?`.
+- [ ] **5 building sprite-ova fali** (warehouse_v1, wall_building_v1, s_hologram_v1, corner_turret_v1, wall_v1). Ostalo dodato.
+- [ ] **Particle .sks fajlovi** (electric_arc kao SKEmitterNode preset, window_pulse, spark_shower) — i dalje code-built.
+
+### Round 2 / older — sve završeno
+
+Sve P0/P1/P2/P3 stavke iz round 2 (commits `50f9db8`, `55f3a25`) su sada zatvorene
+ili premeštene u "Otvoreno" sekciju gore ako i dalje važe. Vidi git history za detalje.
 
 ### ❌ Pre-existing TODOs (poznato, čeka trigger)
 
@@ -1573,6 +1615,73 @@ Ključni koncepti za iOS:
 ---
 
 ## CHANGELOG
+
+**2026-04-29 (Round 3 review — Swift 6 + lifecycle hardening; CI Xcode 26 fix):**
+
+- **CI** (`01d287b` cherry-picked to main): `.github/workflows/testflight.yml` adds
+  `maxim-lobanov/setup-xcode@v1` step with `xcode-version: latest-stable` so the
+  `macos-15` runner uses Xcode 26 / iOS 26 SDK. Required for App Store Connect
+  uploads after Apple's iOS 26 SDK cutoff.
+- **P0 fixes** (`f5000f5`, `36adb82`):
+  - `BuildingNode.swift:68`: drop `progress.isHidden = true`. Construction
+    progress bar / countdown / celebration burst now actually render.
+  - `OnboardingView.swift:78`: `alreadyOnboarded` early-return now resets
+    `isSubmitting`. Form no longer locks on transient bootstrap failure.
+  - `APIClient.swift:158`: 404 onboarding decode tightens guard with
+    `BEErrorCode.onboardingRequired.rawValue` check.
+  - Delete dead `Syndicore/Views/City/Scene/Effects/` (no-space duplicate of
+    `Effects 2/`) — pbxproj only references `Effects 2/`.
+- **Swift 6 Sendable propagation** (`36adb82`) closes 13/16 strict-concurrency
+  warnings: APIError + ErrorResponse + AnyCodableValue + OnboardingRequiredResponse;
+  all Codable models (Player, City, BuildingInfo, Resources, TileInfo, Coordinate,
+  TroopMovement, BattleReport, ArmySnapshot, PaginatedResponse, World, RealtimeEvents.*,
+  Research.*); GameConstantsManager `@MainActor`; AppDelegate `@MainActor`;
+  ParticleTextures `@MainActor`; Device.id `nonisolated(unsafe) static let`;
+  SupabaseManager.authListenerTask immutable `let` + nonisolated deinit; static
+  loggers `nonisolated`; ISO8601DateCoder formatters wrapped in `@unchecked Sendable`
+  struct.
+- **Lifecycle hardening** (`54c70dd`):
+  - `SyndicoreApp` observes `scenePhase` → `socket.suspend()` on background,
+    `socket.resume()` on foreground. Eliminates reconnect storms when iOS
+    suspends WebSockets.
+  - `SocketService.connect(baseURL:tokenProvider:)` replaces static-token
+    variant. `establishConnection` fetches a fresh JWT on every (re)connect via
+    `tokenProvider.accessToken()`. Fixes the "stale-token reconnect storm" where
+    a 1h-old cached JWT would expire mid-loop.
+  - `SocketService.suspend()` / `resume()` / `clearHandlers()` split out from
+    `disconnect()`.
+  - `AppState.bootstrap` filters PlayerWorlds by `World.status` (OPEN | RUNNING).
+    ARCHIVED/ENDED worlds fall through to worldPicker.
+  - `AppState.refreshMovements` / `refreshReports` gain `isRefreshingX` guards
+    so concurrent first-page fetches don't clobber state.
+  - `AppState.deinit` (nonisolated) removes `deviceTokenObserver`.
+- **Contract drift** (`54c70dd`):
+  - `ImplodeResponse.crystal` / `newRing` typed as `Ring` enum.
+  - `ResearchUpgradeRequest/Response/Result.branch` typed as `ResearchBranch` enum
+    end-to-end.
+- **UI polish** (`abc4266`):
+  - `CompletionNoticeBanner`: invalid `flag.checkered.2.crossed` SF Symbol replaced
+    with `flag.2.crossed.fill`. Added `.comingSoon` kind + `CompletionNotice.comingSoon(_:)`
+    factory.
+  - `CountdownLabel`: `.onChange(of: endsAt)` resets `didFireComplete` for List
+    recycling.
+  - `IncomingAttackBanner`: replaced outer `Button(action: onTap)` with
+    `.contentShape(Rectangle()).onTapGesture` to fix nested-button hit-testing.
+  - `CityView`: Train button bottom padding 90 → 130 to clear SpriteKit nav strip.
+  - `CityView` + `MapView`: `CyberpunkSideMenu` actions wired (settings → tab,
+    others → `comingSoon` toast).
+  - `ArmyView.skipMovement`: switch on `APIError` like the rest of the file.
+- **P2/P3 hygiene** (`c5390ce`):
+  - `ElectricArcNode`: pre-bake 8 zigzag CGPaths in static let, cycle them.
+    Drops per-frame allocation pressure on Power Grid renders.
+  - `MapView`: viewport fetch task cancellation + `scene.reset()` on world switch.
+  - `BattleReport.ratio`: doc comment.
+  - `SocketService`: removed empty `startPingTimer` stub + dead `pingTask` state.
+  - `randomNonceString`: `precondition` → `guard/throw` for safer misconfig path.
+  - `TroopMovement` Logger lifted to `private static let`.
+- **Open items requiring BE coordination** added to round 3 P1 list: WebSocket
+  Authorization header (vs query string), Research model shape vs CLAUDE.md doc,
+  BuildResponse.cost Int vs Double type drift.
 
 **2026-04-22 (Phase 4 Crystal Implosion + feature status sync):**
 
