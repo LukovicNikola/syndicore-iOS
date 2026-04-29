@@ -67,7 +67,10 @@ struct CityView: View {
                     Spacer()
                 }
                 .padding(.leading, 20)
-                .padding(.bottom, 90)
+                // Iznad SpriteKit nav strip-a u CityScene (bottomY = safeBottom + 45)
+                // — na iPhone 13 mini su se preklapali pa je SwiftUI button kradio
+                // hit-test od leftmost SpriteKit button-a.
+                .padding(.bottom, 130)
             }
         }
         .overlay(alignment: .topTrailing) {
@@ -141,18 +144,20 @@ struct CityView: View {
     }
 
     private var sideMenuActions: [SideMenuAction] {
+        // settings je wired na postojeći Settings tab. Email/notifications/shop su
+        // placeholder-i bez backend-a — toast-uju "Coming soon" umesto silent no-op.
         [
             SideMenuAction(id: "settings", assetName: "ui_settings_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: nil) {
-                // TODO: open Settings view
+                gameState.selectedTab = .settings
             },
             SideMenuAction(id: "email", assetName: "ui_email_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: gameState.unreadEmailCount) {
-                // TODO: open Mail view
+                gameState.lastCompletionNotice = .comingSoon("Mailbox")
             },
             SideMenuAction(id: "notifications", assetName: "ui_notifications_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.3), badgeCount: gameState.unreadNotificationCount) {
-                // TODO: open Notifications view
+                gameState.lastCompletionNotice = .comingSoon("Notifications")
             },
             SideMenuAction(id: "shop", assetName: "ui_shop_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.9), badgeCount: nil) {
-                // TODO: open Shop view
+                gameState.lastCompletionNotice = .comingSoon("Shop")
             },
         ]
     }

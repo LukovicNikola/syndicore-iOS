@@ -14,53 +14,56 @@ struct IncomingAttackBanner: View {
     let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 10) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.title3)
+        // Body je tap-target za onTap, dok dismiss xmark ima sopstveni Button.
+        // Nested Button-i u SwiftUI imaju nepouzdano hit-testing — koristimo
+        // contentShape + onTapGesture umesto outer Button-a.
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.title3)
+                .foregroundStyle(.white)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(headline)
+                    .font(.footnote.bold())
                     .foregroundStyle(.white)
+                    .lineLimit(1)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(headline)
-                        .font(.footnote.bold())
-                        .foregroundStyle(.white)
+                HStack(spacing: 6) {
+                    Text(subtitle)
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.85))
                         .lineLimit(1)
-
-                    HStack(spacing: 6) {
-                        Text(subtitle)
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.85))
-                            .lineLimit(1)
-                        Spacer(minLength: 4)
-                        Text("ETA")
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.7))
-                        CountdownLabel(endsAt: event.arrivesAt, onComplete: onDismiss)
-                            .foregroundStyle(.white)
-                    }
+                    Spacer(minLength: 4)
+                    Text("ETA")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.7))
+                    CountdownLabel(endsAt: event.arrivesAt, onComplete: onDismiss)
+                        .foregroundStyle(.white)
                 }
-
-                Spacer(minLength: 4)
-
-                Button(action: onDismiss) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                LinearGradient(
-                    colors: [Color.red.opacity(0.95), Color.orange.opacity(0.9)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                ),
-                in: RoundedRectangle(cornerRadius: 12)
-            )
-            .shadow(color: .red.opacity(0.4), radius: 8, y: 3)
+
+            Spacer(minLength: 4)
+
+            Button(action: onDismiss) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss attack alert")
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            LinearGradient(
+                colors: [Color.red.opacity(0.95), Color.orange.opacity(0.9)],
+                startPoint: .leading,
+                endPoint: .trailing
+            ),
+            in: RoundedRectangle(cornerRadius: 12)
+        )
+        .shadow(color: .red.opacity(0.4), radius: 8, y: 3)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
         .padding(.horizontal, 12)
         .padding(.top, 4)
         .transition(.move(edge: .top).combined(with: .opacity))

@@ -16,6 +16,13 @@ struct CompletionNotice: Identifiable, Equatable {
         case sessionKicked
         case rallyLaunched
         case rallyResolved
+        case comingSoon
+    }
+
+    /// Placeholder za feature-e koji još uvek nemaju backend (Mailbox, Shop, itd.).
+    /// Prikazuje neutralni toast sa "Coming soon" porukom umesto silent no-op-a.
+    static func comingSoon(_ feature: String) -> CompletionNotice {
+        CompletionNotice(kind: .comingSoon, title: feature, subtitle: "Coming soon")
     }
 }
 
@@ -75,7 +82,8 @@ struct CompletionNoticeBanner: View {
         case .implosion:     "bolt.circle.fill"
         case .sessionKicked: "person.crop.circle.badge.xmark"
         case .rallyLaunched: "flag.checkered"
-        case .rallyResolved: "flag.checkered.2.crossed"
+        case .rallyResolved: "flag.2.crossed.fill"
+        case .comingSoon:    "hourglass.circle.fill"
         }
     }
 
@@ -88,6 +96,7 @@ struct CompletionNoticeBanner: View {
         case .sessionKicked: .red
         case .rallyLaunched: .orange
         case .rallyResolved: .orange
+        case .comingSoon:    .gray
         }
     }
 

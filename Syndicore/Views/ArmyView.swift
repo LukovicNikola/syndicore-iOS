@@ -330,8 +330,16 @@ private struct MovementsTab: View {
             try await gameState.api.skipMovement(worldId: worldId, movementId: movement.id)
             await gameState.refreshMovements()
             await gameState.refreshCity()
+        } catch let error as APIError {
+            switch error {
+            case .badRequest(let e):  errorMessage = e.error
+            case .conflict(let e):    errorMessage = e.error
+            case .forbidden(let e):   errorMessage = e.error
+            case .server(let e):      errorMessage = e.error
+            default:                  errorMessage = error.localizedDescription
+            }
         } catch {
-            errorMessage = "Skip failed: \(error)"
+            errorMessage = error.localizedDescription
         }
         skippingId = nil
     }

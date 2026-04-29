@@ -148,16 +148,16 @@ struct MapView: View {
     private var sideMenuActions: [SideMenuAction] {
         [
             SideMenuAction(id: "settings", assetName: "ui_settings_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: nil) {
-                // TODO: open Settings view
+                gameState.selectedTab = .settings
             },
             SideMenuAction(id: "email", assetName: "ui_email_v1", accentColor: Color(red: 0.0, green: 0.9, blue: 1.0), badgeCount: gameState.unreadEmailCount) {
-                // TODO: open Mail view
+                gameState.lastCompletionNotice = .comingSoon("Mailbox")
             },
             SideMenuAction(id: "notifications", assetName: "ui_notifications_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.3), badgeCount: gameState.unreadNotificationCount) {
-                // TODO: open Notifications view
+                gameState.lastCompletionNotice = .comingSoon("Notifications")
             },
             SideMenuAction(id: "shop", assetName: "ui_shop_v1", accentColor: Color(red: 1.0, green: 0.3, blue: 0.9), badgeCount: nil) {
-                // TODO: open Shop view
+                gameState.lastCompletionNotice = .comingSoon("Shop")
             },
         ]
     }

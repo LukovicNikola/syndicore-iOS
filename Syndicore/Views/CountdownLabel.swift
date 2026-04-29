@@ -17,6 +17,13 @@ struct CountdownLabel: View {
             .font(.caption.bold().monospacedDigit())
             .foregroundStyle(remaining > 0 ? .orange : .green)
             .onAppear { updateRemaining() }
+            .onChange(of: endsAt) { _, _ in
+                // SwiftUI List recycling: ne pravi nov view, već prosledi nov endsAt
+                // istom view-u. Resetuj guard tako da novi countdown može da fire-uje
+                // onComplete kad istekne (umesto da prikaže "Done" forever).
+                didFireComplete = false
+                updateRemaining()
+            }
             .onReceive(timer) { _ in
                 // Stop ticking once countdown is done
                 guard remaining > 0 || !didFireComplete else { return }
