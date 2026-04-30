@@ -32,7 +32,9 @@ final class SupabaseManager {
     /// Idempotent: drugi i naredni pozivi sa istim config-om su no-op (omogucava bootstrap retry).
     static func configure(config: AppConfig) {
         if _shared != nil { return }
-        _shared = SupabaseManager(config: config)
+        let mgr = SupabaseManager(config: config)
+        mgr.startListening()
+        _shared = mgr
     }
 
     // MARK: - Properties
@@ -47,8 +49,8 @@ final class SupabaseManager {
     /// Nonce za Apple Sign In (mora da se sacuva izmedju request-a i completion-a)
     var currentNonce: String?
 
-    /// Task koji slusa onAuthStateChange stream. Postavlja se jednom u init() i ne menja se posle.
-    private let authListenerTask: Task<Void, Never>
+    /// Task koji slusa onAuthStateChange stream.
+    private var authListenerTask: Task<Void, Never>?
 
     // MARK: - Init
 
@@ -60,27 +62,18 @@ final class SupabaseManager {
                 auth: .init(emitLocalSessionAsInitialSession: true)
             )
         )
-        let c = self.client
-        self.authListenerTask = Task { [weak self] in
+    }
+
+    func startListening() {
+        guard authListenerTask == nil else { return }
+        authListenerTask = Task { [weak self] in
             guard let self else { return }
-            for await (event, updatedSession) in c.auth.authStateChanges {
-                switch event {
-                case .signedIn, .tokenRefreshed:
-                    self.session = updatedSession
-                case .signedOut:
-                    self.session = nil
-                default:
-                    break
-                }
-            }
+            await self.listenToAuthChanges()
         }
     }
 
-    /// `nonisolated` deinit — Task.cancel() je dokumentovano thread-safe pa može
-    /// da se zove iz bilo kog konteksta. `MainActor` deinit u Swift 6 ne sme da
-    /// dotakne main-isolated state, ali Task tip je sam-Sendable.
-    nonisolated deinit {
-        authListenerTask.cancel()
+    deinit {
+        authListenerTask?.cancel()
     }
 
     // MARK: - Session Management
