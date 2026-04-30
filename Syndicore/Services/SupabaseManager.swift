@@ -48,8 +48,6 @@ final class SupabaseManager {
     var currentNonce: String?
 
     /// Task koji slusa onAuthStateChange stream. Postavlja se jednom u init() i ne menja se posle.
-    /// `let` je sigurniji od `nonisolated(unsafe) var` jer eliminiše potencijal racea
-    /// između init/deinit i ostalih main-actor poziva.
     private let authListenerTask: Task<Void, Never>
 
     // MARK: - Init
@@ -62,13 +60,20 @@ final class SupabaseManager {
                 auth: .init(emitLocalSessionAsInitialSession: true)
             )
         )
-        // Start listening za auth state changes (token refresh, signed out iz drugih tab-ova/uređaja).
-        // `weak self` da bi listener task umro ako instance nestane.
-        let listener = Task { [weak self] () -> Void in
+        let c = self.client
+        self.authListenerTask = Task { [weak self] in
             guard let self else { return }
-            await self.listenToAuthChanges()
+            for await (event, updatedSession) in c.auth.authStateChanges {
+                switch event {
+                case .signedIn, .tokenRefreshed:
+                    self.session = updatedSession
+                case .signedOut:
+                    self.session = nil
+                default:
+                    break
+                }
+            }
         }
-        self.authListenerTask = listener
     }
 
     /// `nonisolated` deinit — Task.cancel() je dokumentovano thread-safe pa može
