@@ -12,7 +12,7 @@ struct PlayerWorld: Codable, Identifiable, Sendable {
     let id: String
     let playerId: String?   // nije u join response-u, prisutan u GET /me
     let worldId: String?    // nije u join response-u, prisutan u GET /me
-    let faction: Faction
+    let faction: Faction?   // null kad igrač još nije izabrao frakciju
     let ring: Ring?         // nije uvek u join response-u
     let crystals: [String]? // nije uvek u join response-u
     let joinedAt: Date?     // nije u join response-u, prisutan u GET /me

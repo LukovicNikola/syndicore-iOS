@@ -40,7 +40,8 @@ final class APIClient: @unchecked Sendable {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
-            Self.log.error("Decode failure for \(endpoint.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            let rawJSON = String(data: data.prefix(2000), encoding: .utf8) ?? "<non-utf8>"
+            Self.log.error("Decode failure for \(endpoint.path, privacy: .public): \(error, privacy: .public)\nRaw body: \(rawJSON, privacy: .public)")
             throw APIError.decodingError(error)
         }
     }

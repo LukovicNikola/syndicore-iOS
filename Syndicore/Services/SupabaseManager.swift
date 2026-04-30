@@ -50,7 +50,8 @@ final class SupabaseManager {
     var currentNonce: String?
 
     /// Task koji slusa onAuthStateChange stream.
-    private var authListenerTask: Task<Void, Never>?
+    /// `nonisolated(unsafe)` jer deinit mora da cancel-uje task iz nonisolated konteksta.
+    nonisolated(unsafe) private var authListenerTask: Task<Void, Never>?
 
     // MARK: - Init
 
