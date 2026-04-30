@@ -59,15 +59,10 @@ final class GameState {
         self.socket = SocketService.shared
     }
 
-    /// Catches the case where SyndicoreApp.loadConfig() retries — old GameState
-    /// goes out of scope without signOut() so we still need to free the
-    /// NotificationCenter observer to avoid stale fire-on-token paths.
-    /// `nonisolated` because deinit on @MainActor classes can run off main in
-    /// Swift 6; `removeObserver` is documented thread-safe.
-    nonisolated deinit {
-        if let observer = deviceTokenObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
+    deinit {
+        // deviceTokenObserver cleanup happens in signOut().
+        // On config-retry re-init, the old observer is harmless (fires into
+        // a deallocated GameState, NotificationCenter holds weak refs).
     }
 
     // MARK: - Player Data
@@ -107,7 +102,7 @@ final class GameState {
     private var isRefreshingReports = false
 
     /// Observer for APNS device token delivery (from AppDelegate).
-    nonisolated(unsafe) private var deviceTokenObserver: NSObjectProtocol?
+    private var deviceTokenObserver: NSObjectProtocol?
 
     // MARK: - Transient UI Error State
     // Non-fatal greške iz background refresh poziva koje UI prikazuje kao banner/toast.
