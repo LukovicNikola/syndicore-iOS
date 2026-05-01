@@ -189,7 +189,7 @@ private struct QueueRow: View {
                 endsAt: Date().addingTimeInterval(195)
             ),
             trainingJobs: [
-                TrainingJob(id: "t1", unitType: .GRUNT, count: 10, endsAt: Date().addingTimeInterval(260))
+                TrainingJob(id: "t1", unitType: .RONIN, count: 10, endsAt: Date().addingTimeInterval(260))
             ]
         )
         .padding()

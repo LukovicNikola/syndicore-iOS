@@ -57,7 +57,7 @@ struct HQInfoSheet: View {
 
     /// Da li igrač ima bar jednog SETTLER-a u gradu
     private var hasSettler: Bool {
-        city?.troops?.contains { $0.unitType == .SETTLER && $0.count >= 1 } ?? false
+        city?.troops?.contains { $0.unitType == .ARCHITECT && $0.count >= 1 } ?? false
     }
 
     var body: some View {
