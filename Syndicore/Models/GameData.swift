@@ -7,7 +7,7 @@ struct GameData: Codable {
     let clanUnit: [String: ClanUnitStats]?
     let buildingFormulas: BuildingFormulas
     let buildings: BuildingsData
-    let techTree: TechTreeData
+    let talentTree: TalentTreeConfig?
     let map: MapData
     let movement: MovementData?
     let combat: CombatData
@@ -96,22 +96,27 @@ struct FixedBuildingData: Codable {
     let points: [String: Int]?
 }
 
-// MARK: - Tech Tree
+// MARK: - Talent Tree (game-constants config)
 
-struct TechTreeData: Codable {
-    let researchCostMultiplier: Double?
-    let researchTimeMultiplier: Double?
-    let universal: [String: TechBranchData]
-    let faction: [String: TechBranchData]
+struct TalentTreeConfig: Codable {
+    let config: TalentTreeConfigValues?
+    let standard: [String: [TalentTreeNodeDef]]?
+    let faction: [String: [String: [TalentTreeNodeDef]]]?
 }
 
-struct TechBranchData: Codable {
-    let faction: String?
-    let maxLevel: Int
-    let pointCosts: [Int]
-    let baseCost: [String: Int]
-    let baseTimeMinutes: Int
-    let effects: [[String: AnyCodableValue]]
+struct TalentTreeConfigValues: Codable {
+    let standardCostPerLevel: [Int]?
+    let factionCost: Int?
+    let respecCooldownDays: Int?
+    let respecRefundPct: Double?
+}
+
+struct TalentTreeNodeDef: Codable {
+    let key: String
+    let label: String
+    let effectPerLevel: [String: AnyCodableValue]?
+    let effect: [String: AnyCodableValue]?
+    let capstone: Bool?
 }
 
 // MARK: - Map
