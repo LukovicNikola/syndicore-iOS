@@ -403,17 +403,18 @@ extension APIClient {
         try await request(.diplomacy(worldId: worldId, syndikatId: syndikatId, targetSyndikatId: targetSyndikatId, status: status), as: DiplomacyResponse.self)
     }
 
-    // Research
-    func research(worldId: String) async throws -> ResearchResponse {
-        try await request(.research(worldId: worldId), as: ResearchResponse.self)
+    // Talents
+    func talents(worldId: String) async throws -> TalentStateResponse {
+        try await request(.talents(worldId: worldId), as: TalentStateResponse.self)
     }
 
-    func upgradeResearch(worldId: String, branch: ResearchBranch) async throws -> ResearchUpgradeResponse {
-        try await request(.upgradeResearch(worldId: worldId, branch: branch), as: ResearchUpgradeResponse.self)
+    func upgradeTalent(worldId: String, tree: TalentTree, scope: String, nodeKey: String) async throws -> TalentUpgradeResponse {
+        let req = TalentUpgradeRequest(tree: tree, scope: scope, nodeKey: nodeKey)
+        return try await request(.upgradeTalent(worldId: worldId, request: req), as: TalentUpgradeResponse.self)
     }
 
-    func respecResearch(worldId: String) async throws -> ResearchRespecResponse {
-        try await request(.respecResearch(worldId: worldId), as: ResearchRespecResponse.self)
+    func respecTalents(worldId: String) async throws -> TalentRespecResponse {
+        try await request(.respecTalents(worldId: worldId), as: TalentRespecResponse.self)
     }
 
     // MARK: - Game constants (ETag cache)

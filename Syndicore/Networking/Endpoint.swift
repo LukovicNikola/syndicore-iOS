@@ -282,24 +282,20 @@ extension Endpoint {
     }
 }
 
-// MARK: - Research
+// MARK: - Talents
 
 extension Endpoint {
-    static func research(worldId: String) -> Endpoint {
-        Endpoint(path: "/api/v1/worlds/\(worldId)/research", requiresAuth: true)
+    static func talents(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/talents", requiresAuth: true)
     }
 
-    static func upgradeResearch(worldId: String, branch: ResearchBranch) -> Endpoint {
-        Endpoint(
-            path: "/api/v1/worlds/\(worldId)/research",
-            method: .post,
-            requiresAuth: true,
-            body: ResearchUpgradeRequest(branch: branch)
-        )
+    static func upgradeTalent(worldId: String, request: TalentUpgradeRequest) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/talents/upgrade", method: .post, requiresAuth: true, body: request)
     }
 
-    static func respecResearch(worldId: String) -> Endpoint {
-        Endpoint(path: "/api/v1/worlds/\(worldId)/research/respec", method: .post, requiresAuth: true)
+    static func respecTalents(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/talents/respec", method: .post, requiresAuth: true)
+    }
     }
 }
 

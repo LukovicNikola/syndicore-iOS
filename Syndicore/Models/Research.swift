@@ -1,48 +1,94 @@
 import Foundation
 
-// MARK: - GET /worlds/:worldId/research
+// MARK: - GET /worlds/:worldId/talents
 
-struct ResearchResponse: Codable, Sendable {
-    var researchPoints: [String: Int]
-    let modifiers: ResearchModifiers
-    var pointsAvailable: Int
-    var pointsUsed: Int
+struct TalentStateResponse: Codable, Sendable {
+    var pool: TalentPoolInfo
+    let standard: [String: [TalentNode]]
+    let faction: FactionTalentInfo
+    let modifiers: TalentModifiers
 }
 
-struct ResearchModifiers: Codable, Sendable {
+struct TalentPoolInfo: Codable, Sendable {
+    let researchPoints: Double
+    let rpPerHour: Double
+    let researchLabLevel: Int
+    let lastTalentRespec: Date?
+    let respecCooldownDays: Int
+}
+
+struct TalentNode: Codable, Identifiable, Sendable {
+    let key: String
+    let label: String
+    let level: Int
+    let maxLevel: Int?
+    let capstone: Bool?
+    var id: String { key }
+
+    var isCapstone: Bool { capstone == true }
+    var isMaxed: Bool { level >= (maxLevel ?? 1) }
+}
+
+struct FactionTalentInfo: Codable, Sendable {
+    let chosen: String?
+    let available: Bool
+    let units: [String: [TalentNode]]?
+}
+
+struct TalentModifiers: Codable, Sendable {
     let atkMultiplier: Double?
     let defMultiplier: Double?
-    let spdMultiplier: Double?
-    let productionMultiplier: Double?
-    let marchSizeBonus: Int?
-    let rallyCapacityBonus: Int?
+    let siegeMultiplier: Double?
+    let creditsProdBonus: Double?
+    let alloysProdBonus: Double?
+    let techProdBonus: Double?
+    let energyProdBonus: Double?
+    let buildSpeedBonus: Double?
+    let trainingSpeedBonus: Double?
+    let movementSpeedBonus: Double?
+    let storageCapBonus: Double?
+    let lootCapBonus: Double?
+    let scoutPowerBonus: Double?
+    let watchtowerDetailBonus: Double?
+    let alertWindowMinutes: Double?
+    let rpPerHourBonus: Double?
+    let rpCostReductionBonus: Double?
+    let raw: [String: AnyCodableValue]?
 }
 
-// MARK: - POST /worlds/:worldId/research
+// MARK: - POST /worlds/:worldId/talents/upgrade
 
-struct ResearchUpgradeRequest: Codable, Sendable {
-    let branch: ResearchBranch
+enum TalentTree: String, Codable, Sendable {
+    case STANDARD
+    case FACTION
 }
 
-struct ResearchUpgradeResponse: Codable, Sendable {
-    let result: ResearchResult
+struct TalentUpgradeRequest: Codable, Sendable {
+    let tree: TalentTree
+    let scope: String
+    let nodeKey: String
 }
 
-struct ResearchResult: Codable, Sendable {
-    let branch: ResearchBranch
+struct TalentUpgradeResponse: Codable, Sendable {
+    let result: TalentUpgradeResult
+}
+
+struct TalentUpgradeResult: Codable, Sendable {
+    let tree: TalentTree
+    let scope: String
+    let nodeKey: String
     let previousLevel: Int
     let newLevel: Int
-    let cost: [String: Int]
-    let pointsUsed: Int
-    let pointsRemaining: Int
+    let cost: Int
+    let pointsRemaining: Double
 }
 
-// MARK: - POST /worlds/:worldId/research/respec
+// MARK: - POST /worlds/:worldId/talents/respec
 
-struct ResearchRespecResponse: Codable, Sendable {
-    let result: RespecResult
+struct TalentRespecResponse: Codable, Sendable {
+    let result: TalentRespecResult
 }
 
-struct RespecResult: Codable, Sendable {
-    let penalty: [String: Int]
+struct TalentRespecResult: Codable, Sendable {
+    let refundedRP: Int
 }
