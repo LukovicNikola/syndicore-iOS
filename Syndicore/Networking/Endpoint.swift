@@ -296,7 +296,6 @@ extension Endpoint {
     static func respecTalents(worldId: String) -> Endpoint {
         Endpoint(path: "/api/v1/worlds/\(worldId)/talents/respec", method: .post, requiresAuth: true)
     }
-    }
 }
 
 // MARK: - Request Bodies
