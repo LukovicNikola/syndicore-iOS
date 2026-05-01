@@ -243,7 +243,7 @@ struct ResearchView: View {
             let response = try await gameState.api.respecTalents(worldId: wid)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             gameState.lastCompletionNotice = CompletionNotice(
-                kind: .buildingComplete,
+                kind: .building,
                 title: "Talents Reset",
                 subtitle: "\(response.result.refundedRP) RP refunded"
             )
