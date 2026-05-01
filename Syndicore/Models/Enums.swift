@@ -34,7 +34,9 @@ enum BuildingType: String, Codable, CaseIterable {
 // MARK: - Unit Type
 
 enum UnitType: String, Codable, CaseIterable {
-    case GRUNT, ENFORCER, SENTINEL, STRIKER, PHANTOM, BUSTER, HAULER, TITAN, SETTLER
+    case RONIN, VANGUARD, WRAITH, CIPHER, BREAKER, ARCHITECT
+    case COUNTER_INTEL_OPERATIVE
+    case MECH_RATS, LOGIC_BOMB, TRASH_BOMBERS, DISRUPTION_SQUAD
 }
 
 // MARK: - Movement Type

@@ -711,28 +711,32 @@ private struct ArmySnapshotSection: View {
 
 private func unitIcon(_ type: UnitType) -> String {
     switch type {
-    case .GRUNT:    "person.fill"
-    case .ENFORCER: "shield.fill"
-    case .SENTINEL: "shield.lefthalf.filled"
-    case .STRIKER:  "car.fill"
-    case .HAULER:   "shippingbox.fill"
-    case .PHANTOM:  "eye.fill"
-    case .BUSTER:   "flame.fill"
-    case .TITAN:    "crown.fill"
-    case .SETTLER:  "flag.fill"
+    case .RONIN:                    "person.fill"
+    case .VANGUARD:                 "shield.fill"
+    case .WRAITH:                   "car.fill"
+    case .CIPHER:                   "eye.fill"
+    case .BREAKER:                  "flame.fill"
+    case .ARCHITECT:                "flag.fill"
+    case .COUNTER_INTEL_OPERATIVE:  "lock.shield.fill"
+    case .MECH_RATS:                "ant.fill"
+    case .LOGIC_BOMB:               "bolt.trianglebadge.exclamationmark"
+    case .TRASH_BOMBERS:            "trash.fill"
+    case .DISRUPTION_SQUAD:         "exclamationmark.triangle.fill"
     }
 }
 
 private func unitColor(_ type: UnitType) -> Color {
     switch type {
-    case .GRUNT:    .secondary
-    case .ENFORCER: .blue
-    case .SENTINEL: .cyan
-    case .STRIKER:  .orange
-    case .HAULER:   .brown
-    case .PHANTOM:  .purple
-    case .BUSTER:   .red
-    case .TITAN:    .yellow
-    case .SETTLER:  .green
+    case .RONIN:                    .secondary
+    case .VANGUARD:                 .blue
+    case .WRAITH:                   .orange
+    case .CIPHER:                   .purple
+    case .BREAKER:                  .red
+    case .ARCHITECT:                .green
+    case .COUNTER_INTEL_OPERATIVE:  .cyan
+    case .MECH_RATS:                .mint
+    case .LOGIC_BOMB:               .yellow
+    case .TRASH_BOMBERS:            .brown
+    case .DISRUPTION_SQUAD:         .indigo
     }
 }
