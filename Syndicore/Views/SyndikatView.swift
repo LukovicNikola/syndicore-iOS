@@ -562,7 +562,7 @@ private struct MemberRow: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    Text(member.faction.displayName)
+                    Text(member.faction?.displayName ?? "Unknown")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }

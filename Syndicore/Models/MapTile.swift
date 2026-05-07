@@ -22,7 +22,7 @@ struct TileCity: Codable {
     let name: String
     let owner: String
     let ownerId: String
-    let faction: Faction
+    let faction: Faction?
 }
 
 struct TileOutpost: Codable {

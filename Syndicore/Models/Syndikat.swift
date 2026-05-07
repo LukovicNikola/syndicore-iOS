@@ -16,7 +16,7 @@ struct SyndikatMember: Codable, Identifiable {
     let playerWorldId: String
     let playerId: String?
     let username: String
-    let faction: Faction
+    let faction: Faction?
     let role: SyndikatRole
 }
 
