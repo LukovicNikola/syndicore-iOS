@@ -23,11 +23,7 @@ struct CityView: View {
                 onTapEmptySlot: { tappedSlotIndex = $0 },
                 onConstructionComplete: {
                     Task { await gameState.refreshCity() }
-                },
-                onWorldMapTapped:  { gameState.selectedTab = .map },
-                onHomeTapped:      { /* already on city */ },
-                onResearchTapped:  { gameState.selectedTab = .research },
-                onSyndicateTapped: { gameState.selectedTab = .syndikat }
+                }
             )
             .ignoresSafeArea()
 
@@ -51,27 +47,6 @@ struct CityView: View {
                 Spacer()
             }
 
-            // MARK: Train dugme — donji levi ugao, iznad safe area
-            VStack {
-                Spacer()
-                HStack {
-                    Button(action: { showTraining = true }) {
-                        Label("Train", systemImage: "person.2.fill")
-                            .font(.system(size: 12, weight: .bold))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 9)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
-                            .foregroundStyle(.white)
-                    }
-                    Spacer()
-                }
-                .padding(.leading, 20)
-                // Iznad SpriteKit nav strip-a u CityScene (bottomY = safeBottom + 45)
-                // — na iPhone 13 mini su se preklapali pa je SwiftUI button kradio
-                // hit-test od leftmost SpriteKit button-a.
-                .padding(.bottom, 130)
-            }
         }
         .overlay(alignment: .topTrailing) {
             CyberpunkSideMenu(actions: sideMenuActions)

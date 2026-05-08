@@ -12,12 +12,6 @@ struct CitySceneView: UIViewRepresentable {
     /// Parent SwiftUI view treba da pozove refreshCity() da povuče novi state sa BE-a.
     var onConstructionComplete: () -> Void = {}
 
-    // Bottom nav button callbacks
-    var onWorldMapTapped:  (() -> Void)?
-    var onHomeTapped:      (() -> Void)?
-    var onResearchTapped:  (() -> Void)?
-    var onSyndicateTapped: (() -> Void)?
-
     /// Toggle debug grid overlay (cyan diamonds + anchor dots).
     /// Menja se iz SettingsView preko `@AppStorage("debug.cityGridOverlay")`.
     @AppStorage("debug.cityGridOverlay") private var debugOverlay: Bool = false
@@ -43,10 +37,6 @@ struct CitySceneView: UIViewRepresentable {
         scene.onTapBuilding          = onTapBuilding
         scene.onTapEmptySlot         = onTapEmptySlot
         scene.onConstructionComplete = onConstructionComplete
-        scene.onWorldMapTapped       = onWorldMapTapped
-        scene.onHomeTapped           = onHomeTapped
-        scene.onResearchTapped       = onResearchTapped
-        scene.onSyndicateTapped      = onSyndicateTapped
         context.coordinator.scene = scene
 
         skView.presentScene(scene)
@@ -65,10 +55,6 @@ struct CitySceneView: UIViewRepresentable {
         scene.onTapBuilding          = onTapBuilding
         scene.onTapEmptySlot         = onTapEmptySlot
         scene.onConstructionComplete = onConstructionComplete
-        scene.onWorldMapTapped       = onWorldMapTapped
-        scene.onHomeTapped           = onHomeTapped
-        scene.onResearchTapped       = onResearchTapped
-        scene.onSyndicateTapped      = onSyndicateTapped
 
         if let city { scene.configure(with: city) }
         scene.setDebugOverlay(debugOverlay)

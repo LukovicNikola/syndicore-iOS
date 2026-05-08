@@ -8,7 +8,7 @@ struct MainGameView: View {
 
     var body: some View {
         @Bindable var gameState = gameState
-        ZStack {
+        ZStack(alignment: .bottom) {
             switch gameState.selectedTab {
             case .city:
                 CityView()
@@ -25,6 +25,8 @@ struct MainGameView: View {
             case .settings:
                 SettingsView()
             }
+
+            CyberpunkNavBar(selectedTab: $gameState.selectedTab)
         }
         .overlay(alignment: .top) {
             VStack(spacing: 4) {

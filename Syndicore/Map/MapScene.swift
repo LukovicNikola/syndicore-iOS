@@ -30,6 +30,9 @@ final class MapScene: SKScene {
     var onViewportMoved: ((Int, Int) -> Void)?
 
     private var tiles: [MapTile] = []
+    /// Bounding box of all loaded tiles in world coordinates — used to clamp camera.
+    private var tileBoundsMin: CGPoint = .zero
+    private var tileBoundsMax: CGPoint = .zero
 
     // MARK: - Iso Math (identical to CityScene)
 
@@ -109,6 +112,7 @@ final class MapScene: SKScene {
     func loadTiles(_ newTiles: [MapTile], center: (cx: Int, cy: Int)) {
         lastFetchCenter = center
         tiles = newTiles
+        updateTileBounds()
 
         let newKeys = Set(newTiles.map { "\($0.x),\($0.y)" })
 
@@ -224,6 +228,34 @@ final class MapScene: SKScene {
         return (0.63, CGPoint(x: 0.5, y: 0.3))
     }
 
+    // MARK: - Camera Bounds
+
+    private func updateTileBounds() {
+        guard !tiles.isEmpty else { return }
+        var minX = CGFloat.greatestFiniteMagnitude
+        var minY = CGFloat.greatestFiniteMagnitude
+        var maxX = -CGFloat.greatestFiniteMagnitude
+        var maxY = -CGFloat.greatestFiniteMagnitude
+        for tile in tiles {
+            let pos = tileToWorld(col: tile.x, row: tile.y)
+            minX = min(minX, pos.x)
+            minY = min(minY, pos.y)
+            maxX = max(maxX, pos.x)
+            maxY = max(maxY, pos.y)
+        }
+        // Add half-tile padding so the edge tiles are fully visible
+        let padX = Self.tileWidth / 2
+        let padY = Self.tileHeight / 2
+        tileBoundsMin = CGPoint(x: minX - padX, y: minY - padY)
+        tileBoundsMax = CGPoint(x: maxX + padX, y: maxY + padY)
+    }
+
+    private func clampCamera() {
+        guard let cam = camera, !tiles.isEmpty else { return }
+        cam.position.x = max(tileBoundsMin.x, min(tileBoundsMax.x, cam.position.x))
+        cam.position.y = max(tileBoundsMin.y, min(tileBoundsMax.y, cam.position.y))
+    }
+
     // MARK: - Gestures
 
     @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
@@ -232,6 +264,7 @@ final class MapScene: SKScene {
             let newScale = cam.xScale / gesture.scale
             cam.setScale(max(0.3, min(8.0, newScale)))
             gesture.scale = 1.0
+            clampCamera()
         }
         if gesture.state == .ended {
             checkViewportRefetch()
@@ -247,6 +280,7 @@ final class MapScene: SKScene {
             y: cam.position.y + translation.y * scale
         )
         gesture.setTranslation(.zero, in: view)
+        clampCamera()
 
         if gesture.state == .ended {
             checkViewportRefetch()
