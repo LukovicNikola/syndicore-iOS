@@ -174,6 +174,16 @@ extension Endpoint {
     }
 }
 
+// MARK: - Empire Overview & Minimap
+
+extension Endpoint {
+    static let empireOverview = Endpoint(path: "/api/v1/me/empire-overview", requiresAuth: true)
+
+    static func minimap(worldId: String) -> Endpoint {
+        Endpoint(path: "/api/v1/worlds/\(worldId)/minimap", requiresAuth: true)
+    }
+}
+
 // MARK: - Map
 
 extension Endpoint {

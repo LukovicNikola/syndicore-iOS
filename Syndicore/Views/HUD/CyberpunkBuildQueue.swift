@@ -74,11 +74,11 @@ struct CyberpunkBuildQueue: View {
                 .foregroundColor(.orange)
 
             Text("QUEUE")
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(.gameHeader(11))
                 .foregroundColor(.white)
 
             Text("\(totalSlots)")
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .font(.gameNumber(10))
                 .foregroundColor(.cyan)
 
             Spacer()
@@ -139,12 +139,12 @@ private struct QueueRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(label)
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .font(.gameLabel(11))
                         .foregroundColor(.white)
                         .lineLimit(1)
                     Spacer()
                     Text(formattedRemaining)
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .font(.gameNumber(10))
                         .foregroundColor(.cyan)
                 }
 

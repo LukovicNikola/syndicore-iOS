@@ -55,7 +55,7 @@ private struct ResourcePillView: View {
                 .frame(width: 32, height: 32)
                 .shadow(color: item.accentColor.opacity(0.6), radius: 3)
             Text(formatNumber(item.value))
-                .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                .font(.gameNumber(8))
                 .foregroundStyle(.white)
                 .shadow(color: item.accentColor.opacity(0.7), radius: 4)
                 .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)

@@ -72,7 +72,7 @@ private struct NavBarButton: View {
                 .opacity(isSelected ? 1.0 : 0.5)
 
                 Text(navTab.label)
-                    .font(.system(size: 9, weight: isSelected ? .bold : .medium))
+                    .font(isSelected ? .gameHeader(9) : .gameLabel(9))
                     .foregroundStyle(isSelected ? .cyan : .white.opacity(0.5))
 
                 // Active indicator

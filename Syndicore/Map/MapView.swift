@@ -4,6 +4,9 @@ import SpriteKit
 struct MapView: View {
     @Environment(GameState.self) private var gameState
 
+    /// Called when the user pinches out — used by EmpireOverviewView to return to overview.
+    var onDismiss: (() -> Void)? = nil
+
     @State private var scene: MapScene = {
         let s = MapScene()
         s.scaleMode = .resizeFill
@@ -67,6 +70,25 @@ struct MapView: View {
             )
             .padding(.leading, 12)
             .padding(.top, 100)
+        }
+        .overlay(alignment: .topLeading) {
+            if let dismiss = onDismiss {
+                Button(action: dismiss) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("OVERVIEW")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    }
+                    .foregroundStyle(.cyan)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+                }
+                .padding(.leading, 12)
+                .padding(.top, 56)
+            }
         }
         .overlay(alignment: .bottom) {
             if let tile = selectedTile {
@@ -159,6 +181,9 @@ struct MapView: View {
                 }
             }
         }
+        scene.onPinchOut = { [onDismiss] in
+            Task { @MainActor in onDismiss?() }
+        }
     }
 
     private var sideMenuActions: [SideMenuAction] {
@@ -188,6 +213,10 @@ struct MapView: View {
                 cy: viewportCenter.cy,
                 radius: 20
             )
+            // Push ownership context so the scene can colour halos correctly
+            if let homeTile = gameState.activeCity?.tile {
+                scene.ownCityKey = "\(homeTile.x),\(homeTile.y)"
+            }
             scene.loadTiles(response.tiles, center: viewportCenter)
             gameState.mapFetchError = nil
         } catch {

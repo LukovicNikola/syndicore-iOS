@@ -30,7 +30,7 @@ struct TopHUD: View {
                             .font(.system(size: 10))
                             .foregroundStyle(.purple)
                         Text("\(crystalCount)")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .font(.gameNumber(11))
                             .foregroundStyle(.white)
                     }
                     .padding(.horizontal, 8)
@@ -41,7 +41,7 @@ struct TopHUD: View {
 
                 if let name = city?.name {
                     Text(name.uppercased())
-                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                        .font(.gameTitle(11))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)

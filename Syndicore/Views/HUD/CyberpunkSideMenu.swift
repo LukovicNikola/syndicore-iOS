@@ -39,7 +39,7 @@ private struct SideMenuButton: View {
 
                 if let count = item.badgeCount, count > 0 {
                     Text("\(count)")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.gameNumber(10))
                         .foregroundColor(.white)
                         .frame(minWidth: 18, minHeight: 18)
                         .padding(.horizontal, 4)

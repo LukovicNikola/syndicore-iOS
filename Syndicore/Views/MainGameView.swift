@@ -13,7 +13,7 @@ struct MainGameView: View {
             case .city:
                 CityView()
             case .map:
-                MapView()
+                EmpireOverviewView()
             case .army:
                 ArmyView()
             case .syndikat:

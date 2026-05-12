@@ -230,6 +230,15 @@ extension APIClient {
         try await request(.city(id: id), as: CityResponse.self, timeout: 30).city
     }
 
+    // Empire Overview & Minimap
+    func empireOverview() async throws -> EmpireOverviewResponse {
+        try await request(.empireOverview, as: EmpireOverviewResponse.self)
+    }
+
+    func minimap(worldId: String) async throws -> MinimapResponse {
+        try await request(.minimap(worldId: worldId), as: MinimapResponse.self)
+    }
+
     // Map
     func mapViewport(worldId: String, cx: Int, cy: Int, radius: Int) async throws -> MapViewport {
         try await request(.mapViewport(worldId: worldId, cx: cx, cy: cy, radius: radius), as: MapViewport.self, timeout: 30)
