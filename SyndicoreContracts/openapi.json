@@ -1276,6 +1276,229 @@
         "required": [
           "rally"
         ]
+      },
+      "EmpireRingEntry": {
+        "type": "object",
+        "properties": {
+          "ringType": {
+            "$ref": "#/components/schemas/Ring"
+          },
+          "worldId": {
+            "type": "string"
+          },
+          "worldName": {
+            "type": "string"
+          },
+          "playerWorld": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "joinedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "mainCityId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "joinedAt",
+              "isActive",
+              "mainCityId"
+            ]
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "totalPlayersInWorld": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "playerRank": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "playerRankPercentile": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "totalCitiesOwned": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "totalOutpostsOwned": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "totalPlayersInWorld",
+              "playerRank",
+              "playerRankPercentile",
+              "totalCitiesOwned",
+              "totalOutpostsOwned"
+            ]
+          }
+        },
+        "required": [
+          "ringType",
+          "worldId",
+          "worldName",
+          "playerWorld",
+          "stats"
+        ]
+      },
+      "EmpireOverviewResponse": {
+        "type": "object",
+        "properties": {
+          "rings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmpireRingEntry"
+            }
+          },
+          "currentRing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ring"
+              },
+              {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            ]
+          },
+          "totalActiveRings": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "rings",
+          "currentRing",
+          "totalActiveRings"
+        ]
+      },
+      "MinimapTileType": {
+        "type": "string",
+        "enum": [
+          "PLAYER_CITY",
+          "ALLY_CITY",
+          "ENEMY_CITY",
+          "ROGUE_OUTPOST",
+          "RESOURCE_MINE",
+          "WARP_GATE",
+          "RUINS"
+        ]
+      },
+      "MinimapTile": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer"
+          },
+          "y": {
+            "type": "integer"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MinimapTileType"
+          },
+          "ownerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ownerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "syndicateId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isPlayerOwned": {
+            "type": "boolean"
+          },
+          "isAlly": {
+            "type": "boolean"
+          },
+          "isEnemy": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "type",
+          "ownerId",
+          "ownerName",
+          "syndicateId",
+          "isPlayerOwned",
+          "isAlly",
+          "isEnemy"
+        ]
+      },
+      "MinimapResponse": {
+        "type": "object",
+        "properties": {
+          "worldId": {
+            "type": "string"
+          },
+          "worldRadius": {
+            "type": "integer"
+          },
+          "tiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MinimapTile"
+            }
+          },
+          "playerPosition": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "mainCityId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "mainCityId"
+            ]
+          }
+        },
+        "required": [
+          "worldId",
+          "worldRadius",
+          "tiles",
+          "playerPosition"
+        ]
       }
     },
     "parameters": {}
@@ -2626,6 +2849,98 @@
           },
           "401": {
             "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/empire-overview": {
+      "get": {
+        "tags": [
+          "player"
+        ],
+        "summary": "Aggregate Empire Overview — one entry per PlayerWorld with rank + stats",
+        "description": "iOS Map-tab landing data. Returns the player's PlayerWorlds across all worlds with rank, total players, cities, outposts. Today every player has 1 entry (one PlayerWorld per world joined). currentRing is the highest ring among the player's worlds. totalOutpostsOwned is always 0 until V3 Phase 6 (outposts) lands.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Empire overview aggregated across joined worlds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmpireOverviewResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/worlds/{worldId}/minimap": {
+      "get": {
+        "tags": [
+          "map"
+        ],
+        "summary": "World minimap — lightweight tile-distribution snapshot for iOS Map tab",
+        "description": "Returns one row per entity tile (city / outpost / mine / gate / ruins). Cities are classified as PLAYER_CITY / ALLY_CITY / ENEMY_CITY based on the caller's syndicate diplomacy. isAlly = same syndicate or PACT. isEnemy = HOSTILE diplomacy. Neutral non-ally cities still map to type=ENEMY_CITY (the response enum has no NEUTRAL slot) but isEnemy=false. Cached in-memory for 60s per (worldId, playerId).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "worldId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Minimap tile distribution + playerPosition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MinimapResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Supabase token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_in_world — caller has no PlayerWorld in this world",
             "content": {
               "application/json": {
                 "schema": {
