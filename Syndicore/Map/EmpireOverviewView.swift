@@ -25,8 +25,7 @@ struct CyberpunkOctagon: Shape {
 
 // MARK: - Reusable Panel Chrome
 
-/// Consistent chrome wrapper for all dashboard panels — octagonal frame,
-/// dark gunmetal body, emissive border in the given accent colour.
+/// Consistent chrome wrapper for all dashboard panels.
 struct CyberpunkPanel<Content: View>: View {
     let title: String
     var accentColor: Color = .cyan
@@ -35,7 +34,6 @@ struct CyberpunkPanel<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header strip
             HStack(spacing: 6) {
                 Rectangle()
                     .fill(accentColor)
@@ -74,25 +72,30 @@ struct CyberpunkPanel<Content: View>: View {
 struct EmpireOverviewView: View {
     @Environment(GameState.self) private var gameState
 
-    @State private var showTacticalMap   = false
-    @State private var syndicats:         [Syndikat] = []
-    @State private var empireOverview:    EmpireOverviewResponse?
-    @State private var minimapData:       MinimapResponse?
+    @State private var showTacticalMap = false
+    @State private var syndicats:       [Syndikat] = []
+    @State private var empireOverview:  EmpireOverviewResponse?
+    @State private var minimapData:     MinimapResponse?
 
     // Animation states
-    @State private var appeared        = false
-    @State private var headerGlow      = false
-    @State private var youPulse        = false
-    @State private var outerRingAngle  = 0.0
-    @State private var innerRingAngle  = 0.0
-    @State private var ringFlash       = false
-    @State private var panel1In        = false
-    @State private var panel2In        = false
-    @State private var panel3In        = false
-    @State private var panel4In        = false
+    @State private var appeared       = false
+    @State private var headerGlow     = false
+    @State private var youPulse       = false
+    @State private var outerRingAngle = 0.0
+    @State private var innerRingAngle = 0.0
+    @State private var ringFlash      = false
+    @State private var panel1In       = false
+    @State private var panel2In       = false
+    @State private var panel3In       = false
+    @State private var panel4In       = false
+    @State private var didLoad        = false
 
     private var playerRing: Ring? { gameState.activePlayerWorld?.ring }
-    private var worldId: String?  { gameState.activePlayerWorld?.worldId }
+    private var worldId:    String? { gameState.activePlayerWorld?.worldId }
+
+    private var activeRingStats: EmpireRingStats? {
+        empireOverview?.rings.first(where: { $0.ringType == playerRing })?.stats
+    }
 
     var body: some View {
         ZStack {
@@ -105,13 +108,21 @@ struct EmpireOverviewView: View {
                 .transition(.opacity)
             } else {
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 14) {
                         pageHeader
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : -10)
+
+                        // Full-width minimap
                         minimapSection
                             .opacity(appeared ? 1 : 0)
-                            .scaleEffect(appeared ? 1 : 0.95)
+                            .scaleEffect(appeared ? 1 : 0.96)
+
+                        // 3 stat cards
+                        statsCardsRow
+                            .opacity(appeared ? 1 : 0)
+
+                        // 4 dashboard panels — 2 × 2 grid
                         dashboardGrid
                     }
                     .padding(.horizontal, 14)
@@ -163,14 +174,11 @@ struct EmpireOverviewView: View {
         try? await Task.sleep(for: .seconds(0.1))
         withAnimation(.easeOut(duration: 0.35)) { panel4In = true }
 
-        // Data fetch — capture actor-isolated values before spawning child tasks
         let api = gameState.api
         let wid = worldId
 
         async let overviewFetch = api.empireOverview()
-
         if gameState.activeReports.isEmpty { await gameState.refreshReports(limit: 10) }
-
         empireOverview = try? await overviewFetch
 
         if let wid {
@@ -180,6 +188,7 @@ struct EmpireOverviewView: View {
             syndicats   = ((try? await syndicatsFetch) ?? [])
                 .sorted { ($0.memberCount ?? 0) > ($1.memberCount ?? 0) }
         }
+        didLoad = true
     }
 }
 
@@ -189,8 +198,6 @@ private extension EmpireOverviewView {
     var atmosphericBackground: some View {
         ZStack {
             Color(red: 0.04, green: 0.04, blue: 0.07)
-
-            // Static scanline overlay — CRT/holographic feel
             Canvas { ctx, size in
                 for y in stride(from: CGFloat(0), to: size.height, by: 4) {
                     ctx.fill(
@@ -199,8 +206,6 @@ private extension EmpireOverviewView {
                     )
                 }
             }
-
-            // Slow-drifting particle field
             TimelineView(.animation(minimumInterval: 0.1)) { timeline in
                 Canvas { ctx, size in
                     let t = timeline.date.timeIntervalSince1970
@@ -237,15 +242,12 @@ private extension EmpireOverviewView {
             }
             .shadow(color: Color.cyan.opacity(headerGlow ? 0.65 : 0.25), radius: headerGlow ? 10 : 5)
 
-            // Pulsing underline
             GeometryReader { geo in
                 Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.cyan, .cyan.opacity(0.3), .clear],
-                            startPoint: .leading, endPoint: .trailing
-                        )
-                    )
+                    .fill(LinearGradient(
+                        colors: [.cyan, .cyan.opacity(0.3), .clear],
+                        startPoint: .leading, endPoint: .trailing
+                    ))
                     .frame(width: geo.size.width * 0.6, height: 1.5)
                     .opacity(headerGlow ? 1.0 : 0.45)
             }
@@ -257,21 +259,6 @@ private extension EmpireOverviewView {
                     .foregroundStyle(Color(red: 0.36, green: 0.85, blue: 0.89))
                     .tracking(2)
             }
-
-            if let entry = empireOverview?.rings.first(where: { $0.ringType == playerRing }),
-               entry.stats.playerRank > 0 {
-                HStack(spacing: 10) {
-                    Text("RANK #\(entry.stats.playerRank)")
-                        .font(.gameHeader(10))
-                        .foregroundStyle(.cyan.opacity(0.85))
-                    Text("TOP \(Int(entry.stats.playerRankPercentile))%")
-                        .font(.gameCaption(9))
-                        .foregroundStyle(.white.opacity(0.45))
-                    Text("· \(entry.stats.totalPlayersInWorld) PLAYERS")
-                        .font(.gameCaption(9))
-                        .foregroundStyle(.white.opacity(0.3))
-                }
-            }
         }
         .padding(.top, 36)
     }
@@ -281,54 +268,81 @@ private extension EmpireOverviewView {
 
 private extension EmpireOverviewView {
     var minimapSection: some View {
-        VStack(spacing: 10) {
-            Button {
-                guard playerRing != nil else { return }
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                withAnimation(.easeIn(duration: 0.08)) { ringFlash = true }
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(0.12))
-                    withAnimation { ringFlash = false }
-                    withAnimation(.easeInOut(duration: 0.3)) { showTacticalMap = true }
-                }
-            } label: {
-                minimapContainer
+        Button {
+            guard playerRing != nil else { return }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            withAnimation(.easeIn(duration: 0.08)) { ringFlash = true }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.12))
+                withAnimation { ringFlash = false }
+                withAnimation(.easeInOut(duration: 0.3)) { showTacticalMap = true }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Empire minimap — tap to enter tactical view")
-
-            Text("TAP YOUR RING TO ENTER TACTICAL VIEW")
-                .font(.gameLabel(7))
-                .foregroundStyle(.cyan.opacity(0.38))
-                .tracking(1.5)
+        } label: {
+            minimapContainer
         }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .accessibilityLabel("Empire minimap — tap to enter tactical view")
     }
 
     var minimapContainer: some View {
         ZStack {
-            Color(red: 0.07, green: 0.09, blue: 0.14)
+            Color(red: 0.039, green: 0.059, blue: 0.094)
 
-            ringView(ring: .fringe, size: 248, rotAngle: outerRingAngle)
-            ringView(ring: .grid,   size: 180, rotAngle: innerRingAngle * 0.8)
-            ringView(ring: .core,   size: 122, rotAngle: innerRingAngle * 0.6)
-            ringView(ring: .nexus,  size: 68,  rotAngle: innerRingAngle * 0.4)
+            ringView(ring: .fringe, size: 312, rotAngle: outerRingAngle)
+            ringView(ring: .grid,   size: 240, rotAngle: innerRingAngle * 0.8)
+            ringView(ring: .core,   size: 172, rotAngle: innerRingAngle * 0.6)
+            ringView(ring: .nexus,  size: 102, rotAngle: innerRingAngle * 0.4)
+
+            // NEXUS center burst
+            ZStack {
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [
+                            Color(red: 0.75, green: 0.15, blue: 1.0).opacity(0.70),
+                            Color(red: 0.40, green: 0.00, blue: 0.85).opacity(0.30),
+                            .clear
+                        ],
+                        center: .center, startRadius: 0, endRadius: 50
+                    ))
+                    .frame(width: 96, height: 96)
+                Canvas { ctx, size in
+                    let c   = CGPoint(x: size.width / 2, y: size.height / 2)
+                    let t   = Date().timeIntervalSince1970
+                    let rot = t.truncatingRemainder(dividingBy: .pi * 2)
+                    for i in 0..<8 {
+                        let angle = rot + Double(i) * .pi / 4
+                        let len   = CGFloat(i % 2 == 0 ? 44 : 28)
+                        var p = Path()
+                        p.move(to: c)
+                        p.addLine(to: CGPoint(x: c.x + cos(angle) * len,
+                                              y: c.y + sin(angle) * len))
+                        let alpha = i % 2 == 0 ? 0.65 : 0.35
+                        ctx.stroke(p, with: .color(Color(red: 0.85, green: 0.45, blue: 1.0).opacity(alpha)),
+                                   style: StrokeStyle(lineWidth: i % 2 == 0 ? 1.2 : 0.7))
+                    }
+                    ctx.fill(Path(ellipseIn: CGRect(x: c.x-5, y: c.y-5, width: 10, height: 10)),
+                             with: .color(.white.opacity(0.9)))
+                }
+                .frame(width: 96, height: 96)
+            }
+            .allowsHitTesting(false)
 
             ringLabels
 
             if let ring = playerRing { youMarker(ring: ring) }
 
-            // Real entity dots from minimap API
             if let mm = minimapData, mm.worldRadius > 0 {
                 Canvas { ctx, size in
                     let radius = Double(mm.worldRadius)
                     let hw = size.width  / 2
                     let hh = size.height / 2
-                    let margin = 0.88   // keep dots inside the octagon border
+                    let margin = 0.88
                     for tile in mm.tiles {
                         let nx = Double(tile.x) / radius * margin
                         let ny = Double(tile.y) / radius * margin
                         let sx = hw + nx * hw
-                        let sy = hh - ny * hh   // flip Y — SpriteKit Y-up, SwiftUI Y-down
+                        let sy = hh - ny * hh
                         let (dotSize, color): (CGFloat, Color) = switch tile.type {
                         case .playerCity:   (7,   .cyan)
                         case .allyCity:     (4,   Color(red: 1.0, green: 0.78, blue: 0.2))
@@ -346,29 +360,31 @@ private extension EmpireOverviewView {
                     }
                 }
                 .allowsHitTesting(false)
+                .mask(alignment: .center) {
+                    if let ring = playerRing { ringBandMask(for: ring) }
+                    else { Rectangle().fill(.white) }
+                }
             }
 
-            // Tap flash
             Color.white.opacity(ringFlash ? 0.12 : 0).allowsHitTesting(false)
 
             cornerCircuits
         }
-        .frame(width: 278, height: 278)
-        .clipShape(CyberpunkOctagon(cornerCut: 18))
+        .frame(width: 340, height: 340)
+        .clipShape(CyberpunkOctagon(cornerCut: 22))
         .overlay {
-            CyberpunkOctagon(cornerCut: 18)
+            CyberpunkOctagon(cornerCut: 22)
                 .stroke(
                     LinearGradient(
                         colors: [.cyan, Color(red: 0.0, green: 0.6, blue: 0.85), .cyan],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
                     lineWidth: 2
                 )
-                .shadow(color: .cyan.opacity(0.7), radius: 10)
+                .shadow(color: .cyan.opacity(0.7), radius: 12)
         }
         .overlay {
-            CyberpunkOctagon(cornerCut: 18)
+            CyberpunkOctagon(cornerCut: 22)
                 .stroke(.cyan.opacity(0.18), lineWidth: 0.5)
                 .padding(4)
         }
@@ -376,163 +392,88 @@ private extension EmpireOverviewView {
 
     func ringView(ring: Ring, size: CGFloat, rotAngle: Double) -> some View {
         let isOwn  = playerRing == ring
-        let base   = ringBaseColor(ring)
-        let corner = size * 0.07
+        let accent = ringAccentColor(ring)
+        let texName: String = switch ring {
+        case .fringe: "ring_texture_fringe"
+        case .grid:   "ring_texture_grid"
+        case .core:   "ring_texture_core"
+        case .nexus:  "ring_texture_nexus"
+        }
         return ZStack {
-            RoundedRectangle(cornerRadius: corner)
-                .fill(ringGradient(ring))
-            RoundedRectangle(cornerRadius: corner)
-                .clipShape(RoundedRectangle(cornerRadius: corner))
-                .overlay(ringTexture(ring))
-                .opacity(0.45)
-            RoundedRectangle(cornerRadius: corner)
-                .stroke(isOwn ? Color.cyan : base.opacity(0.65), lineWidth: isOwn ? 2 : 1)
-            // Rotating accent on player's ring
+            Circle().fill(Color(red: 0.039, green: 0.059, blue: 0.094))
+            Image(texName).resizable().aspectRatio(contentMode: .fill)
+                .frame(width: size, height: size).clipShape(Circle())
+            Circle().stroke(Color.black.opacity(0.9), lineWidth: 3)
+            Circle().stroke(accent.opacity(isOwn ? 1.0 : 0.45), lineWidth: isOwn ? 2 : 1)
             if isOwn {
-                RoundedRectangle(cornerRadius: corner)
-                    .stroke(
-                        AngularGradient(
-                            colors: [.clear, .cyan.opacity(0.85), .clear],
-                            center: .center
-                        ),
-                        lineWidth: 2.5
-                    )
+                Circle()
+                    .stroke(AngularGradient(colors: [.clear, accent.opacity(0.9), .clear], center: .center),
+                            lineWidth: 3)
                     .rotationEffect(.degrees(rotAngle))
             }
         }
         .frame(width: size, height: size)
-        .shadow(color: isOwn ? .cyan.opacity(0.38) : base.opacity(0.12), radius: isOwn ? 9 : 3)
+        .shadow(color: accent.opacity(isOwn ? 0.55 : 0.18), radius: isOwn ? 14 : 5)
     }
 
-    func ringGradient(_ ring: Ring) -> LinearGradient {
-        switch ring {
-        case .fringe:
-            return LinearGradient(
-                colors: [Color(red: 0.18, green: 0.19, blue: 0.24),
-                         Color(red: 0.12, green: 0.13, blue: 0.17)],
-                startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .grid:
-            return LinearGradient(
-                colors: [Color(red: 0.11, green: 0.22, blue: 0.33),
-                         Color(red: 0.07, green: 0.14, blue: 0.22)],
-                startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .core:
-            return LinearGradient(
-                colors: [Color(red: 0.24, green: 0.06, blue: 0.10),
-                         Color(red: 0.15, green: 0.03, blue: 0.06)],
-                startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .nexus:
-            return LinearGradient(
-                colors: [Color(red: 0.28, green: 0.04, blue: 0.24),
-                         Color(red: 0.17, green: 0.02, blue: 0.15)],
-                startPoint: .topLeading, endPoint: .bottomTrailing)
-        }
-    }
-
-    @ViewBuilder
-    func ringTexture(_ ring: Ring) -> some View {
-        switch ring {
-        case .fringe:
-            Canvas { ctx, s in
-                for x in stride(from: CGFloat(7), to: s.width, by: 14) {
-                    for y in stride(from: CGFloat(7), to: s.height, by: 14) {
-                        ctx.fill(
-                            Path(ellipseIn: CGRect(x: x - 1, y: y - 1, width: 2, height: 2)),
-                            with: .color(.gray.opacity(0.35))
-                        )
-                    }
-                }
+    func ringBandMask(for ring: Ring) -> some View {
+        let (outer, inner): (CGFloat, CGFloat) = {
+            switch ring {
+            case .fringe: return (312, 240)
+            case .grid:   return (240, 172)
+            case .core:   return (172, 102)
+            case .nexus:  return (102, 0)
             }
-        case .grid:
-            Canvas { ctx, s in
-                let step = CGFloat(18)
-                for x in stride(from: CGFloat(0), through: s.width, by: step) {
-                    var p = Path()
-                    p.move(to: CGPoint(x: x, y: 0)); p.addLine(to: CGPoint(x: x, y: s.height))
-                    ctx.stroke(p, with: .color(.cyan.opacity(0.18)), lineWidth: 0.5)
-                }
-                for y in stride(from: CGFloat(0), through: s.height, by: step) {
-                    var p = Path()
-                    p.move(to: CGPoint(x: 0, y: y)); p.addLine(to: CGPoint(x: s.width, y: y))
-                    ctx.stroke(p, with: .color(.cyan.opacity(0.18)), lineWidth: 0.5)
-                }
-            }
-        case .core:
-            Canvas { ctx, s in
-                let h = CGFloat(6)
-                var y = CGFloat(0)
-                var toggle = false
-                while y < s.height {
-                    ctx.fill(
-                        Path(CGRect(x: 0, y: y, width: s.width, height: h * 0.4)),
-                        with: .color(toggle
-                            ? Color(red: 1, green: 0, blue: 0.45).opacity(0.18)
-                            : Color.red.opacity(0.08))
-                    )
-                    toggle.toggle()
-                    y += h
-                }
-            }
-        case .nexus:
-            Canvas { ctx, s in
-                let rects: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-                    (0.17, 0.20, 0.30, 0.13),
-                    (0.67, 0.08, 0.20, 0.10),
-                    (0.42, 0.58, 0.35, 0.15),
-                    (0.13, 0.58, 0.23, 0.12),
-                    (0.55, 0.35, 0.17, 0.20),
-                ]
-                for (rx, ry, rw, rh) in rects {
-                    ctx.fill(
-                        Path(CGRect(
-                            x: rx * s.width, y: ry * s.height,
-                            width: rw * s.width, height: rh * s.height)),
-                        with: .color(Color(red: 1, green: 0, blue: 0.65).opacity(0.22))
-                    )
-                }
+        }()
+        return ZStack {
+            Circle().fill(.white).frame(width: outer, height: outer)
+            if inner > 0 {
+                Circle().fill(.black).frame(width: inner, height: inner)
+                    .blendMode(.destinationOut)
             }
         }
+        .compositingGroup()
     }
 
     var ringLabels: some View {
         ZStack {
-            Text("NEXUS")
-                .font(.gameHeader(7))
-                .foregroundStyle(.purple.opacity(0.85))
-                .shadow(color: .purple.opacity(0.5), radius: 3)
-
-            Text("CORE")
-                .font(.gameHeader(7))
-                .foregroundStyle(.red.opacity(0.85))
-                .offset(y: -50)
-
-            Text("GRID")
-                .font(.gameHeader(7))
-                .foregroundStyle(.orange.opacity(0.85))
-                .offset(y: -78)
-
-            Text("FRINGE")
-                .font(.gameHeader(7))
-                .foregroundStyle(.gray.opacity(0.75))
-                .offset(y: -108)
+            ringLabel("NEXUS",  ring: .nexus,  yOffset: 0)
+            ringLabel("CORE",   ring: .core,   yOffset: -68)
+            ringLabel("GRID",   ring: .grid,   yOffset: -103)
+            ringLabel("FRINGE", ring: .fringe, yOffset: -137)
         }
+    }
+
+    func ringLabel(_ text: String, ring: Ring, yOffset: CGFloat) -> some View {
+        Text(text)
+            .font(.gameHeader(8))
+            .foregroundStyle(.white.opacity(0.9))
+            .shadow(color: .black.opacity(0.85), radius: 2, x: 0, y: 1)
+            .shadow(color: .black.opacity(0.55), radius: 4)
+            .overlay(alignment: .center) {
+                Text(text)
+                    .font(.gameHeader(8))
+                    .foregroundStyle(ringAccentColor(ring).opacity(0.20))
+                    .blendMode(.screen)
+            }
+            .offset(y: yOffset)
     }
 
     func youMarker(ring: Ring) -> some View {
         let yOffset: CGFloat
         switch ring {
-        case .fringe: yOffset = 106
-        case .grid:   yOffset = 75
-        case .core:   yOffset = 46
-        case .nexus:  yOffset = 17
+        case .fringe: yOffset = 137
+        case .grid:   yOffset = 103
+        case .core:   yOffset = 68
+        case .nexus:  yOffset = 27
         }
         return ZStack {
             Image("nameplate_master")
                 .resizable()
-                .frame(width: 60, height: 23)
+                .frame(width: 92, height: 35)
                 .opacity(0.88)
-            Text("YOU")
-                .font(.gameTitle(8))
+            Text("YOU · \(ring.displayName.uppercased())")
+                .font(.gameTitle(7))
                 .foregroundStyle(.cyan)
         }
         .scaleEffect(youPulse ? 1.1 : 1.0)
@@ -543,10 +484,10 @@ private extension EmpireOverviewView {
 
     var cornerCircuits: some View {
         ZStack {
-            circuitMark.offset(x: -106, y: -106)
-            circuitMark.rotationEffect(.degrees(90)).offset(x: 106, y: -106)
-            circuitMark.rotationEffect(.degrees(180)).offset(x: 106, y: 106)
-            circuitMark.rotationEffect(.degrees(270)).offset(x: -106, y: 106)
+            circuitMark.offset(x: -130, y: -130)
+            circuitMark.rotationEffect(.degrees(90)).offset(x: 130, y: -130)
+            circuitMark.rotationEffect(.degrees(180)).offset(x: 130, y: 130)
+            circuitMark.rotationEffect(.degrees(270)).offset(x: -130, y: 130)
         }
     }
 
@@ -572,11 +513,65 @@ private extension EmpireOverviewView {
     }
 }
 
+// MARK: - Stat Cards Row
+
+private extension EmpireOverviewView {
+    var statsCardsRow: some View {
+        HStack(spacing: 10) {
+            statCard(
+                icon: "person.3.fill",
+                value: activeRingStats.map { "\($0.totalPlayersInWorld)" } ?? "—",
+                subtitle: "PLAYERS IN RING",
+                accentColor: .cyan
+            )
+            statCard(
+                icon: "sparkle",
+                value: empireOverview.map { "\($0.totalActiveRings)" } ?? "—",
+                subtitle: "ACTIVE RIFTS",
+                accentColor: Color(red: 0.95, green: 0.10, blue: 0.95)
+            )
+            statCard(
+                icon: "trophy.fill",
+                value: activeRingStats.map { $0.playerRank > 0 ? "#\($0.playerRank)" : "—" } ?? "—",
+                subtitle: "YOUR RANK",
+                accentColor: Color(red: 1.0, green: 0.82, blue: 0.0)
+            )
+        }
+    }
+
+    func statCard(icon: String, value: String, subtitle: String, accentColor: Color) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(accentColor)
+            Text(value)
+                .font(.gameTitle(20))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(subtitle)
+                .font(.gameCaption(7))
+                .foregroundStyle(accentColor.opacity(0.7))
+                .tracking(0.8)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color(red: 0.09, green: 0.11, blue: 0.17))
+        .clipShape(CyberpunkOctagon(cornerCut: 8))
+        .overlay {
+            CyberpunkOctagon(cornerCut: 8)
+                .stroke(accentColor.opacity(0.5), lineWidth: 1.2)
+        }
+        .shadow(color: accentColor.opacity(0.2), radius: 8)
+    }
+}
+
 // MARK: - Dashboard Grid
 
 private extension EmpireOverviewView {
     var dashboardGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
             syndicatesPanel
                 .opacity(panel1In ? 1 : 0).offset(y: panel1In ? 0 : 16)
             threatsPanel
@@ -591,9 +586,16 @@ private extension EmpireOverviewView {
     // MARK: Panel 1 — Top Syndicates
 
     var syndicatesPanel: some View {
-        CyberpunkPanel(title: "TOP SYNDICATES", accentColor: .cyan, minHeight: 130) {
-            if syndicats.isEmpty {
+        CyberpunkPanel(title: "TOP SYNDICATES", accentColor: .cyan, minHeight: 110) {
+            if !didLoad {
                 panelSpinner
+            } else if syndicats.isEmpty {
+                VStack(spacing: 6) {
+                    Image(systemName: "person.3").font(.system(size: 16)).foregroundStyle(.cyan.opacity(0.28))
+                    Text("No syndicates yet")
+                        .font(.gameCaption(8)).foregroundStyle(.white.opacity(0.28))
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, 8)
             } else {
                 VStack(spacing: 7) {
                     ForEach(Array(syndicats.prefix(3).enumerated()), id: \.element.id) { idx, s in
@@ -634,52 +636,43 @@ private extension EmpireOverviewView {
         return CyberpunkPanel(
             title: "ACTIVE THREATS",
             accentColor: attack != nil ? .red : .cyan,
-            minHeight: 130
+            minHeight: 110
         ) {
             if let atk = attack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.red)
+                            .font(.system(size: 10)).foregroundStyle(.red)
                         Text("INCOMING \(atk.type.rawValue)")
-                            .font(.gameHeader(8))
-                            .foregroundStyle(.red)
+                            .font(.gameHeader(8)).foregroundStyle(.red)
                     }
                     if let name = atk.attackerName {
                         Text("From: \(name)")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.white.opacity(0.6))
+                            .font(.system(size: 9)).foregroundStyle(.white.opacity(0.6))
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "clock").font(.system(size: 8)).foregroundStyle(.orange)
                         CountdownLabel(endsAt: atk.arrivesAt)
-                            .font(.gameHeader(9))
-                            .foregroundStyle(.orange)
+                            .font(.gameHeader(9)).foregroundStyle(.orange)
                     }
                     Button {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         gameState.selectedTab = .army
                     } label: {
                         Text("Mobilize →")
-                            .font(.gameLabel(7))
-                            .foregroundStyle(.red.opacity(0.7))
+                            .font(.gameLabel(7)).foregroundStyle(.red.opacity(0.7))
                     }
                 }
             } else {
                 VStack(spacing: 6) {
                     Image(systemName: "shield.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(.green.opacity(0.45))
+                        .font(.system(size: 22)).foregroundStyle(.green.opacity(0.45))
                     Text("ZONE CLEAR")
-                        .font(.gameHeader(9))
-                        .foregroundStyle(.green.opacity(0.6))
+                        .font(.gameHeader(9)).foregroundStyle(.green.opacity(0.6))
                     Text("No incoming threats")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.white.opacity(0.22))
+                        .font(.system(size: 8)).foregroundStyle(.white.opacity(0.22))
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity).padding(.vertical, 6)
             }
         }
     }
@@ -687,12 +680,8 @@ private extension EmpireOverviewView {
     // MARK: Panel 3 — Allies by Ring
 
     var alliesPanel: some View {
-        CyberpunkPanel(title: "ALLIES BY RING", accentColor: .green, minHeight: 130) {
-            if syndicats.isEmpty {
-                panelSpinner
-            } else {
-                allyRingContent
-            }
+        CyberpunkPanel(title: "ALLIES BY RING", accentColor: .green, minHeight: 110) {
+            if !didLoad { panelSpinner } else { allyRingContent }
         }
     }
 
@@ -702,8 +691,7 @@ private extension EmpireOverviewView {
                 HStack(spacing: 4) {
                     Image(systemName: "person.3.fill").font(.system(size: 8)).foregroundStyle(.green.opacity(0.6))
                     Text("\(top.memberCount ?? 0) in [\(top.tag)]")
-                        .font(.gameLabel(8))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .font(.gameLabel(8)).foregroundStyle(.white.opacity(0.7))
                 }
             }
             ForEach(Ring.allCases, id: \.self) { ring in
@@ -738,13 +726,12 @@ private extension EmpireOverviewView {
     // MARK: Panel 4 — Recent Events
 
     var eventsPanel: some View {
-        CyberpunkPanel(title: "RECENT EVENTS", accentColor: .orange, minHeight: 130) {
+        CyberpunkPanel(title: "RECENT EVENTS", accentColor: .orange, minHeight: 110) {
             if gameState.activeReports.isEmpty {
                 VStack(spacing: 6) {
                     Image(systemName: "scroll").font(.system(size: 18)).foregroundStyle(.orange.opacity(0.28))
                     Text("No recent events")
-                        .font(.gameCaption(8))
-                        .foregroundStyle(.white.opacity(0.22))
+                        .font(.gameCaption(8)).foregroundStyle(.white.opacity(0.22))
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 8)
             } else {
@@ -756,12 +743,9 @@ private extension EmpireOverviewView {
                                 .foregroundStyle((report.attackerWon == report.isAttacker) ? .green : .red)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text("Battle (\(report.targetX),\(report.targetY))")
-                                    .font(.system(size: 8))
-                                    .foregroundStyle(.white.opacity(0.72))
-                                    .lineLimit(1)
+                                    .font(.system(size: 8)).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
                                 Text(relativeTime(report.occurredAt))
-                                    .font(.gameCaption(6))
-                                    .foregroundStyle(.white.opacity(0.3))
+                                    .font(.gameCaption(6)).foregroundStyle(.white.opacity(0.3))
                             }
                             Spacer(minLength: 0)
                         }
@@ -771,8 +755,7 @@ private extension EmpireOverviewView {
                         gameState.selectedTab = .army
                     } label: {
                         Text("View all →")
-                            .font(.gameLabel(7))
-                            .foregroundStyle(.orange.opacity(0.5))
+                            .font(.gameLabel(7)).foregroundStyle(.orange.opacity(0.5))
                     }
                     .padding(.top, 2)
                 }
@@ -799,14 +782,16 @@ private extension EmpireOverviewView {
 // MARK: - Shared Colour Helpers
 
 private extension EmpireOverviewView {
-    func ringBaseColor(_ ring: Ring) -> Color {
+    func ringAccentColor(_ ring: Ring) -> Color {
         switch ring {
-        case .fringe: .gray
-        case .grid:   .orange
+        case .fringe: .cyan
+        case .grid:   Color(red: 1.0, green: 0.82, blue: 0.20)
         case .core:   .red
-        case .nexus:  .purple
+        case .nexus:  Color(red: 0.95, green: 0.10, blue: 0.95)
         }
     }
+
+    func ringBaseColor(_ ring: Ring) -> Color { ringAccentColor(ring) }
 
     var sideMenuActions: [SideMenuAction] {
         [

@@ -1,6 +1,6 @@
 # SYNDICORE iOS — Claude Instructions
 
-> **Verzija:** 2026-04-29 (Round 3 review — Swift 6 + lifecycle hardening; CI Xcode 26 fix)
+> **Verzija:** 2026-05-15 (Empire Overview screen + ring textures + MapView pinch-to-zoom)
 > **Pending:** rešavanje TBD stavki nakon reconcile-a sa `syndicore-BE/CLAUDE.md`
 
 ---
@@ -101,6 +101,7 @@ ili premeštene u "Otvoreno" sekciju gore ako i dalje važe. Vidi git history za
 - [ ] **SyndikatView** — placeholder, čeka implementaciju.
 - [x] **TechTreeView** — Codex prikaz grana postoji, ali API upgrade (POST /research) još nije vezan.
 - [x] **Crystal Implosion** — kompletno implementiran: HQInfoSheet implosion sekcija, CrystalSheet, TopHUD crystal badge, MapView ruins display, AppState.handleImplodeSuccess. ✅ 0936340
+- [x] **EmpireOverviewView** — Empire Overview ekran implementiran: full-width oktagonalni minimap (340pt), 3 stat kartice, 2×2 panel grid. Orbitron variable font sistem. Ring teksture dodane. ✅ `2e6c677` + layout redesign 2026-05-15
 
 ### ✅ Ne diraj (false positives iz review-a)
 
@@ -332,6 +333,26 @@ enum APIError: Error {
 
 **Roles:** OVERLORD (1) → WARDEN (max 3) → OFFICER (max 6) → MEMBER. Max 30 members.
 **Diplomacy:** PACT (allied), NEUTRAL (default), HOSTILE (war).
+
+### Empire Overview
+
+| Method | Path | Auth | Response |
+|--------|------|------|----------|
+| GET | `/api/v1/me/empire-overview` | JWT | `{ rings: [EmpireRingEntry], currentRing: Ring?, totalActiveRings: Int }` |
+| GET | `/api/v1/worlds/:worldId/minimap` | JWT | `{ worldId, worldRadius, tiles: [MinimapTile], playerPosition: { x, y, mainCityId }? }` |
+
+**EmpireRingEntry structure:**
+```json
+{
+  "ringType": "FRINGE",
+  "worldId": "...",
+  "worldName": "...",
+  "playerWorld": { "id": "...", "joinedAt": "...", "isActive": true, "mainCityId": "..." },
+  "stats": { "totalPlayersInWorld": 120, "playerRank": 5, "playerRankPercentile": 0.04, "totalCitiesOwned": 1, "totalOutpostsOwned": 3 }
+}
+```
+
+**MinimapTile types:** `PLAYER_CITY`, `ALLY_CITY`, `ENEMY_CITY`, `ROGUE_OUTPOST`, `RESOURCE_MINE`, `WARP_GATE`, `RUINS`
 
 ### Map
 
@@ -1392,7 +1413,7 @@ syndicore-iOS/
 
 ## ŠTA DA SE IMPLEMENTIRA SLEDEĆE
 
-> **Ažurirano:** 2026-04-22. Prioriteti 0-4 i 7 su završeni. Preostaje P5, P6, i P2 hygiene.
+> **Ažurirano:** 2026-05-15. Prioriteti 0-4, 7, i EmpireOverview su završeni. Preostaje P5, P6, i P2 hygiene.
 
 **✅ Prioritet 0 — Temelji:** APIClient, JSONDecoder.api, APIError, SupabaseManager, fixture testovi. DONE.
 
@@ -1407,6 +1428,8 @@ syndicore-iOS/
 **✅ Phase 4 — Crystal Implosion:** HQInfoSheet implosion, CrystalSheet, TopHUD crystal badge, MapView ruins, AppState.handleImplodeSuccess. DONE (0936340).
 
 **✅ Prioritet 7 — Socket.IO real-time:** building_complete, training_complete, troops_arrived events, incoming attack banner. DONE (498a0d9).
+
+**✅ EmpireOverviewView** — oktagonalni minimap sa ring vizualom, 3 stat kartice (players/rifts/rank), 2×2 dashboard grid, ring teksture, Orbitron font sistem. DONE (`2e6c677` + layout redesign `2026-05-15`).
 
 **Prioritet 5 — ResearchView (tech tree) — SLEDEĆE:**
 - GET research state → 6 grana (3 universal + 1 faction, 2 locked)
@@ -1549,6 +1572,7 @@ Kompletno funkcionalan military screen sa 3 tab-a.
 - ✅ Ruins display: original ring, decay countdown (CountdownLabel), loot multiplier badge
 - ✅ Warp Gate sprajtovi na tile-ovima (pathfinding je BE-side, nema vizuelnih linija između gate-ova)
 - ✅ Camera pan/zoom sa `SKCameraNode`
+- ✅ **Pinch-to-zoom** — bidirektionalni zoom (in + out). `UIPinchGestureRecognizer`. `.began` snima `pinchStartScale = cam.xScale`, `.changed` primenjuje `pinchStartScale / gesture.scale` clamped na `minCamScale(1.0)` – `maxCamScale(12.0)`. `.ended` samo dismiss-uje (navigacija na empire overview) ako je extreme pinch-out na max zoomu.
 - ✅ Tap na tile → `MapInfoView` popup (tip, ring, terrain, occupant info)
 - ✅ Send troops akcija iz tile info (Attack/Raid/Scout/Reinforce/Transport per tile type)
 - ✅ Debounced viewport refetch kad se kamera pomeri >30% radiusa
@@ -1574,6 +1598,41 @@ Kompletno funkcionalan military screen sa 3 tab-a.
 - ✅ `BuildingsView` — lista svih zgrada sa opisima
 - 🚧 `TechTreeView` — prikazuje grane vizuelno, ali upgrade API nije vezan
 - ❌ Research API nije vezan (`GET/POST /worlds/:id/research`, `POST /worlds/:id/research/respec`)
+
+---
+
+### ✅ EmpireOverviewView (`Map/EmpireOverviewView.swift`)
+
+Ekran pregleda carstva — prikazuje se tapom na minimap u MapView-u ili navigacijom iz Settings.
+
+#### Layout (2026-05-15 redesign)
+- **pageHeader** — naslov "EMPIRE OVERVIEW" + subtitle "RING COMMAND INTERFACE"
+- **minimapSection** — full-width, centrirani 340pt oktagonalni minimap
+  - Konkavni prstenovi: FRINGE 312pt, GRID 240pt, CORE 172pt, NEXUS 102pt
+  - `youMarker` trokut sa pulovom igrača na odgovarajućem ringu
+  - Ring labele i NEXUS glow burst
+  - Corner circuit dekoracije (±130pt offset)
+  - Tap otvara MapView na odgovarajućem svetu
+- **statsCardsRow** — 3 horizontalne kartice ispod minimap-a:
+  - `person.3.fill` (cyan) — `totalPlayersInWorld` iz aktivnog ringa
+  - `sparkle` (magenta) — `totalActiveRings` iz `EmpireOverviewResponse`
+  - `trophy.fill` (gold) — `playerRank` iz aktivnog ringa, prikazuje `#N` ili `—`
+- **dashboardGrid** — `LazyVGrid(2 kolone, spacing: 10)`, 4 panela (`minHeight: 110`):
+  - Ring Status panel
+  - Syndicate panel
+  - Threats panel
+  - Allies panel
+
+#### State
+- `empireOverview: EmpireOverviewResponse?` — učitava se na pojavi, `GET /api/v1/me/empire-overview`
+- `playerRing: Ring?` — computed iz `gameState.currentPlayerWorld.ring`
+- `activeRingStats: EmpireRingStats?` — computed: `rings.first { $0.ringType == playerRing }?.stats`
+
+#### Ring teksture (Assets.xcassets)
+- `ring_texture_core.imageset` — CORE ring vizual
+- `ring_texture_fringe.imageset` — FRINGE ring vizual
+- `ring_texture_grid.imageset` — GRID ring vizual
+- `ring_texture_nexus.imageset` — NEXUS ring vizual
 
 ---
 
@@ -1615,6 +1674,28 @@ Ključni koncepti za iOS:
 ---
 
 ## CHANGELOG
+
+**2026-05-15 (EmpireOverviewView redesign + MapView pinch-to-zoom + ring textures):**
+
+- **EmpireOverviewView layout redesign** (`Map/EmpireOverviewView.swift`):
+  - Minimap full-width across top (340pt oktagonalni kontejner, centrirano).
+  - Uklonjene desne kartice (Top Syndikats / Active Threats / Allies / Recent Events kolona).
+  - Uklonjeni action buttons ispod mape (Tactical Map / Dispatch / Syndikat).
+  - Dodate 3 stat kartice ispod minimap-a u HStack:
+    - Players in Ring (cyan, `totalPlayersInWorld` iz aktivnog ringa)
+    - Active Rifts (magenta, `totalActiveRings`)
+    - Your Rank (gold, `playerRank` → prikazuje `#N` ili `—`)
+  - Panels sekcija konvertovana u `LazyVGrid(2 kolone)` sa 4 panela (`minHeight: 110`).
+  - `activeRingStats` computed property: `rings.first { $0.ringType == playerRing }?.stats`.
+- **MapScene pinch-to-zoom** (`Map/MapScene.swift`):
+  - Dodat `pinchStartScale: CGFloat` property.
+  - `handlePinch` rewritten: `.began` snima `cam.xScale`, `.changed` primenjuje
+    `pinchStartScale / gesture.scale` clamped na `[minCamScale(1.0), maxCamScale(12.0)]`.
+  - Koristi `min(max(raw, min), max)` umesto `clamped(to:)` koje ne postoji za CGFloat.
+  - `.ended` dismiss (navigate to empire overview) samo na extreme pinch-out (`gesture.scale < 0.5 && cam.xScale >= maxCamScale * 0.85`).
+- **Ring teksture** (Assets.xcassets):
+  - Dodane 4 nove imageset-e: `ring_texture_core`, `ring_texture_fringe`, `ring_texture_grid`, `ring_texture_nexus`.
+  - Koriste se u EmpireOverviewView za vizual prstenova na oktagonalnom minimap-u.
 
 **2026-04-29 (Round 3 review — Swift 6 + lifecycle hardening; CI Xcode 26 fix):**
 

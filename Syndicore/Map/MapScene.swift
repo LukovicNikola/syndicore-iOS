@@ -79,8 +79,9 @@ final class MapScene: SKScene {
     private var boundsMin = CGPoint.zero
     private var boundsMax = CGPoint.zero
 
-    private var pinchGesture: UIPinchGestureRecognizer?
-    private var panGesture:   UIPanGestureRecognizer?
+    private var pinchGesture:    UIPinchGestureRecognizer?
+    private var panGesture:      UIPanGestureRecognizer?
+    private var pinchStartScale: CGFloat = 8.0
 
     // MARK: - Ownership (set by MapView before each loadTiles call)
 
@@ -530,11 +531,28 @@ final class MapScene: SKScene {
     // MARK: - Gestures
 
     @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-        // Zoom is disabled — pinch-out past threshold navigates back to Empire Overview.
-        // gesture.scale is cumulative from gesture start (not reset each frame here).
-        guard gesture.state == .ended else { return }
-        if gesture.scale < 0.7 {
-            onPinchOut?()
+        guard let cam = camera else { return }
+
+        switch gesture.state {
+        case .began:
+            pinchStartScale = cam.xScale
+
+        case .changed:
+            // gesture.scale > 1 = fingers spreading = zoom in = smaller camera scale
+            let raw = pinchStartScale / gesture.scale
+            let clamped = min(max(raw, Self.minCamScale), Self.maxCamScale)
+            cam.setScale(clamped)
+            applyLOD()
+            clampCamera()
+
+        case .ended, .cancelled:
+            // Dismiss back to Empire Overview on extreme pinch-out while already zoomed out
+            if gesture.scale < 0.5 && cam.xScale >= Self.maxCamScale * 0.85 {
+                onPinchOut?()
+            }
+
+        default:
+            break
         }
     }
 
